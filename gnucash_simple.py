@@ -102,6 +102,7 @@ def invoiceToDict(invoice):
 	else:
 		simple_invoice = {}
 		simple_invoice['id'] =  invoice.GetID()
+		simple_invoice['type'] =  invoice.GetType()
 		simple_invoice['date_opened'] =  invoice.GetDateOpened().strftime('%Y-%m-%d')
 		simple_invoice['date_posted'] =  invoice.GetDatePosted().strftime('%Y-%m-%d')
 		simple_invoice['date_due'] =  invoice.GetDateDue().strftime('%Y-%m-%d')
@@ -115,7 +116,8 @@ def invoiceToDict(invoice):
 		simple_invoice['billing_id'] =  invoice.GetBillingID()
 		simple_invoice['to_charge_amount'] = invoice.GetToChargeAmount().to_double()
 		#simple_invoice['bill_to'] =  invoice.GetBillTo()
-		simple_invoice['posted_txn'] =  transactionToDict(invoice.GetPostedTxn())
+		## This causes a segfault for us
+		##simple_invoice['posted_txn'] =  transactionToDict(invoice.GetPostedTxn())
 		#simple_invoice['posted_lot'] =  invoice.GetPostedLot()
 		#simple_invoice['posted_account'] =  invoice.GetPostedAcc()
 		simple_invoice['total'] = invoice.GetTotal().to_double()
@@ -137,7 +139,7 @@ def invoiceToDict(invoice):
 			simple_invoice['entries'][n] = entryToDict(entry)
 		#simple_invoice['entries'] = entryToDict(invoice.GetEntries())
 		#
-		simple_invoice['prices'] = invoice.GetPrices() 
+		#simple_invoice['prices'] = invoice.GetPrices() 
 		#simple_invoice['price'] = invoice.GetPrice() # takes more args
 		simple_invoice['posted'] = invoice.IsPosted()
 		simple_invoice['paid'] = invoice.IsPaid()
