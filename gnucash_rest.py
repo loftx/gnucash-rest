@@ -1,20 +1,12 @@
-<<<<<<< HEAD
 #!/usr/bin/python
 
-=======
->>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
 import gnucash
 import gnucash_simple
 import json
 import atexit
 from flask import Flask, abort, request
-<<<<<<< HEAD
 import sys
 import getopt
-=======
-
-session = gnucash.Session('mysql://user:password@192.168.0.5/gnucash_test', ignore_lock=True)
->>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
 
 app = Flask(__name__)
 app.debug = True
@@ -26,7 +18,6 @@ QOF_COMPARE_GT = 4
 QOF_COMPARE_GTE = 5
 QOF_COMPARE_NEQ = 6
 
-<<<<<<< HEAD
 @app.route('/accounts')
 def api_accounts():
 
@@ -43,10 +34,6 @@ def api_account(guid):
 		abort(404)
 	else:
 		return account 
-=======
-#QOF_STRING_MATCH_NORMAL = 1,
-#QOF_STRING_MATCH_CASEINSENSITIVE = 2
->>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
 
 @app.route('/invoices')
 def api_invoices():
@@ -123,7 +110,6 @@ def getCustomer(book, id):
 	else:
 		return json.dumps(gnucash_simple.customerToDict(customer))
 
-<<<<<<< HEAD
 def getAccounts(book):
 
 	accounts = gnucash_simple.accountToDict(book.get_root_account())
@@ -187,8 +173,6 @@ def getAccountTransactions(book, guid):
 	#return json.dumps(account)
 
 
-=======
->>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
 def getInvoices(book, is_paid, is_active):
 
 	query = gnucash.Query()
@@ -239,13 +223,10 @@ def addMethods():
 	#gnucash.gnucash_core.Query.add_method('qof_query_string_predicate', 'string_predicate')
 	gnucash.gnucash_core.Query.add_method('qof_query_destroy', 'destroy')	
 
-<<<<<<< HEAD
 	## define addition methods for GUID object
 	gnucash.gnucash_core.GUID.add_method('guid_to_string', 'to_string')
 	gnucash.gnucash_core.GUID.add_method('string_to_guid', 'string_to_guid')
 
-=======
->>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
 def shutdown():
 	session.end()
 	session.destroy()
@@ -284,7 +265,6 @@ class QueryInt32Predicate(gnucash.gnucash_core.GnuCashCoreClass):
 
 QueryInt32Predicate.add_constructor_and_methods_with_prefix('qof_query_', 'int32_predicate')
 
-<<<<<<< HEAD
 class GUIDString(gnucash.gnucash_core.GnuCashCoreClass):
     pass
 
@@ -319,14 +299,4 @@ atexit.register(shutdown)
 
 # start flash server
 app.run(host=host)
-=======
-addMethods()
-
-atexit.register(shutdown)
-
-if __name__ == '__main__':
-    app.run(host='192.168.56.101')
-
-#print getInvoices(session.book, None)
->>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
 
