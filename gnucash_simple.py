@@ -132,7 +132,10 @@ def invoiceToDict(invoice):
 		# COME BACK TO ENTRIES
 		#
 
+<<<<<<< HEAD
 		#should this be a list rather than a dict?
+=======
+>>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
 		simple_invoice['entries'] = {}
 		for n, entry in enumerate(invoice.GetEntries()): 
 			if type(entry) != Entry:
@@ -181,6 +184,7 @@ def entryToDict(entry):
 		simple_entry['is_open'] =  entry.IsOpen()
 
 		return simple_entry
+<<<<<<< HEAD
 
 
 def accountToDict(account):
@@ -253,3 +257,5 @@ FROM http://svn.gnucash.org/trac/browser/gnucash/trunk/src/optional/python-bindi
 		'''
 
 		return simple_account
+=======
+>>>>>>> 2dcecbec504a6c4effc15c9b932856cb812b42f3
