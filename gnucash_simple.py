@@ -102,6 +102,7 @@ def invoiceToDict(invoice):
 	else:
 		simple_invoice = {}
 		simple_invoice['id'] =  invoice.GetID()
+		simple_invoice['type'] =  invoice.GetType()
 		simple_invoice['date_opened'] =  invoice.GetDateOpened().strftime('%Y-%m-%d')
 		simple_invoice['date_posted'] =  invoice.GetDatePosted().strftime('%Y-%m-%d')
 		simple_invoice['date_due'] =  invoice.GetDateDue().strftime('%Y-%m-%d')
@@ -115,7 +116,8 @@ def invoiceToDict(invoice):
 		simple_invoice['billing_id'] =  invoice.GetBillingID()
 		simple_invoice['to_charge_amount'] = invoice.GetToChargeAmount().to_double()
 		#simple_invoice['bill_to'] =  invoice.GetBillTo()
-		simple_invoice['posted_txn'] =  transactionToDict(invoice.GetPostedTxn())
+		## This causes a segfault for us
+		##simple_invoice['posted_txn'] =  transactionToDict(invoice.GetPostedTxn())
 		#simple_invoice['posted_lot'] =  invoice.GetPostedLot()
 		#simple_invoice['posted_account'] =  invoice.GetPostedAcc()
 		simple_invoice['total'] = invoice.GetTotal().to_double()
@@ -130,6 +132,7 @@ def invoiceToDict(invoice):
 		# COME BACK TO ENTRIES
 		#
 
+		#should this be a list rather than a dict?
 		simple_invoice['entries'] = {}
 		for n, entry in enumerate(invoice.GetEntries()): 
 			if type(entry) != Entry:
@@ -137,7 +140,7 @@ def invoiceToDict(invoice):
 			simple_invoice['entries'][n] = entryToDict(entry)
 		#simple_invoice['entries'] = entryToDict(invoice.GetEntries())
 		#
-		simple_invoice['prices'] = invoice.GetPrices() 
+		#simple_invoice['prices'] = invoice.GetPrices() 
 		#simple_invoice['price'] = invoice.GetPrice() # takes more args
 		simple_invoice['posted'] = invoice.IsPosted()
 		simple_invoice['paid'] = invoice.IsPaid()
@@ -178,3 +181,75 @@ def entryToDict(entry):
 		simple_entry['is_open'] =  entry.IsOpen()
 
 		return simple_entry
+
+
+def accountToDict(account):
+
+	if account is None:
+		return None
+	else:
+		simple_account = {}
+		simple_account['name'] =  account.GetName()
+		simple_account['guid'] =  account.GetGUID().to_string()
+		simple_account['subaccounts'] =  []
+		for n, subaccount in enumerate(account.get_children_sorted()):
+			simple_account['subaccounts'].append(accountToDict(subaccount))
+
+		#simple_account['commodity'] =  account.GetCommodity()
+		#simple_account['book'] =  account.get_book()
+
+		'''
+
+			    
+                    'Lookup' : Account,
+                    'get_parent' : Account,
+                    'get_root' : Account,
+                    'nth_child' : Account,
+                    'lookup_by_code' : Account,
+                    'lookup_by_name' : Account,
+                    'lookup_by_full_name' : Account,
+                    'FindTransByDesc' : Transaction,
+                    'FindSplitByDesc' : Split,
+                    'GetBalance' : GncNumeric,
+                    'GetClearedBalance' : GncNumeric,
+                    'GetReconciledBalance' : GncNumeric,
+                    'GetPresentBalance' : GncNumeric,
+                    'GetProjectedMinimumBalance' : GncNumeric,
+                    'GetBalanceAsOfDate' : GncNumeric,
+                    'ConvertBalanceToCurrency' : GncNumeric,
+                    'ConvertBalanceToCurrencyAsOfDate' : GncNumeric,
+                    'GetBalanceInCurrency' : GncNumeric,
+                    'GetClearedBalanceInCurrency' : GncNumeric,
+                    'GetReconciledBalanceInCurrency' : GncNumeric,
+                    'GetPresentBalanceInCurrency' : GncNumeric,
+                    'GetProjectedMinimumBalanceInCurrency' : GncNumeric,
+                    'GetBalanceAsOfDateInCurrency' : GncNumeric,
+                    'GetBalanceChangeForPeriod' : GncNumeric,
+                
+           
+
+
+    Account, { 'GetSplitList': Split,
+               'get_children': Account,
+               'get_children_sorted': Account,
+               'get_descendants': Account,
+               'get_descendants_sorted': Account
+
+
+FROM http://svn.gnucash.org/trac/browser/gnucash/trunk/src/optional/python-bindings/example_scripts/gnc_convenience.py
+
+	    split_list=account.GetSplitList()
+	    transaction_list=[]
+	    for split in split_list:
+	        if type(split) != Split:
+	              split = Split(instance=split)
+	        transaction=split.GetParent()
+	        if not (transaction in transaction_list):       # this check may not be necessary.
+	          transaction_list.append(transaction)
+	    return transaction_list
+	
+
+
+		'''
+
+		return simple_account
