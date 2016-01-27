@@ -71,6 +71,10 @@ from gnucash import \
 
 from gnucash import \
     INVOICE_IS_PAID
+   
+from gnucash.gnucash_core_c import \
+    GNC_INVOICE_CUST_INVOICE, \
+    GNC_INVOICE_VEND_INVOICE
 
 app = Flask(__name__)
 #app.debug = True
@@ -1035,8 +1039,9 @@ def getInvoices(book, customer, is_paid, is_active, date_due_from,
                 date_due_to, "%Y-%m-%d").date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
-    # return only invoices (1 = invoices)
-    pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL, 1)
+    # return only invoices
+    pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL,
+        GNC_INVOICE_CUST_INVOICE)
     query.add_term([INVOICE_TYPE], pred_data, QOF_QUERY_AND)
 
     invoices = []
@@ -1111,8 +1116,9 @@ def getGnuCashInvoice(book ,id):
     query.search_for('gncInvoice')
     query.set_book(book)
 
-    # return only invoices (1 = invoices)
-    pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL, 1)
+    # return only invoices
+    pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL,
+        GNC_INVOICE_CUST_INVOICE)
     query.add_term([INVOICE_TYPE], pred_data, QOF_QUERY_AND)
 
     INVOICE_ID = 'id'
