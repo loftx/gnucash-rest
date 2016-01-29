@@ -1,0 +1,58 @@
+<div class="container">
+  <h1>Invoices</h1>
+
+  <form>
+    <fieldset>
+      <!-- <label>Search</label>
+      <input type="text" placeholder="" ng-model="query">
+      <input type="hidden" value="id" ng-init="orderProp='id'" ng-model="orderProp"> -->
+
+      <label>Date from</label>
+      <input type="text" placeholder="" ng-model="date_due_from" ng-change="change()">
+
+      <label>Date to</label>
+      <input type="text" placeholder="" ng-model="date_due_to" ng-change="change()">
+
+      <label>Paid</label>
+      <select ng-model="is_paid" ng-change="change()">
+        <option value=""></option>
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+
+      <label>Active</label>
+      <select ng-model="is_active" ng-change="change()">
+        <option value=""></option>
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+
+    </fieldset>
+  </form>
+
+  <div>
+    <table class="table">
+      <tr>
+        <th>ID</th>
+        <th>Opened</th>
+        <th>Due</th>
+        <th>Customer</th>
+        <th>Posted</th>
+        <th>Total</th>
+        <th>Paid</th>
+      </tr>
+      <tr ng-repeat="invoice in invoices">
+        <td><a href="#/invoices/{{invoice.id}}">{{invoice.id}}</a></td>
+        <td>{{invoice.date_opened}}</a></td>
+        <td>{{invoice.date_due}}</td>
+        <td><a href="#/customers/{{invoice.owner.id}}">{{invoice.owner.name}}</a></td>
+        <td>{{invoice.date_posted}}</td>
+        <td>{{invoice.total}}</td>
+        <td>
+          <span ng-show="invoice.paid">Yes</span>
+          <span ng-show="!invoice.paid">No</span>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

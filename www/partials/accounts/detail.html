@@ -1,0 +1,97 @@
+<div class="container">
+  <h1>{{account.name}}</h1>
+  <div>
+  	<table class="table">
+      <tr>
+        <th>Date</th>
+        <th>Num</th>
+        <th>Description</th>
+        <th>Transfer</th>
+        <th ng-show="account.type_id != 0">Charge</th>
+        <th ng-show="account.type_id != 0">Income</th>
+        <th ng-show="account.type_id == 0">Deposit</th>
+        <th ng-show="account.type_id == 0">Withdrawl</th>
+        <th>Balance</th>
+        <th></th>
+        <th></th>
+      </tr>
+      <tr ng-repeat="split in splits">
+        <td>{{split.transaction.date_posted}}</td>
+        <td>{{split.transaction.num}}</td>
+        <td>{{split.transaction.description}}</td>
+        <td>{{split.other_split.account.name}}</td>
+        <td ng-show="account.type_id != 0">{{split.charge}}</td>
+        <td ng-show="account.type_id != 0">{{split.income}}</td>
+        <td ng-show="account.type_id == 0">{{split.income}}</td>
+        <td ng-show="account.type_id == 0">{{split.charge}}</td>
+        <td>{{split.balance}}</td>
+        <td><a ng-click="populateTransaction(split.transaction.guid)">edit</a></td>
+        <td><a ng-click="deleteTransaction(split.transaction.guid)">delete</a></td>
+      </tr>
+    </table>
+
+    <a role="button" class="btn" ng-click="emptyTransaction()">Add transaction</a>
+
+    <div id="transactionForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h3 id="myModalLabel">{{transactionTitle}}</h3>
+        </div>
+        <div class="modal-body" style="max-height: 800px;">
+
+          <div id="transactionAlert" class="alert  alert-error" style="display: none;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>Error</strong> {{transactionError}}
+          </div>
+
+          <form class="form-horizontal" style="margin: 0px;">
+            <fieldset>
+              <div class="control-group">
+                <label class="control-label" for="transactionDatePosted">Date posted</label>
+                <div class="controls">
+                  <input id="transactionDatePosted" ng-model="transaction.date_posted" name="transactionDatePosted" class="input-xlarge" type="text">
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label" for="transactionNum">Number</label>
+                <div class="controls">
+                  <input id="transactionNum" ng-model="transaction.num" name="transactionNum" class="input-xlarge" type="text">
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label" for="transactionDescription">Description</label>
+                <div class="controls">
+                  <input id="transactionDescription" ng-model="transaction.description" name="transactionDescription" class="input-xlarge" type="text">
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label" for="transactionSplitAccount1">Account</label>
+                <div class="controls">
+                  <select data-ng-model="transaction.splitAccount1" data-ng-options="account.guid as account.name for account in accounts" class="input-xlarge"></select>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label" for="transactionSplitValue1">Amount</label>
+                <div class="controls">
+                  <input id="transactionSplitValue1" ng-model="transaction.splitValue1" name="transactionSplitValue1" class="input-xlarge" type="text">
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+          <button class="btn btn-primary" ng-click="saveTransaction()">Save changes</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

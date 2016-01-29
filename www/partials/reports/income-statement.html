@@ -1,0 +1,55 @@
+<div class="container">
+  <h1>Income statement</h1>
+
+  <div>
+
+    <div class="btn-group" data-toggle="buttons-radio" style="margin-bottom: 20px;">
+      <button type="button" class="btn" ng-repeat="month in months" ng-click="setMonth(month.id)">{{month.name}}</button>
+    </div>
+
+  	<table class="table">
+      <tr>
+        <th>Income</th>
+        <th style="text-align: right;">Total</th>
+      </tr>
+      <tr ng-repeat="account in incomeAccounts">
+        <td style="padding-left: {{account.level*50+8}}px;">{{account.name}}</td>
+        <td ng-bind-html-unsafe="account.total" style="text-align: right;"></td>
+      </tr>
+
+      <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+      
+      <tr>
+        <td>Total Revenue</td>
+        <td ng-bind-html-unsafe="displayIncomeTotal" style="text-align: right;"></td>
+      </tr>
+
+      <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+    
+      <tr>
+        <th>Expenses</th>
+        <th style="text-align: right;">Total</th>
+      </tr>
+      <tr ng-repeat="account in expensesAccounts">
+        <td style="padding-left: {{account.level*50+8}}px;">{{account.name}}</td>
+        <td ng-bind-html-unsafe="account.total" style="text-align: right;"></td>
+      </tr>
+
+      <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+      <tr>
+        <td>Total Expenses</td>
+        <td ng-bind-html-unsafe="displayExpensesTotal" style="text-align: right;"></td>
+      </tr>
+
+      <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+      <tr>
+        <td>Net income for period</td>
+        <td ng-bind-html-unsafe="displayGrandTotal" style="text-align: right;"></td>
+      </tr>
+
+    </table>
+  </div>
+
+</div> <!-- /container -->
