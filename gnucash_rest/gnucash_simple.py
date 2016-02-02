@@ -53,7 +53,7 @@ def vendorToDict(vendor):
         simple_vendor = {}
         simple_vendor['name'] = vendor.GetName()
         simple_vendor['id'] = vendor.GetID()
-        simple_vendor['guid'] = vendor.GetGUID().to_string()
+        simple_vendor['guid'] = gnucash.GUID(instance=vendor.GetGUID()).to_string()
         simple_vendor['notes'] = vendor.GetNotes()
         simple_vendor['active'] = vendor.GetActive()
         simple_vendor['currency'] = vendor.GetCurrency().get_mnemonic()
@@ -71,7 +71,8 @@ def customerToDict(customer):
         simple_customer = {}
         simple_customer['name'] = customer.GetName()
         simple_customer['id'] = customer.GetID()
-        simple_customer['guid'] = customer.GetGUID().to_string()
+        print customer.GetGUID()
+        simple_customer['guid'] = gnucash.GUID(instance=customer.GetGUID()).to_string()
         simple_customer['notes'] = customer.GetNotes()
         simple_customer['active'] = customer.GetActive()
         simple_customer['discount'] = customer.GetDiscount().to_double()
@@ -90,7 +91,7 @@ def transactionToDict(transaction, entities):
         return None
     else:
         simple_transaction = {}
-        simple_transaction['guid'] = transaction.GetGUID().to_string()
+        simple_transaction['guid'] = gnucash.GUID(instance=transaction.GetGUID()).to_string()
         simple_transaction['num'] = transaction.GetNum()
         simple_transaction['notes'] = transaction.GetNotes()
         simple_transaction['is_closing_txn'] = transaction.GetIsClosingTxn()
@@ -131,7 +132,7 @@ def splitToDict(split, entities):
         return None
     else:
         simple_split = {}
-        simple_split['guid'] = split.GetGUID().to_string()
+        simple_split['guid'] = gnucash.GUID(instance=split.GetGUID()).to_string()
         if 'account' in entities:
             simple_split['account'] = accountToDict(split.GetAccount())
         if 'transaction' in entities:
@@ -239,7 +240,7 @@ def entryToDict(entry):
     else:
 
         simple_entry = {}
-        simple_entry['guid'] = entry.GetGUID().to_string()
+        simple_entry['guid'] = gnucash.GUID(instance=entry.GetGUID()).to_string()
         simple_entry['date'] = entry.GetDate().strftime('%Y-%m-%d')
         simple_entry['date_entered'] = entry.GetDateEntered().strftime(
             '%Y-%m-%d')
@@ -286,7 +287,7 @@ def accountToDict(account):
         simple_account['name'] = account.GetName()
         simple_account['type_id'] = account.GetType()
         simple_account['description'] = account.GetDescription()
-        simple_account['guid'] = account.GetGUID().to_string()
+        simple_account['guid'] = gnucash.GUID(instance=account.GetGUID()).to_string()
         if account.GetCommodity() == None:
             simple_account['currency'] = ''
         else:
