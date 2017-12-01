@@ -27,22 +27,22 @@ function AccountDetailCtrl($scope, $routeParams, $http, $route) {
 
 				if ($scope.account.type_id == 0) {
 					if ($scope.splits[split].amount > 0) {
-						$scope.splits[split].income = format_currency($scope.account.type_id, 'GBP', $scope.splits[split].amount);
+						$scope.splits[split].income = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
 						$scope.splits[split].charge = '';
 					} else {
 						$scope.splits[split].income = '';
-						$scope.splits[split].charge = format_currency($scope.account.type_id, 'GBP', -$scope.splits[split].amount);
+						$scope.splits[split].charge = format_currency($scope.account.type_id, $scope.account.currency, -$scope.splits[split].amount);
 					}
 				} else if ($scope.account.type_id != 8) {
-					$scope.splits[split].charge = format_currency(8, 'GBP', $scope.splits[split].amount);
+					$scope.splits[split].charge = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
 					$scope.splits[split].income = '';
 				} else {
-					$scope.splits[split].income = format_currency(8, 'GBP', $scope.splits[split].amount);
+					$scope.splits[split].income = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
 					$scope.splits[split].charge = '';
 				}
 
-				$scope.splits[split].balance = format_currency($scope.account.type_id, 'GBP', $scope.splits[split].balance);
-				$scope.splits[split].amount = format_currency($scope.account.type_id, 'GBP', $scope.splits[split].amount);
+				$scope.splits[split].balance = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].balance);
+				$scope.splits[split].amount = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
 				
 				/*if ($scope.account.type_id == 8) {
 					$scope.splits[split].balance = -($scope.splits[split].balance);
@@ -2221,6 +2221,9 @@ var n = this,
 
 	if (currency == 'GBP') {
 		currencyformat = '£';
+	}else if (currency == 'USD') {
+
+		currencyformat = '$';
 	} else {
 		currencyformat = currency + ' ';
 	}
