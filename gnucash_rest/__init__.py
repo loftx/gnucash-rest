@@ -76,19 +76,72 @@ from gnucash.gnucash_core_c import \
     GNC_INVOICE_CUST_INVOICE, \
     GNC_INVOICE_VEND_INVOICE
 
+# define globals
+session = None
+
+# start application
 app = Flask(__name__)
-#app.debug = True
+
+@app.before_first_request
+def _run_on_start():    
+
+    if app.connection_string != '':
+        is_new = False
+        ignore_lock = False
+        startSession(app.connection_string, is_new, ignore_lock);
+
+    # register method to close gnucash connection gracefully
+    atexit.register(shutdown)
 
 @app.route('/', methods=['GET'])
 def api_root():
     return Response(json.dumps('Gnucash REST API'), status=201,
         mimetype='application/json')
 
+@app.route('/session', methods=['POST', 'DELETE'])
+def api_session():
+
+    if request.method == 'POST':
+
+        connection_string = str(request.form.get('connection_string', ''))
+        is_new = str(request.form.get('is_new', ''))
+        ignore_lock = str(request.form.get('ignore_lock', ''))
+
+        try:
+            # Need to update this to use actual values
+            startSession(connection_string, is_new, ignore_lock)
+        except Error as error:
+            return Response(json.dumps({'errors': [{'type' : error.type,
+                'message': error.message, 'data': error.data}]}), status=400,
+                mimetype='application/json')
+        else:
+            return Response(json.dumps('Session started'), status=201,
+                mimetype='application/json')
+
+    elif request.method == 'DELETE':
+
+        try:
+            endSession()
+        except Error as error:
+            return Response(json.dumps({'errors': [{'type' : error.type,
+                'message': error.message, 'data': error.data}]}), status=400,
+                mimetype='application/json')
+        else:
+            return Response(json.dumps('Session ended'), status=201,
+                mimetype='application/json')
+
+    else:
+        abort(405)
 
 @app.route('/accounts', methods=['GET', 'POST'])
 def api_accounts():
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -114,7 +167,12 @@ def api_accounts():
 @app.route('/accounts/<guid>', methods=['GET'])
 def api_account(guid):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     account = getAccount(session.book, guid)
     
@@ -126,7 +184,12 @@ def api_account(guid):
 @app.route('/accounts/<guid>/splits', methods=['GET'])
 def api_account_splits(guid):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     date_posted_from = request.args.get('date_posted_from', None)
     date_posted_to = request.args.get('date_posted_to', None)
@@ -146,7 +209,12 @@ def api_account_splits(guid):
 @app.route('/transactions', methods=['POST'])
 def api_transactions():
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'POST':
         
@@ -181,7 +249,12 @@ def api_transactions():
 @app.route('/transactions/<guid>', methods=['GET', 'POST', 'DELETE'])
 def api_transaction(guid):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -237,7 +310,12 @@ def api_transaction(guid):
 @app.route('/bills', methods=['GET', 'POST'])
 def api_bills():
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
         
@@ -296,7 +374,12 @@ def api_bills():
 @app.route('/bills/<id>', methods=['GET', 'POST', 'PAY'])
 def api_bill(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -384,7 +467,12 @@ def api_bill(id):
 @app.route('/bills/<id>/entries', methods=['GET', 'POST'])
 def api_bill_entries(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     bill = getBill(session.book, id)
     
@@ -418,7 +506,12 @@ def api_bill_entries(id):
 @app.route('/invoices', methods=['GET', 'POST'])
 def api_invoices():
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
         
@@ -477,7 +570,12 @@ def api_invoices():
 @app.route('/invoices/<id>', methods=['GET', 'POST', 'PAY'])
 def api_invoice(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -564,7 +662,12 @@ def api_invoice(id):
 @app.route('/invoices/<id>/entries', methods=['GET', 'POST'])
 def api_invoice_entries(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     invoice = getInvoice(session.book, id)
     
@@ -599,7 +702,12 @@ def api_invoice_entries(id):
 @app.route('/entries/<guid>', methods=['GET', 'POST', 'DELETE'])
 def api_entry(guid):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     entry = getEntry(session.book, guid)
     
@@ -639,7 +747,12 @@ def api_entry(guid):
 @app.route('/customers', methods=['GET', 'POST'])
 def api_customers():
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
         customers = getCustomers(session.book)
@@ -682,7 +795,12 @@ def api_customers():
 @app.route('/customers/<id>', methods=['GET', 'POST'])
 def api_customer(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -730,7 +848,12 @@ def api_customer(id):
 @app.route('/customers/<id>/invoices', methods=['GET'])
 def api_customer_invoices(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     customer = getCustomer(session.book, id)
     
@@ -745,7 +868,12 @@ def api_customer_invoices(id):
 @app.route('/vendors', methods=['GET', 'POST'])
 def api_vendors():
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
         vendors = getVendors(session.book)
@@ -788,7 +916,12 @@ def api_vendors():
 @app.route('/vendors/<id>', methods=['GET', 'POST'])
 def api_vendor(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -804,7 +937,12 @@ def api_vendor(id):
 @app.route('/vendors/<id>/bills', methods=['GET'])
 def api_vendor_bills(id):
 
-    session = getSession()
+    try:
+        session = getSession()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
 
     vendor = getVendor(session.book, id)
     
@@ -1869,14 +2007,63 @@ def editTransaction(book, transaction_guid, num, description, date_posted,
 
     return gnucash_simple.transactionToDict(transaction, ['splits'])
 
+def startSession(connection_string, is_new, ignore_lock):
+
+    global session
+
+    if connection_string == '':
+        raise Error('InvalidConnectionString', 'A connection string must be supplied',
+            {'field': 'connection_string'})
+
+    if str(is_new).lower() not in ['true', '1', 't', 'y', 'yes'] and str(is_new).lower() not in ['false', '0', 'f', 'n', 'no']:
+        raise Error('InvalidIsNew', 'is_new must be true or false',
+            {'field': 'is_new'})
+
+    if str(ignore_lock).lower() not in ['true', '1', 't', 'y', 'yes'] and str(ignore_lock).lower() not in ['false', '0', 'f', 'n', 'no']:
+        raise Error('InvalidIgnoreLock', 'ignore_lock must be true or false',
+            {'field': 'ignore_lock'})
+
+    if session != None:
+        raise Error('SessionExists',
+            'The session alredy exists',
+            {})
+
+    # will need to fix this
+    session = gnucash.Session(connection_string, is_new=is_new, ignore_lock=ignore_lock)
+
+    return session
+
+def endSession():
+
+    global session
+
+    if session == None:
+        raise Error('SessionDoesNotExist',
+            'The session does not exist',
+            {})
+
+    session.save()
+    session.end()
+    session.destroy()
+
+    session = None
+
 def getSession():
 
     global session
 
     if session == None:
-        session = gnucash.Session(app.connection_string, ignore_lock=True)
+        raise Error('SessionDoesNotExist',
+            'The session does not exist',
+            {})
 
     return session
+
+def shutdown():
+    try:
+      endSession()
+    except: 
+      pass
 
 def gnc_numeric_from_decimal(decimal_value):
     sign, digits, exponent = decimal_value.as_tuple()
@@ -1909,78 +2096,9 @@ def gnc_numeric_from_decimal(decimal_value):
 
     return GncNumeric(numerator, denominator)
 
-def shutdown():
-    if session != None:
-        session.save()
-        session.end()
-        session.destroy()
-        print 'Shutdown'
-
 class Error(Exception):
     """Base class for exceptions in this module."""
     def __init__(self, type, message, data):
         self.type = type
         self.message = message
         self.data = data
-
-session = None
-
-if __name__ == "__main__":
-
-    # try:
-    #     options, arguments = getopt.getopt(sys.argv[1:], 'nh:', ['host=', 'new='])
-    # except getopt.GetoptError as err:
-    #     print str(err) # will print something like "option -a not recognized"
-    #     print 'Usage: python-rest.py <connection string>'
-    #     sys.exit(2)
-
-    # if len(arguments) == 0:
-    #     print 'Usage: python-rest.py <connection string>'
-    #     sys.exit(2)
-
-    #set default host for Flask
-    host = '192.168.56.101'
-
-    # #allow host option to be changed
-    # for option, value in options:
-    #     if option in ("-h", "--host"):
-    #         host = value
-
-    is_new = False
-
-    # # allow a new database to be used
-    # for option, value in options:
-    #     if option in ("-n", "--new"):
-    #         is_new = True
-
-
-    #start gnucash session base on connection string argument
-    # if is_new:
-    #     session = gnucash.Session(arguments[0], is_new=True)
-
-    #     # seem to get errors if we use the session directly, so save it and
-    #     #destroy it so it's no longer new
-
-    #     session.save()
-    #     session.end()
-    #     session.destroy()
-
-    #session = gnucash.Session(
-    #    'mysql://root:EaKxghhMzbfPEaZ6@localhost/gnucash_test',
-    #    ignore_lock=True)
-
-    # register method to close gnucash connection gracefully
-    atexit.register(shutdown)
-
-    app.debug = False
-
-    # log to console
-    if not app.debug:
-        import logging
-        from logging import StreamHandler
-        stream_handler = StreamHandler()
-        stream_handler.setLevel(logging.ERROR)
-        app.logger.addHandler(stream_handler)
-
-    # start Flask server
-    app.run(host=host)
