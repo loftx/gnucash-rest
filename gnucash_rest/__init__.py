@@ -33,12 +33,13 @@ import gnucash_simple
 import json
 import atexit
 from flask import Flask, abort, request, Response, g
-import sys
-import getopt
+import re
 
 # to resolve bug in http://stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime
 import _strptime
 from datetime import datetime
+
+
 
 from decimal import Decimal
 
@@ -88,7 +89,12 @@ def _run_on_start():
     if app.connection_string != '':
         is_new = False
         ignore_lock = False
-        startSession(app.connection_string, is_new, ignore_lock);
+
+        try:
+            startSession(app.connection_string, is_new, ignore_lock);
+        except Error as error:
+            # We can't return a response here as this is run before the first request so no way to alert user to the error?
+            return
 
     # register method to close gnucash connection gracefully
     atexit.register(shutdown)
@@ -108,7 +114,6 @@ def api_session():
         ignore_lock = str(request.form.get('ignore_lock', ''))
 
         try:
-            # Need to update this to use actual values
             startSession(connection_string, is_new, ignore_lock)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
@@ -2011,6 +2016,12 @@ def startSession(connection_string, is_new, ignore_lock):
 
     global session
 
+    # If no parameters are supplied attempt to use the app.connection_string if one exists
+    if connection_string == '' and is_new == '' and  ignore_lock == '' and app.connection_string != '':
+        is_new = False
+        ignore_lock = False
+        connection_string = app.connection_string
+
     if connection_string == '':
         raise Error('InvalidConnectionString', 'A connection string must be supplied',
             {'field': 'connection_string'})
@@ -2028,8 +2039,22 @@ def startSession(connection_string, is_new, ignore_lock):
             'The session alredy exists',
             {})
 
-    # will need to fix this
-    session = gnucash.Session(connection_string, is_new=is_new, ignore_lock=ignore_lock)
+    try:
+        session = gnucash.Session(connection_string, is_new=is_new, ignore_lock=ignore_lock)
+    except gnucash.GnuCashBackendException as e:
+        # Argument is of the form "call to %s resulted in the following errors, %s" - extract the second string
+        message = e.args[0]
+        reresult = re.match(r'^call to (.*?) resulted in the following errors, (.*?)$', message)
+        if len(reresult.groups()) == 2:
+            code = reresult.group(2)
+        else:
+            code = ''
+        raise Error('GnuCashBackendException',
+            'There was an error starting the session',
+            {
+                'message': e.args[0],
+                'code': code
+            })
 
     return session
 
