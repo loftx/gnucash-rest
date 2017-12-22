@@ -113,7 +113,7 @@ def _run_on_start():
         ignore_lock = False
 
         try:
-            startSession(app.connection_string, is_new, ignore_lock);
+            start_session(app.connection_string, is_new, ignore_lock);
         except Error as error:
             # We can't return a response here as this is run before the first request so no way to alert user to the error?
             return
@@ -137,7 +137,7 @@ def api_session():
         ignore_lock = str(request.form.get('ignore_lock', ''))
 
         try:
-            startSession(connection_string, is_new, ignore_lock)
+            start_session(connection_string, is_new, ignore_lock)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
                 'message': error.message, 'data': error.data}]}), status=400,
@@ -165,7 +165,7 @@ def api_session():
 def api_accounts():
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -173,14 +173,14 @@ def api_accounts():
 
     if request.method == 'GET':
 
-        accounts = getAccounts(session.book)
+        accounts = get_accounts(session.book)
 
         return Response(json.dumps(accounts), mimetype='application/json')
 
     elif request.method == 'POST':
 
         try:
-            account = addAccount(session.books)
+            account = add_account(session.books)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
                 'message': error.message, 'data': error.data}]}), status=400,
@@ -196,13 +196,13 @@ def api_accounts():
 def api_account(guid):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
-    account = getAccount(session.book, guid)
+    account = get_account(session.book, guid)
     
     if account is None:
         abort(404)
@@ -213,7 +213,7 @@ def api_account(guid):
 def api_account_splits(guid):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -223,12 +223,12 @@ def api_account_splits(guid):
     date_posted_to = request.args.get('date_posted_to', None)
 
     # check account exists
-    account = getAccount(session.book, guid)
+    account = get_account(session.book, guid)
 
     if account is None:
         abort(404)
 
-    splits = getAccountSplits(session.book, guid, date_posted_from,
+    splits = get_account_splits(session.book, guid, date_posted_from,
         date_posted_to)
     
     return Response(json.dumps(splits), mimetype='application/json')
@@ -238,7 +238,7 @@ def api_account_splits(guid):
 def api_transactions():
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -261,7 +261,7 @@ def api_transactions():
             {'value': splitvalue2, 'account_guid': splitaccount2}]
 
         try:
-            transaction = addTransaction(session.book, num, description,
+            transaction = add_transaction(session.book, num, description,
                 date_posted, currency, splits)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
@@ -278,7 +278,7 @@ def api_transactions():
 def api_transaction(guid):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -286,7 +286,7 @@ def api_transaction(guid):
 
     if request.method == 'GET':
 
-        transaction = getTransaction(session.book, guid)
+        transaction = get_transaction(session.book, guid)
 
         if transaction is None:
             abort(404)
@@ -317,7 +317,7 @@ def api_transaction(guid):
         ]
 
         try:
-            transaction = editTransaction(session.book, guid, num, description,
+            transaction = edit_transaction(session.book, guid, num, description,
                 date_posted, currency, splits)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
@@ -328,7 +328,7 @@ def api_transaction(guid):
 
     elif request.method == 'DELETE':
 
-        deleteTransaction(session.book, guid)
+        delete_transaction(session.book, guid)
 
         return Response('', status=200, mimetype='application/json')
 
@@ -339,7 +339,7 @@ def api_transaction(guid):
 def api_bills():
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -366,7 +366,7 @@ def api_bills():
         else:
             is_active = None
 
-        bills = getBills(session.book, None, is_paid, is_active,
+        bills = get_bills(session.book, None, is_paid, is_active,
             date_opened_from, date_opened_to)
 
         return Response(json.dumps(bills), mimetype='application/json')
@@ -386,7 +386,7 @@ def api_bills():
         notes = str(request.form.get('notes', ''))
 
         try:
-            bill = addBill(session.book, id, vendor_id, currency, date_opened,
+            bill = add_bill(session.book, id, vendor_id, currency, date_opened,
                 notes)
         except Error as error:
             # handle incorrect parameter errors
@@ -403,7 +403,7 @@ def api_bills():
 def api_bill(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -411,7 +411,7 @@ def api_bill(id):
 
     if request.method == 'GET':
 
-        bill = getBill(session.book, id)
+        bill = get_bill(session.book, id)
         
         if bill is None:
             abort(404)
@@ -451,7 +451,7 @@ def api_bill(id):
         else:
             posted_autopay = False
         try:
-            bill = updateBill(session.book, id, vendor_id, currency,
+            bill = update_bill(session.book, id, vendor_id, currency,
                 date_opened, notes, posted, posted_account_guid, posted_date,
                 due_date, posted_memo, posted_accumulatesplits, posted_autopay)
         except Error as error:
@@ -479,7 +479,7 @@ def api_bill(id):
         auto_pay = request.form.get('auto_pay', '')
 
         try:
-            bill = payBill(session.book, id, posted_account_guid,
+            bill = pay_bill(session.book, id, posted_account_guid,
                 transfer_account_guid, payment_date, memo, num, auto_pay)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
@@ -496,13 +496,13 @@ def api_bill(id):
 def api_bill_entries(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
-    bill = getBill(session.book, id)
+    bill = get_bill(session.book, id)
     
     if bill is None:
         abort(404)
@@ -518,7 +518,7 @@ def api_bill_entries(id):
             price = str(request.form.get('price', ''))
 
             try:
-                entry = addBillEntry(session.book, id, date, description,
+                entry = add_bill_entry(session.book, id, date, description,
                     account_guid, quantity, price)
             except Error as error:
                 return Response(json.dumps({'errors': [{'type' : error.type,
@@ -535,7 +535,7 @@ def api_bill_entries(id):
 def api_invoices():
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -562,7 +562,7 @@ def api_invoices():
         else:
             is_active = None
 
-        invoices = getInvoices(session.book, None, is_paid, is_active,
+        invoices = get_invoices(session.book, None, is_paid, is_active,
             date_due_from, date_due_to)
 
         return Response(json.dumps(invoices), mimetype='application/json')
@@ -582,7 +582,7 @@ def api_invoices():
         notes = str(request.form.get('notes', ''))
 
         try:
-            invoice = addInvoice(session.book, id, customer_id, currency,
+            invoice = add_invoice(session.book, id, customer_id, currency,
                 date_opened, notes)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
@@ -599,7 +599,7 @@ def api_invoices():
 def api_invoice(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -607,7 +607,7 @@ def api_invoice(id):
 
     if request.method == 'GET':
 
-        invoice = getInvoice(session.book, id)
+        invoice = get_invoice(session.book, id)
         
         if invoice is None:
             abort(404)
@@ -647,7 +647,7 @@ def api_invoice(id):
         else:
             posted_autopay = False
         try:
-            invoice = updateInvoice(session.book, id, customer_id, currency,
+            invoice = update_invoice(session.book, id, customer_id, currency,
                 date_opened, notes, posted, posted_account_guid, posted_date,
                 due_date, posted_memo, posted_accumulatesplits, posted_autopay)
         except Error as error:
@@ -674,7 +674,7 @@ def api_invoice(id):
         auto_pay = request.form.get('auto_pay', '')
 
         try:
-            invoice = payInvoice(session.book, id, posted_account_guid,
+            invoice = pay_invoice(session.book, id, posted_account_guid,
                 transfer_account_guid, payment_date, memo, num, auto_pay)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
@@ -691,13 +691,13 @@ def api_invoice(id):
 def api_invoice_entries(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
-    invoice = getInvoice(session.book, id)
+    invoice = get_invoice(session.book, id)
     
     if invoice is None:
         abort(404)
@@ -714,7 +714,7 @@ def api_invoice_entries(id):
             price = str(request.form.get('price', ''))
 
             try:
-                entry = addEntry(session.book, id, date, description,
+                entry = add_entry(session.book, id, date, description,
                     account_guid, quantity, price)
             except Error as error:
                 return Response(json.dumps({'errors': [{'type' : error.type,
@@ -731,13 +731,13 @@ def api_invoice_entries(id):
 def api_entry(guid):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
-    entry = getEntry(session.book, guid)
+    entry = get_entry(session.book, guid)
     
     if entry is None:
         abort(404)
@@ -753,7 +753,7 @@ def api_entry(guid):
             price = str(request.form.get('price', ''))
 
             try:
-                entry = updateEntry(session.book, guid, date, description,
+                entry = update_entry(session.book, guid, date, description,
                     account_guid, quantity, price)
             except Error as error:
                 return Response(json.dumps({'errors': [{'type' : error.type,
@@ -765,7 +765,7 @@ def api_entry(guid):
 
         elif request.method == 'DELETE':
 
-            deleteEntry(session.book, guid)
+            delete_entry(session.book, guid)
 
             return Response('', status=201, mimetype='application/json')
 
@@ -776,14 +776,14 @@ def api_entry(guid):
 def api_customers():
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
     if request.method == 'GET':
-        customers = getCustomers(session.book)
+        customers = get_customers(session.book)
         return Response(json.dumps(customers), mimetype='application/json')
     elif request.method == 'POST':
 
@@ -806,7 +806,7 @@ def api_customers():
         email = str(request.form.get('email', ''))
 
         try:
-            customer = addCustomer(session.book, id, currency, name, contact,
+            customer = add_customer(session.book, id, currency, name, contact,
                 address_line_1, address_line_2, address_line_3, address_line_4,
                 phone, fax, email)
         except Error as error:
@@ -824,7 +824,7 @@ def api_customers():
 def api_customer(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -832,7 +832,7 @@ def api_customer(id):
 
     if request.method == 'GET':
 
-        customer = getCustomer(session.book, id)
+        customer = get_customer(session.book, id)
 
         if customer is None:
             abort(404)
@@ -854,7 +854,7 @@ def api_customer(id):
         email = str(request.form.get('email', ''))
 
         try:
-            customer = updateCustomer(session.book, id, name, contact,
+            customer = update_customer(session.book, id, name, contact,
                 address_line_1, address_line_2, address_line_3, address_line_4,
                 phone, fax, email)
         except Error as error:
@@ -877,18 +877,18 @@ def api_customer(id):
 def api_customer_invoices(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
-    customer = getCustomer(session.book, id)
+    customer = get_customer(session.book, id)
     
     if customer is None:
         abort(404)
     
-    invoices = getInvoices(session.book, customer['guid'], None, None, None,
+    invoices = get_invoices(session.book, customer['guid'], None, None, None,
         None)
     
     return Response(json.dumps(invoices), mimetype='application/json')
@@ -897,14 +897,14 @@ def api_customer_invoices(id):
 def api_vendors():
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
     if request.method == 'GET':
-        vendors = getVendors(session.book)
+        vendors = get_vendors(session.book)
         return Response(json.dumps(vendors), mimetype='application/json')
     elif request.method == 'POST':
 
@@ -927,7 +927,7 @@ def api_vendors():
         email = str(request.form.get('email', ''))
 
         try:
-            vendor = addVendor(session.book, id, currency, name, contact,
+            vendor = add_vendor(session.book, id, currency, name, contact,
                 address_line_1, address_line_2, address_line_3, address_line_4,
                 phone, fax, email)
         except Error as error:
@@ -945,7 +945,7 @@ def api_vendors():
 def api_vendor(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
@@ -953,7 +953,7 @@ def api_vendor(id):
 
     if request.method == 'GET':
 
-        vendor = getVendor(session.book, id)
+        vendor = get_vendor(session.book, id)
 
         if vendor is None:
             abort(404)
@@ -966,22 +966,22 @@ def api_vendor(id):
 def api_vendor_bills(id):
 
     try:
-        session = getSession()
+        session = get_session()
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
             'message': error.message, 'data': error.data}]}), status=400,
             mimetype='application/json')
 
-    vendor = getVendor(session.book, id)
+    vendor = get_vendor(session.book, id)
     
     if vendor is None:
         abort(404)
     
-    bills = getBills(session.book, vendor['guid'], None, None, None, None)
+    bills = get_bills(session.book, vendor['guid'], None, None, None, None)
     
     return Response(json.dumps(bills), mimetype='application/json')
 
-def getCustomers(book):
+def get_customers(book):
 
     query = gnucash.Query()
     query.search_for('gncCustomer')
@@ -996,7 +996,7 @@ def getCustomers(book):
 
     return customers
 
-def getCustomer(book, id):
+def get_customer(book, id):
 
     customer = book.CustomerLookupByID(id)
 
@@ -1005,7 +1005,7 @@ def getCustomer(book, id):
     else:
         return gnucash_simple.customerToDict(customer)
 
-def getVendors(book):
+def get_vendors(book):
 
     query = gnucash.Query()
     query.search_for('gncVendor')
@@ -1020,7 +1020,7 @@ def getVendors(book):
 
     return vendors
 
-def getVendor(book, id):
+def get_vendor(book, id):
 
     vendor = book.VendorLookupByID(id)
 
@@ -1029,17 +1029,17 @@ def getVendor(book, id):
     else:
         return gnucash_simple.vendorToDict(vendor)
 
-def getAccounts(book):
+def get_accounts(book):
 
     accounts = gnucash_simple.accountToDict(book.get_root_account())
 
     return accounts
 
-def getAccountsFlat(book):
+def get_accounts_flat(book):
 
     accounts = gnucash_simple.accountToDict(book.get_root_account())
 
-    flat_accounts = getSubAccounts(accounts)
+    flat_accounts = get_sub_accounts(accounts)
 
     for n, account in enumerate(flat_accounts):
         account.pop('subaccounts')
@@ -1055,18 +1055,18 @@ def getAccountsFlat(book):
 
     return filtered_flat_account
 
-def getSubAccounts(account):
+def get_sub_accounts(account):
 
     flat_accounts = []
 
     if 'subaccounts' in account.keys():
         for n, subaccount in enumerate(account['subaccounts']):
             flat_accounts.append(subaccount)
-            flat_accounts = flat_accounts + getSubAccounts(subaccount)
+            flat_accounts = flat_accounts + get_sub_accounts(subaccount)
 
     return flat_accounts
 
-def getAccount(book, guid):
+def get_account(book, guid):
 
     account_guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(guid, account_guid)
@@ -1084,7 +1084,7 @@ def getAccount(book, guid):
         return account
 
 
-def getTransaction(book, guid):
+def get_transaction(book, guid):
 
     transaction_guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(guid, transaction_guid)
@@ -1101,7 +1101,7 @@ def getTransaction(book, guid):
     else:
         return transaction
 
-def getTransactions(book, account_guid, date_posted_from, date_posted_to):
+def get_transactions(book, account_guid, date_posted_from, date_posted_to):
 
     query = gnucash.Query()
 
@@ -1118,7 +1118,7 @@ def getTransactions(book, account_guid, date_posted_from, date_posted_to):
 
     return transactions
 
-def getAccountSplits(book, guid, date_posted_from, date_posted_to):
+def get_account_splits(book, guid, date_posted_from, date_posted_to):
 
     account_guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(guid, account_guid)
@@ -1166,7 +1166,7 @@ def getAccountSplits(book, guid, date_posted_from, date_posted_to):
 
     return splits
 
-def getInvoices(book, customer, is_paid, is_active, date_due_from,
+def get_invoices(book, customer, is_paid, is_active, date_due_from,
     date_due_to):
 
     query = gnucash.Query()
@@ -1220,7 +1220,7 @@ def getInvoices(book, customer, is_paid, is_active, date_due_from,
 
     return invoices
 
-def getBills(book, customer, is_paid, is_active, date_opened_from,
+def get_bills(book, customer, is_paid, is_active, date_opened_from,
     date_opened_to):
 
     query = gnucash.Query()
@@ -1273,7 +1273,7 @@ def getBills(book, customer, is_paid, is_active, date_opened_from,
 
     return bills
 
-def getGnuCashInvoice(book ,id):
+def get_gnucash_invoice(book ,id):
 
     # we don't use book.InvoicelLookupByID(id) as this is identical to
     # book.BillLookupByID(id) so can return the same object if they share IDs
@@ -1302,7 +1302,7 @@ def getGnuCashInvoice(book ,id):
 
     return invoice
 
-def getGnuCashBill(book ,id):
+def get_gnucash_bill(book ,id):
 
     # we don't use book.InvoicelLookupByID(id) as this is identical to
     # book.BillLookupByID(id) so can return the same object if they share IDs
@@ -1330,14 +1330,14 @@ def getGnuCashBill(book ,id):
 
     return bill
 
-def getInvoice(book, id):
+def get_invoice(book, id):
 
-    return gnucash_simple.invoiceToDict(getGnuCashInvoice(book, id))
+    return gnucash_simple.invoiceToDict(get_gnucash_invoice(book, id))
 
-def payInvoice(book, id, posted_account_guid, transfer_account_guid,
+def pay_invoice(book, id, posted_account_guid, transfer_account_guid,
     payment_date, memo, num, auto_pay):
 
-    invoice = getGnuCashInvoice(book, id)
+    invoice = get_gnucash_invoice(book, id)
     
     account_guid2 = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(transfer_account_guid, account_guid2)
@@ -1349,10 +1349,10 @@ def payInvoice(book, id, posted_account_guid, transfer_account_guid,
 
     return gnucash_simple.invoiceToDict(invoice)    
 
-def payBill(book, id, posted_account_guid, transfer_account_guid, payment_date,
+def pay_bill(book, id, posted_account_guid, transfer_account_guid, payment_date,
     memo, num, auto_pay):
 
-    bill = getGnuCashBill(book, id)
+    bill = get_gnucash_bill(book, id)
 
     account_guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(transfer_account_guid, account_guid)
@@ -1366,11 +1366,11 @@ def payBill(book, id, posted_account_guid, transfer_account_guid, payment_date,
 
     return gnucash_simple.billToDict(bill)
 
-def getBill(book, id):
+def get_bill(book, id):
 
-    return gnucash_simple.billToDict(getGnuCashBill(book, id))
+    return gnucash_simple.billToDict(get_gnucash_bill(book, id))
 
-def addVendor(book, id, currency_mnumonic, name, contact, address_line_1,
+def add_vendor(book, id, currency_mnumonic, name, contact, address_line_1,
     address_line_2, address_line_3, address_line_4, phone, fax, email):
 
     if name == '':
@@ -1410,7 +1410,7 @@ def addVendor(book, id, currency_mnumonic, name, contact, address_line_1,
 
     return gnucash_simple.vendorToDict(vendor)
 
-def addCustomer(book, id, currency_mnumonic, name, contact, address_line_1,
+def add_customer(book, id, currency_mnumonic, name, contact, address_line_1,
     address_line_2, address_line_3, address_line_4, phone, fax, email):
 
     if name == '':
@@ -1450,7 +1450,7 @@ def addCustomer(book, id, currency_mnumonic, name, contact, address_line_1,
 
     return gnucash_simple.customerToDict(customer)
 
-def updateCustomer(book, id, name, contact, address_line_1, address_line_2,
+def update_customer(book, id, name, contact, address_line_1, address_line_2,
     address_line_3, address_line_4, phone, fax, email):
 
     customer = book.CustomerLookupByID(id)
@@ -1485,7 +1485,7 @@ def updateCustomer(book, id, name, contact, address_line_1, address_line_2,
 
     return gnucash_simple.customerToDict(customer)
 
-def addInvoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
+def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
     customer = book.CustomerLookupByID(customer_id)
 
@@ -1520,11 +1520,11 @@ def addInvoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
     return gnucash_simple.invoiceToDict(invoice)
 
-def updateInvoice(book, id, customer_id, currency_mnumonic, date_opened,
+def update_invoice(book, id, customer_id, currency_mnumonic, date_opened,
     notes, posted, posted_account_guid, posted_date, due_date, posted_memo,
     posted_accumulatesplits, posted_autopay):
 
-    invoice = getGnuCashInvoice(book, id)
+    invoice = get_gnucash_invoice(book, id)
 
     if invoice is None:
         raise Error('NoInvoice',
@@ -1598,11 +1598,11 @@ def updateInvoice(book, id, customer_id, currency_mnumonic, date_opened,
 
     return gnucash_simple.invoiceToDict(invoice)
 
-def updateBill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
+def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
     posted, posted_account_guid, posted_date, due_date, posted_memo,
     posted_accumulatesplits, posted_autopay):
 
-    bill = getGnuCashBill(book, id)
+    bill = get_gnucash_bill(book, id)
 
     if bill is None:
         raise Error('NoBill', 'A bill with this ID does not exist',
@@ -1675,9 +1675,9 @@ def updateBill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
 
     return gnucash_simple.billToDict(bill)
 
-def addEntry(book, invoice_id, date, description, account_guid, quantity, price):
+def add_entry(book, invoice_id, date, description, account_guid, quantity, price):
 
-    invoice = getGnuCashInvoice(book, invoice_id)
+    invoice = get_gnucash_invoice(book, invoice_id)
 
     if invoice is None:
         raise Error('NoInvoice',
@@ -1720,10 +1720,10 @@ def addEntry(book, invoice_id, date, description, account_guid, quantity, price)
 
     return gnucash_simple.entryToDict(entry)
 
-def addBillEntry(book, bill_id, date, description, account_guid, quantity,
+def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
     price):
 
-    bill = getGnuCashBill(book,bill_id)
+    bill = get_gnucash_bill(book,bill_id)
 
     if bill is None:
         raise Error('NoBill', 'No bill exists with this ID',
@@ -1766,7 +1766,7 @@ def addBillEntry(book, bill_id, date, description, account_guid, quantity,
 
     return gnucash_simple.entryToDict(entry)
 
-def getEntry(book, entry_guid):
+def get_entry(book, entry_guid):
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(entry_guid, guid)
@@ -1778,7 +1778,7 @@ def getEntry(book, entry_guid):
     else:
         return gnucash_simple.entryToDict(entry)
 
-def updateEntry(book, entry_guid, date, description, account_guid, quantity,
+def update_entry(book, entry_guid, date, description, account_guid, quantity,
     price):
 
     guid = gnucash.gnucash_core.GUID() 
@@ -1822,15 +1822,15 @@ def updateEntry(book, entry_guid, date, description, account_guid, quantity,
 
     return gnucash_simple.entryToDict(entry)
 
-def deleteEntry(book, entry_guid):
+def delete_entry(book, entry_guid):
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(entry_guid, guid)
 
     entry = book.EntryLookup(guid)
 
-    invoice = entry.GetInvoice()
-    bill = entry.GetBill()
+    invoice = entry.Get_invoice()
+    bill = entry.Get_bill()
 
     if invoice != None and entry != None:
         invoice.RemoveEntry(entry)
@@ -1840,7 +1840,7 @@ def deleteEntry(book, entry_guid):
     if entry != None:
         entry.Destroy()
 
-def deleteTransaction(book, transaction_guid):
+def delete_transaction(book, transaction_guid):
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(transaction_guid, guid)
@@ -1850,7 +1850,7 @@ def deleteTransaction(book, transaction_guid):
     if transaction != None :
         transaction.Destroy()
 
-def addBill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
+def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 
     vendor = book.VendorLookupByID(vendor_id)
 
@@ -1885,7 +1885,7 @@ def addBill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 
     return gnucash_simple.billToDict(bill)
 
-def addAccount(book, name, currency_mnumonic, account_guid):
+def add_account(book, name, currency_mnumonic, account_guid):
 
     from gnucash.gnucash_core_c import \
     ACCT_TYPE_ASSET, ACCT_TYPE_RECEIVABLE, ACCT_TYPE_INCOME, \
@@ -1907,7 +1907,7 @@ def addAccount(book, name, currency_mnumonic, account_guid):
     account.SetType(ACCT_TYPE_ASSET)
     account.SetCommodity(currency)
 
-def addTransaction(book, num, description, date_posted, currency_mnumonic, splits):
+def add_transaction(book, num, description, date_posted, currency_mnumonic, splits):
 
     transaction = Transaction(book)
 
@@ -1955,7 +1955,7 @@ def addTransaction(book, num, description, date_posted, currency_mnumonic, split
 
     return gnucash_simple.transactionToDict(transaction, ['splits'])
 
-def getTransaction(book, transaction_guid):
+def get_transaction(book, transaction_guid):
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(transaction_guid, guid)
@@ -1967,7 +1967,7 @@ def getTransaction(book, transaction_guid):
     else:
         return gnucash_simple.transactionToDict(transaction, ['splits'])
 
-def editTransaction(book, transaction_guid, num, description, date_posted,
+def edit_transaction(book, transaction_guid, num, description, date_posted,
     currency_mnumonic, splits):
 
     guid = gnucash.gnucash_core.GUID() 
@@ -2035,7 +2035,7 @@ def editTransaction(book, transaction_guid, num, description, date_posted,
 
     return gnucash_simple.transactionToDict(transaction, ['splits'])
 
-def startSession(connection_string, is_new, ignore_lock):
+def start_session(connection_string, is_new, ignore_lock):
 
     global session
 
@@ -2108,7 +2108,7 @@ def end_session():
 
     session = None
 
-def getSession():
+def get_session():
 
     global session
 
