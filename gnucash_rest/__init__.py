@@ -32,6 +32,7 @@ import gnucash
 import gnucash_simple
 import json
 import atexit
+from functools import wraps
 from flask import Flask, abort, request, Response, g
 import re
 
@@ -83,6 +84,27 @@ session = None
 # start application
 app = Flask(__name__)
 
+def check_auth(username, password):
+    app.logger.error(username)
+    app.logger.error(password)
+    return username == 'admin' and password == 'secret'
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
 @app.before_first_request
 def _run_on_start():    
 
@@ -100,6 +122,7 @@ def _run_on_start():
     atexit.register(shutdown)
 
 @app.route('/', methods=['GET'])
+@requires_auth
 def api_root():
     return Response(json.dumps('Gnucash REST API'), status=201,
         mimetype='application/json')
@@ -126,7 +149,7 @@ def api_session():
     elif request.method == 'DELETE':
 
         try:
-            endSession()
+            end_session()
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
                 'message': error.message, 'data': error.data}]}), status=400,
@@ -2042,23 +2065,16 @@ def startSession(connection_string, is_new, ignore_lock):
     try:
         session = gnucash.Session(connection_string, is_new=is_new, ignore_lock=ignore_lock)
     except gnucash.GnuCashBackendException as e:
-        # Argument is of the form "call to %s resulted in the following errors, %s" - extract the second string
-        message = e.args[0]
-        reresult = re.match(r'^call to (.*?) resulted in the following errors, (.*?)$', message)
-        if len(reresult.groups()) == 2:
-            code = reresult.group(2)
-        else:
-            code = ''
         raise Error('GnuCashBackendException',
             'There was an error starting the session',
             {
                 'message': e.args[0],
-                'code': code
+                'code': parse_gnucash_backend_exception(e.args[0])
             })
 
     return session
 
-def endSession():
+def end_session():
 
     global session
 
@@ -2067,7 +2083,26 @@ def endSession():
             'The session does not exist',
             {})
 
-    session.save()
+    # Does the need to be called? Has resulted in:
+    #
+    # File "/usr/local/lib/python2.7/dist-packages/gnucash/gnucash_core.py", line 151, in new_function
+    # self.raise_backend_errors(function.__name__)
+    # File "/usr/local/lib/python2.7/dist-packages/gnucash/gnucash_core.py", line 129, in raise_backend_errors
+    #errors )
+    # GnuCashBackendException: call to new_function resulted in the following errors, ERR_BACKEND_SERVER_ERR
+    #
+    # Ref: https://lists.gnucash.org/pipermail/gnucash-devel/2013-February/034992.html
+
+    try:
+        session.save()
+    except gnucash.GnuCashBackendException as e:
+        raise Error('GnuCashBackendException',
+            'There was an error saving the session',
+            {
+                'message': e.args[0],
+                'code': parse_gnucash_backend_exception(e.args[0])
+            })
+
     session.end()
     session.destroy()
 
@@ -2086,9 +2121,18 @@ def getSession():
 
 def shutdown():
     try:
-      endSession()
+        end_session()
     except: 
-      pass
+        # Errors are ignored as we can't pass them back via the response (could log them though...)
+        pass
+
+def parse_gnucash_backend_exception(exception_string):
+    # Argument is of the form "call to %s resulted in the following errors, %s" - extract the second string
+    reresult = re.match(r'^call to (.*?) resulted in the following errors, (.*?)$', exception_string)
+    if len(reresult.groups()) == 2:
+        return reresult.group(2)
+    else:
+        return ''
 
 def gnc_numeric_from_decimal(decimal_value):
     sign, digits, exponent = decimal_value.as_tuple()
