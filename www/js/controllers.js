@@ -1,73 +1,88 @@
-function AccountListCtrl($scope, $http) {
+function AccountListCtrl($scope, $http, $timeout) {
 	
-	$http.get('/api/accounts').success(function(data) {
-		$scope.accounts = getSubAccounts($http, data, 0);
+	$http.get('/api/accounts')
+		.success(function(data) {
+			$scope.accounts = getSubAccounts($http, data, 0);
 
-		for (var account in $scope.accounts) {
+			for (var account in $scope.accounts) {
 
-			$scope.accounts[account].balance_html = format_currency($scope.accounts[account].type_id, $scope.accounts[account].currency, $scope.accounts[account].balance);
+				$scope.accounts[account].balance_html = format_currency($scope.accounts[account].type_id, $scope.accounts[account].currency, $scope.accounts[account].balance);
 
-			$scope.accounts[account].balance_gbp_html = format_currency($scope.accounts[account].type_id, $scope.accounts[account].currency, $scope.accounts[account].balance_gbp);
+				$scope.accounts[account].balance_gbp_html = format_currency($scope.accounts[account].type_id, $scope.accounts[account].currency, $scope.accounts[account].balance_gbp);
 
-		}
-	});
+			}
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 }
 
-function AccountDetailCtrl($scope, $routeParams, $http, $route) {
-	$http.get('/api/accounts/' + $routeParams.accountGuid).success(function(data) {
-		$scope.account = data;
+function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route) {
+	$http.get('/api/accounts/' + $routeParams.accountGuid)
+		.success(function(data) {
+			$scope.account = data;
 
-		$http.get('/api/accounts/' + $routeParams.accountGuid + '/splits').success(function(data) {
-			$scope.splits = data;
+			$http.get('/api/accounts/' + $routeParams.accountGuid + '/splits').success(function(data) {
+				$scope.splits = data;
 
-			for (var split in $scope.splits) {
+				for (var split in $scope.splits) {
 
-				//console.log($scope.splits[split].amount);
+					//console.log($scope.splits[split].amount);
 
-				if ($scope.account.type_id == 0) {
-					if ($scope.splits[split].amount > 0) {
-						$scope.splits[split].income = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
-						$scope.splits[split].charge = '';
-					} else {
+					if ($scope.account.type_id == 0) {
+						if ($scope.splits[split].amount > 0) {
+							$scope.splits[split].income = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
+							$scope.splits[split].charge = '';
+						} else {
+							$scope.splits[split].income = '';
+							$scope.splits[split].charge = format_currency($scope.account.type_id, $scope.account.currency, -$scope.splits[split].amount);
+						}
+					} else if ($scope.account.type_id != 8) {
+						$scope.splits[split].charge = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
 						$scope.splits[split].income = '';
-						$scope.splits[split].charge = format_currency($scope.account.type_id, $scope.account.currency, -$scope.splits[split].amount);
+					} else {
+						$scope.splits[split].income = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
+						$scope.splits[split].charge = '';
 					}
-				} else if ($scope.account.type_id != 8) {
-					$scope.splits[split].charge = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
-					$scope.splits[split].income = '';
-				} else {
-					$scope.splits[split].income = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
-					$scope.splits[split].charge = '';
+
+					$scope.splits[split].balance = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].balance);
+					$scope.splits[split].amount = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
+					
+					/*if ($scope.account.type_id == 8) {
+						$scope.splits[split].balance = -($scope.splits[split].balance);
+						$scope.splits[split].amount = -($scope.splits[split].amount);
+					}*/
+
+					
 				}
+			});
 
-				$scope.splits[split].balance = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].balance);
-				$scope.splits[split].amount = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
-				
-				/*if ($scope.account.type_id == 8) {
-					$scope.splits[split].balance = -($scope.splits[split].balance);
-					$scope.splits[split].amount = -($scope.splits[split].amount);
-				}*/
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-				
+	$http.get('/api/accounts')
+		.success(function(data) {
+			var accounts = getSubAccounts($http, data, 0);
+			var nonPlaceholderAccounts = [];
+
+			// limit accounts to income accounts and remove placeholder accounts 
+			for (var i in accounts) {
+				if (!accounts[i].placeholder) {
+					nonPlaceholderAccounts.push(accounts[i]);
+				}
 			}
-		});
 
-	});
-
-	$http.get('/api/accounts').success(function(data) {
-		var accounts = getSubAccounts($http, data, 0);
-		var nonPlaceholderAccounts = [];
-
-		// limit accounts to income accounts and remove placeholder accounts 
-		for (var i in accounts) {
-			if (!accounts[i].placeholder) {
-				nonPlaceholderAccounts.push(accounts[i]);
-			}
-		}
-
-		$scope.accounts = nonPlaceholderAccounts;
-	});
+			$scope.accounts = nonPlaceholderAccounts;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	$('#transactionDatePosted').datepicker({
 		'dateFormat': 'yy-mm-dd',
@@ -112,8 +127,6 @@ function AccountDetailCtrl($scope, $routeParams, $http, $route) {
 			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 		}).success(function(data) {
 
-			//console.log(data);
-
 			//$scope.invoice.entries.push(data);
 			$('#transactionForm').modal('hide');
 			$('#transactionAlert').hide();
@@ -157,32 +170,37 @@ function AccountDetailCtrl($scope, $routeParams, $http, $route) {
 
 	$scope.populateTransaction = function(guid) {
 
-		$http.get('/api/transactions/' + guid).success(function(data) {
-			$scope.transactionTitle = 'Edit transaction';
-			$scope.transactionNew = 0;
+		$http.get('/api/transactions/' + guid)
+			.success(function(data) {
+				$scope.transactionTitle = 'Edit transaction';
+				$scope.transactionNew = 0;
 
-			$scope.transaction = data;
+				$scope.transaction = data;
 
-			if ($scope.transaction.splits.length == 2) {
-				if ($scope.transaction.splits[0].account.guid == $routeParams.accountGuid) {
-					$scope.transaction.splitGuid1 = $scope.transaction.splits[1].guid;
-					$scope.transaction.splitAccount1 = $scope.transaction.splits[1].account.guid;
-					$scope.transaction.splitValue1 = $scope.transaction.splits[1].amount;
-					$scope.transaction.splitGuid2 = $scope.transaction.splits[0].guid;
-					$scope.transaction.splitAccount2 = $scope.transaction.splits[0].account.guid;
-					$scope.transaction.splitValue2 = $scope.transaction.splits[0].amount;
-				} else {
-					$scope.transaction.splitGuid1 = $scope.transaction.splits[0].guid;
-					$scope.transaction.splitAccount1 = $scope.transaction.splits[0].account.guid;
-					$scope.transaction.splitValue1 = $scope.transaction.splits[0].amount;
-					$scope.transaction.splitGuid2 = $scope.transaction.splits[1].guid;
-					$scope.transaction.splitAccount2 = $scope.transaction.splits[1].account.guid;
-					$scope.transaction.splitValue2 = $scope.transaction.splits[1].amount;
+				if ($scope.transaction.splits.length == 2) {
+					if ($scope.transaction.splits[0].account.guid == $routeParams.accountGuid) {
+						$scope.transaction.splitGuid1 = $scope.transaction.splits[1].guid;
+						$scope.transaction.splitAccount1 = $scope.transaction.splits[1].account.guid;
+						$scope.transaction.splitValue1 = $scope.transaction.splits[1].amount;
+						$scope.transaction.splitGuid2 = $scope.transaction.splits[0].guid;
+						$scope.transaction.splitAccount2 = $scope.transaction.splits[0].account.guid;
+						$scope.transaction.splitValue2 = $scope.transaction.splits[0].amount;
+					} else {
+						$scope.transaction.splitGuid1 = $scope.transaction.splits[0].guid;
+						$scope.transaction.splitAccount1 = $scope.transaction.splits[0].account.guid;
+						$scope.transaction.splitValue1 = $scope.transaction.splits[0].amount;
+						$scope.transaction.splitGuid2 = $scope.transaction.splits[1].guid;
+						$scope.transaction.splitAccount2 = $scope.transaction.splits[1].account.guid;
+						$scope.transaction.splitValue2 = $scope.transaction.splits[1].amount;
+					}
 				}
-			}
 
-			$('#transactionForm').modal('show');
-		});
+				$('#transactionForm').modal('show');
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;
 
 	}
 
@@ -272,16 +290,15 @@ function AccountDetailCtrl($scope, $routeParams, $http, $route) {
 				}
 			}
 			
-		}).error(function(data, status, headers, config) {
-			console.log(data);
-			console.log(status);
+		}).error(function(data, status) {
+			handleApiErrors($timeout, data, status);
 		});
 
 	}
 
 }
 
-function BillListCtrl($scope, $http) {
+function BillListCtrl($scope, $http, $timeout) {
 
 	$scope.date_opened_from = '';
 	$scope.date_opened_to = '';
@@ -328,13 +345,18 @@ function BillListCtrl($scope, $http) {
 		
 		if (params != lastParams) {
 
-			$http.get('/api/bills' + params).success(function(data) {
-				$scope.bills = data;
+			$http.get('/api/bills' + params)
+				.success(function(data) {
+					$scope.bills = data;
 
-				for (var bill in $scope.bills) {
-					$scope.bills[bill].total = format_currency(8, 'GBP', -$scope.bills[bill].total);
-				}
-			});
+					for (var bill in $scope.bills) {
+						$scope.bills[bill].total = format_currency(8, 'GBP', -$scope.bills[bill].total);
+					}
+				})
+				.error(function(data, status) {
+					handleApiErrors($timeout, data, status);
+				})
+			;
 
 			lastParams = params;
 
@@ -345,7 +367,7 @@ function BillListCtrl($scope, $http) {
 
 }
 
-function InvoiceListCtrl($scope, $http) {
+function InvoiceListCtrl($scope, $http, $timeout) {
 
 	$scope.date_due_from = '';
 	$scope.date_due_to = '';
@@ -392,13 +414,18 @@ function InvoiceListCtrl($scope, $http) {
 		
 		if (params != lastParams) {
 
-			$http.get('/api/invoices' + params).success(function(data) {
-				$scope.invoices = data;
+			$http.get('/api/invoices' + params)
+				.success(function(data) {
+					$scope.invoices = data;
 
-				for (var invoice in $scope.invoices) {
-					$scope.invoices[invoice].total = format_currency(8, 'GBP', -$scope.invoices[invoice].total);
-				}
-			});
+					for (var invoice in $scope.invoices) {
+						$scope.invoices[invoice].total = format_currency(8, 'GBP', -$scope.invoices[invoice].total);
+					}
+				})
+				.error(function(data, status) {
+					handleApiErrors($timeout, data, status);
+				})
+			;
 
 			lastParams = params;
 
@@ -409,44 +436,59 @@ function InvoiceListCtrl($scope, $http) {
 
 }
 
-function InvoiceDetailCtrl($scope, $routeParams, $http) {
+function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 
-	$http.get('/api/customers').success(function(data) {
-		$scope.customers = data;
-	});
+	$http.get('/api/customers')
+		.success(function(data) {
+			$scope.customers = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/accounts').success(function(data) {
-		var accounts = getSubAccounts($http, data, 0);
-		var invoiceAccounts = [];
+	$http.get('/api/accounts')
+		.success(function(data) {
+			var accounts = getSubAccounts($http, data, 0);
+			var invoiceAccounts = [];
 
-		// limit accounts to income accounts and remove placeholder accounts 
-		for (var i in accounts) {
-			if (accounts[i].type_id == 8 && !accounts[i].placeholder) {
-				invoiceAccounts.push(accounts[i]);
+			// limit accounts to income accounts and remove placeholder accounts 
+			for (var i in accounts) {
+				if (accounts[i].type_id == 8 && !accounts[i].placeholder) {
+					invoiceAccounts.push(accounts[i]);
+				}
 			}
-		}
 
-		$scope.accounts = invoiceAccounts;
-	});
+			$scope.accounts = invoiceAccounts;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/invoices/' + $routeParams.invoiceId).success(function(data) {
-		$scope.invoice = data;
+	$http.get('/api/invoices/' + $routeParams.invoiceId)
+		.success(function(data) {
+			$scope.invoice = data;
 
-		$scope.invoice.notes = nl2br($scope.invoice.notes);
-		$scope.invoice.date_opened = dateFormat($scope.invoice.date_opened);
-		$scope.invoice.date_due = dateFormat($scope.invoice.date_due);
+			$scope.invoice.notes = nl2br($scope.invoice.notes);
+			$scope.invoice.date_opened = dateFormat($scope.invoice.date_opened);
+			$scope.invoice.date_due = dateFormat($scope.invoice.date_due);
 
-		for (var entry in $scope.invoice.entries) {
-			$scope.invoice.entries[entry].date = dateFormat($scope.invoice.entries[entry].date);
-			$scope.invoice.entries[entry].total_ex_discount = $scope.invoice.entries[entry].quantity * $scope.invoice.entries[entry].inv_price;
-			// does not take into account discounts - how do these work?
-			$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_ex_discount.formatMoney(2, '.', ',');
-			$scope.invoice.entries[entry].inv_price = $scope.invoice.entries[entry].inv_price.formatMoney(2, '.', ',');
-			$scope.invoice.entries[entry].discount = $scope.invoice.entries[entry].discount.formatMoney(2, '.', ',');
-		}
+			for (var entry in $scope.invoice.entries) {
+				$scope.invoice.entries[entry].date = dateFormat($scope.invoice.entries[entry].date);
+				$scope.invoice.entries[entry].total_ex_discount = $scope.invoice.entries[entry].quantity * $scope.invoice.entries[entry].inv_price;
+				// does not take into account discounts - how do these work?
+				$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_ex_discount.formatMoney(2, '.', ',');
+				$scope.invoice.entries[entry].inv_price = $scope.invoice.entries[entry].inv_price.formatMoney(2, '.', ',');
+				$scope.invoice.entries[entry].discount = $scope.invoice.entries[entry].discount.formatMoney(2, '.', ',');
+			}
 
-		$scope.invoice.total = $scope.invoice.total.formatMoney(2, '.', ',');
-	});
+			$scope.invoice.total = $scope.invoice.total.formatMoney(2, '.', ',');
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	$scope.entry = {};
 	$scope.entry.inv_account = {};
@@ -480,12 +522,17 @@ function InvoiceDetailCtrl($scope, $routeParams, $http) {
 
 	$scope.populateInvoice = function(id) {
 
-		$http.get('/api/invoices/' + id).success(function(data) {
-			$scope.invoiceTitle = 'Edit invoice';
-			//$scope.invoiceNew = 0;
-			$scope.invoice = data;
-			$('#invoiceForm').modal('show');
-		});
+		$http.get('/api/invoices/' + id)
+			.success(function(data) {
+				$scope.invoiceTitle = 'Edit invoice';
+				//$scope.invoiceNew = 0;
+				$scope.invoice = data;
+				$('#invoiceForm').modal('show');
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;
 
 	}
 
@@ -621,21 +668,25 @@ function InvoiceDetailCtrl($scope, $routeParams, $http) {
 				}
 			}
 			
-		}).error(function(data, status, headers, config) {
-			console.log(data);
-			console.log(status);
+		}).error(function(data, status) {
+			handleApiErrors($timeout, data, status);
 		});
 
 	}
 
 	$scope.populateEntry = function(guid) {
 
-		$http.get('/api/entries/' + guid).success(function(data) {
-			$scope.entryTitle = 'Edit entry';
-			$scope.entryNew = 0;
-			$scope.entry = data;
-			$('#entryForm').modal('show');
-		});
+		$http.get('/api/entries/' + guid)
+			.success(function(data) {
+				$scope.entryTitle = 'Edit entry';
+				$scope.entryNew = 0;
+				$scope.entry = data;
+				$('#entryForm').modal('show');
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;
 
 	}
 
@@ -699,44 +750,59 @@ function InvoiceDetailCtrl($scope, $routeParams, $http) {
 
 }
 
-function BillDetailCtrl($scope, $routeParams, $http) {
+function BillDetailCtrl($scope, $routeParams, $http, $timeout) {
 
-	$http.get('/api/vendors').success(function(data) {
-		$scope.vendors = data;
-	});
+	$http.get('/api/vendors')
+		.success(function(data) {
+			$scope.vendors = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/accounts').success(function(data) {
-		var accounts = getSubAccounts($http, data, 0);
-		var billAccounts = [];
+	$http.get('/api/accounts')
+		.success(function(data) {
+			var accounts = getSubAccounts($http, data, 0);
+			var billAccounts = [];
 
-		// limit accounts to income accounts and remove placeholder accounts 
-		for (var i in accounts) {
-			if (accounts[i].type_id == 9 && !accounts[i].placeholder) {
-				billAccounts.push(accounts[i]);
+			// limit accounts to income accounts and remove placeholder accounts 
+			for (var i in accounts) {
+				if (accounts[i].type_id == 9 && !accounts[i].placeholder) {
+					billAccounts.push(accounts[i]);
+				}
 			}
-		}
 
-		$scope.accounts = billAccounts;
-	});
+			$scope.accounts = billAccounts;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/bills/' + $routeParams.billId).success(function(data) {
-		$scope.bill = data;
+	$http.get('/api/bills/' + $routeParams.billId)
+		.success(function(data) {
+			$scope.bill = data;
 
-		$scope.bill.notes = nl2br($scope.bill.notes);
-		$scope.bill.date_opened = dateFormat($scope.bill.date_opened);
-		$scope.bill.date_due = dateFormat($scope.bill.date_due);
+			$scope.bill.notes = nl2br($scope.bill.notes);
+			$scope.bill.date_opened = dateFormat($scope.bill.date_opened);
+			$scope.bill.date_due = dateFormat($scope.bill.date_due);
 
-		for (var entry in $scope.bill.entries) {
-			$scope.bill.entries[entry].date = dateFormat($scope.bill.entries[entry].date);
-			$scope.bill.entries[entry].total_ex_discount = $scope.bill.entries[entry].quantity * $scope.bill.entries[entry].bill_price;
-			// does not take into account discounts - how do these work?
-			$scope.bill.entries[entry].total_inc_discount = $scope.bill.entries[entry].total_ex_discount.formatMoney(2, '.', ',');
-			$scope.bill.entries[entry].bill_price = $scope.bill.entries[entry].bill_price.formatMoney(2, '.', ',');
-			$scope.bill.entries[entry].discount = $scope.bill.entries[entry].discount.formatMoney(2, '.', ',');
-		}
+			for (var entry in $scope.bill.entries) {
+				$scope.bill.entries[entry].date = dateFormat($scope.bill.entries[entry].date);
+				$scope.bill.entries[entry].total_ex_discount = $scope.bill.entries[entry].quantity * $scope.bill.entries[entry].bill_price;
+				// does not take into account discounts - how do these work?
+				$scope.bill.entries[entry].total_inc_discount = $scope.bill.entries[entry].total_ex_discount.formatMoney(2, '.', ',');
+				$scope.bill.entries[entry].bill_price = $scope.bill.entries[entry].bill_price.formatMoney(2, '.', ',');
+				$scope.bill.entries[entry].discount = $scope.bill.entries[entry].discount.formatMoney(2, '.', ',');
+			}
 
-		$scope.bill.total = $scope.bill.total.formatMoney(2, '.', ',');
-	});
+			$scope.bill.total = $scope.bill.total.formatMoney(2, '.', ',');
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	$scope.entry = {};
 	$scope.entry.bill_account = {};
@@ -770,12 +836,17 @@ function BillDetailCtrl($scope, $routeParams, $http) {
 
 	$scope.populateBill = function(id) {
 
-		$http.get('/api/bills/' + id).success(function(data) {
-			$scope.invoiceTitle = 'Edit bill';
-			//$scope.billNew = 0;
-			$scope.bill = data;
-			$('#billForm').modal('show');
-		});
+		$http.get('/api/bills/' + id)
+			.success(function(data) {
+				$scope.invoiceTitle = 'Edit bill';
+				//$scope.billNew = 0;
+				$scope.bill = data;
+				$('#billForm').modal('show');
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;
 
 	}
 
@@ -920,12 +991,17 @@ function BillDetailCtrl($scope, $routeParams, $http) {
 
 	$scope.populateEntry = function(guid) {
 
-		$http.get('/api/entries/' + guid).success(function(data) {
-			$scope.entryTitle = 'Edit entry';
-			$scope.entryNew = 0;
-			$scope.entry = data;
-			$('#entryForm').modal('show');
-		});
+		$http.get('/api/entries/' + guid)
+			.success(function(data) {
+				$scope.entryTitle = 'Edit entry';
+				$scope.entryNew = 0;
+				$scope.entry = data;
+				$('#entryForm').modal('show');
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;
 
 	}
 
@@ -1003,11 +1079,16 @@ function dateFormat(str) {
 	}
 }
 
-function VendorListCtrl($scope, $http) {
+function VendorListCtrl($scope, $http, $timeout) {
 
-	$http.get('/api/vendors').success(function(data) {
-		$scope.vendors = data;
-	});
+	$http.get('/api/vendors')
+		.success(function(data) {
+			$scope.vendors = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	$scope.orderProp = "id";
 
@@ -1181,49 +1262,68 @@ function VendorListCtrl($scope, $http) {
 
 }
 
-function VendorDetailCtrl($scope, $routeParams, $http) {
+function VendorDetailCtrl($scope, $routeParams, $http, $timeout) {
 
-	$http.get('/api/vendors/' + $routeParams.vendorId).success(function(data) {
-		$scope.vendor = data;
-	});
+	$http.get('/api/vendors/' + $routeParams.vendorId)
+		.success(function(data) {
+			$scope.vendor = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/vendors/' + $routeParams.vendorId + '/bills').success(function(data) {
-		$scope.bills = data;
-	});
+	$http.get('/api/vendors/' + $routeParams.vendorId + '/bills')
+		.success(function(data) {
+			$scope.bills = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/vendors').success(function(data) {
-		$scope.vendors = data;
-	});
+	$http.get('/api/vendors')
+		.success(function(data) {
+			$scope.vendors = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/accounts').success(function(data) {
-		var accounts = getSubAccounts($http, data, 0);
-		var billAccounts = [];
+	$http.get('/api/accounts')
+		.success(function(data) {
+			var accounts = getSubAccounts($http, data, 0);
+			var billAccounts = [];
 
-		// limit accounts to asset accounts and remove placeholder accounts 
-		for (var i in accounts) {
-			if (accounts[i].type_id == 12 && !accounts[i].placeholder) {
-				billAccounts.push(accounts[i]);
+			// limit accounts to asset accounts and remove placeholder accounts 
+			for (var i in accounts) {
+				if (accounts[i].type_id == 12 && !accounts[i].placeholder) {
+					billAccounts.push(accounts[i]);
+				}
 			}
-		}
 
-		$scope.accounts = billAccounts;
+			$scope.accounts = billAccounts;
 
-		$scope.transferAccounts = [];
+			$scope.transferAccounts = [];
 
-		// limit accounts to asset accounts and remove placeholder accounts 
-		for (var i in accounts) {
-			if (accounts[i].type_id == 2
-				|| accounts[i].type_id == 1
-				|| accounts[i].type_id == 0
-				|| accounts[i].type_id == 4
-				|| accounts[i].type_id == 3
-			) {
-			//if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
-				$scope.transferAccounts.push(accounts[i]);
+			// limit accounts to asset accounts and remove placeholder accounts 
+			for (var i in accounts) {
+				if (accounts[i].type_id == 2
+					|| accounts[i].type_id == 1
+					|| accounts[i].type_id == 0
+					|| accounts[i].type_id == 4
+					|| accounts[i].type_id == 3
+				) {
+				//if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
+					$scope.transferAccounts.push(accounts[i]);
+				}
 			}
-		}
-
-	});
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	$scope.orderProp = "id";
 
@@ -1325,57 +1425,62 @@ function VendorDetailCtrl($scope, $routeParams, $http) {
 
 	$scope.postBill = function(id) {
 
-		$http.get('/api/bills/' + $scope.bill.id).success(function(data) {
+		$http.get('/api/bills/' + $scope.bill.id)
+			.success(function(data) {
 
-			var data = {
-				vendor_id: data.owner.id,
-				currency: data.currency,
-				date_opened: data.date_opened,
-				notes: data.notes,
-				posted: 1,
-				posted_account_guid: $scope.bill.posted_account,
-				posted_date: $scope.bill.date_posted,
-				due_date: $scope.bill.date_due,
-				posted_memo: $scope.bill.posted_memo,
-				posted_accumulatesplits: $scope.bill.posted_accumulatesplits, // this is True but should be 1
-				posted_autopay: 0
-			};
+				var data = {
+					vendor_id: data.owner.id,
+					currency: data.currency,
+					date_opened: data.date_opened,
+					notes: data.notes,
+					posted: 1,
+					posted_account_guid: $scope.bill.posted_account,
+					posted_date: $scope.bill.date_posted,
+					due_date: $scope.bill.date_due,
+					posted_memo: $scope.bill.posted_memo,
+					posted_accumulatesplits: $scope.bill.posted_accumulatesplits, // this is True but should be 1
+					posted_autopay: 0
+				};
 
-			$http({
-				method: 'POST',
-				url: '/api/bills/' + $scope.bill.id,
-				transformRequest: function(obj) {
-					var str = [];
-					for(var p in obj)
-					str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-					return str.join("&");
-				},
-				data: data,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-			}).success(function(data) {
+				$http({
+					method: 'POST',
+					url: '/api/bills/' + $scope.bill.id,
+					transformRequest: function(obj) {
+						var str = [];
+						for(var p in obj)
+						str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+						return str.join("&");
+					},
+					data: data,
+					headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+				}).success(function(data) {
 
-				$('#billPostForm').modal('hide');
-				$('#billPostAlert').hide();
+					$('#billPostForm').modal('hide');
+					$('#billPostAlert').hide();
 
-				$scope.bill = data;
+					$scope.bill = data;
 
-				for (var i in $scope.bills) {
-					if ($scope.bills[i].id == $scope.bill.id) {
-						$scope.bills[i] = $scope.bill;
+					for (var i in $scope.bills) {
+						if ($scope.bills[i].id == $scope.bill.id) {
+							$scope.bills[i] = $scope.bill;
+						}
 					}
-				}
-	
-			}).error(function(data, status, headers, config) {
-				if(typeof data.errors != 'undefined') {
-					$('#billPostAlert').show();
-					$scope.billError = data.errors[0].message;
-				} else {
-					console.log(data);
-					console.log(status);	
-				}
-			});
-	
-		});	
+		
+				}).error(function(data, status, headers, config) {
+					if(typeof data.errors != 'undefined') {
+						$('#billPostAlert').show();
+						$scope.billError = data.errors[0].message;
+					} else {
+						console.log(data);
+						console.log(status);	
+					}
+				});
+		
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;	
 
 	}
 
@@ -1533,11 +1638,16 @@ function VendorDetailCtrl($scope, $routeParams, $http) {
 
 }
 
-function CustomerListCtrl($scope, $http) {
+function CustomerListCtrl($scope, $http, $timeout) {
 	
-	$http.get('/api/customers').success(function(data) {
-		$scope.customers = data;
-	});
+	$http.get('/api/customers')
+		.success(function(data) {
+			$scope.customers = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	$scope.orderProp = "id";
 
@@ -1641,12 +1751,17 @@ function CustomerListCtrl($scope, $http) {
 
 	$scope.populateCustomer = function(id) {
 
-		$http.get('/api/customers/' + id).success(function(data) {
-			$scope.customerTitle = 'Edit customer';
-			$scope.customerNew = 0;
-			$scope.customer = data;
-			$('#customerForm').modal('show');
-		});
+		$http.get('/api/customers/' + id)
+			.success(function(data) {
+				$scope.customerTitle = 'Edit customer';
+				$scope.customerNew = 0;
+				$scope.customer = data;
+				$('#customerForm').modal('show');
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;
 
 	}
 
@@ -1710,49 +1825,68 @@ function CustomerListCtrl($scope, $http) {
 	}
 }
 
-function CustomerDetailCtrl($scope, $routeParams, $http) {
-	$http.get('/api/customers/' + $routeParams.customerId).success(function(data) {
-		$scope.customer = data;
-	});
+function CustomerDetailCtrl($scope, $routeParams, $http, $timeout) {
+	$http.get('/api/customers/' + $routeParams.customerId)
+		.success(function(data) {
+			$scope.customer = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/customers/' + $routeParams.customerId + '/invoices').success(function(data) {
-		$scope.invoices = data;
-	});
+	$http.get('/api/customers/' + $routeParams.customerId + '/invoices')
+		.success(function(data) {
+			$scope.invoices = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/customers').success(function(data) {
-		$scope.customers = data;
-	});
+	$http.get('/api/customers')
+		.success(function(data) {
+			$scope.customers = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
-	$http.get('/api/accounts').success(function(data) {
-		var accounts = getSubAccounts($http, data, 0);
-		var invoiceAccounts = [];
+	$http.get('/api/accounts')
+		.success(function(data) {
+			var accounts = getSubAccounts($http, data, 0);
+			var invoiceAccounts = [];
 
-		// limit accounts to asset accounts and remove placeholder accounts 
-		for (var i in accounts) {
-			if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
-				invoiceAccounts.push(accounts[i]);
+			// limit accounts to asset accounts and remove placeholder accounts 
+			for (var i in accounts) {
+				if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
+					invoiceAccounts.push(accounts[i]);
+				}
 			}
-		}
 
-		$scope.accounts = invoiceAccounts;
+			$scope.accounts = invoiceAccounts;
 
-		$scope.transferAccounts = [];
+			$scope.transferAccounts = [];
 
-		// limit accounts to asset accounts and remove placeholder accounts 
-		for (var i in accounts) {
-			if (accounts[i].type_id == 2
-				|| accounts[i].type_id == 1
-				|| accounts[i].type_id == 0
-				|| accounts[i].type_id == 4
-				|| accounts[i].type_id == 3
-			) {
-			//if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
-				//console.log(accounts[i].type_id + ' ' + accounts[i].name)
-				$scope.transferAccounts.push(accounts[i]);
+			// limit accounts to asset accounts and remove placeholder accounts 
+			for (var i in accounts) {
+				if (accounts[i].type_id == 2
+					|| accounts[i].type_id == 1
+					|| accounts[i].type_id == 0
+					|| accounts[i].type_id == 4
+					|| accounts[i].type_id == 3
+				) {
+				//if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
+					//console.log(accounts[i].type_id + ' ' + accounts[i].name)
+					$scope.transferAccounts.push(accounts[i]);
+				}
 			}
-		}
-
-	});
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	$scope.orderProp = "id";
 
@@ -1854,57 +1988,62 @@ function CustomerDetailCtrl($scope, $routeParams, $http) {
 
 	$scope.postInvoice = function(id) {
 
-		$http.get('/api/invoices/' + $scope.invoice.id).success(function(data) {
+		$http.get('/api/invoices/' + $scope.invoice.id)
+			.success(function(data) {
 
-			var data = {
-				customer_id: data.owner.id,
-				currency: data.currency,
-				date_opened: data.date_opened,
-				notes: data.notes,
-				posted: 1,
-				posted_account_guid: $scope.invoice.posted_account,
-				posted_date: $scope.invoice.date_posted,
-				due_date: $scope.invoice.date_due,
-				posted_memo: $scope.invoice.posted_memo,
-				posted_accumulatesplits: $scope.invoice.posted_accumulatesplits, // this is True but should be 1
-				posted_autopay: 0
-			};
+				var data = {
+					customer_id: data.owner.id,
+					currency: data.currency,
+					date_opened: data.date_opened,
+					notes: data.notes,
+					posted: 1,
+					posted_account_guid: $scope.invoice.posted_account,
+					posted_date: $scope.invoice.date_posted,
+					due_date: $scope.invoice.date_due,
+					posted_memo: $scope.invoice.posted_memo,
+					posted_accumulatesplits: $scope.invoice.posted_accumulatesplits, // this is True but should be 1
+					posted_autopay: 0
+				};
 
-			$http({
-				method: 'POST',
-				url: '/api/invoices/' + $scope.invoice.id,
-				transformRequest: function(obj) {
-					var str = [];
-					for(var p in obj)
-					str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-					return str.join("&");
-				},
-				data: data,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-			}).success(function(data) {
+				$http({
+					method: 'POST',
+					url: '/api/invoices/' + $scope.invoice.id,
+					transformRequest: function(obj) {
+						var str = [];
+						for(var p in obj)
+						str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+						return str.join("&");
+					},
+					data: data,
+					headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+				}).success(function(data) {
 
-				$('#invoicePostForm').modal('hide');
-				$('#invoicePostAlert').hide();
+					$('#invoicePostForm').modal('hide');
+					$('#invoicePostAlert').hide();
 
-				$scope.invoice = data;
-			
-				for (var i in $scope.invoices) {
-					if ($scope.invoices[i].id == $scope.invoice.id) {
-						$scope.invoices[i] = $scope.invoice;
-					}
-				}
+					$scope.invoice = data;
 				
-			}).error(function(data, status, headers, config) {
-				if(typeof data.errors != 'undefined') {
-					$('#invoicePostAlert').show();
-					$scope.invoiceError = data.errors[0].message;
-				} else {
-					console.log(data);
-					console.log(status);	
-				}
-			});
-	
-		});	
+					for (var i in $scope.invoices) {
+						if ($scope.invoices[i].id == $scope.invoice.id) {
+							$scope.invoices[i] = $scope.invoice;
+						}
+					}
+					
+				}).error(function(data, status, headers, config) {
+					if(typeof data.errors != 'undefined') {
+						$('#invoicePostAlert').show();
+						$scope.invoiceError = data.errors[0].message;
+					} else {
+						console.log(data);
+						console.log(status);	
+					}
+				});
+		
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;	
 
 	}
 
@@ -1994,12 +2133,17 @@ function CustomerDetailCtrl($scope, $routeParams, $http) {
 
 	$scope.populateCustomer = function(id) {
 
-		$http.get('/api/customers/' + id).success(function(data) {
-			$scope.customerTitle = 'Edit customer';
-			$scope.customerNew = 0;
-			$scope.customer = data;
-			$('#customerForm').modal('show');
-		});
+		$http.get('/api/customers/' + id)
+			.success(function(data) {
+				$scope.customerTitle = 'Edit customer';
+				$scope.customerNew = 0;
+				$scope.customer = data;
+				$('#customerForm').modal('show');
+			})
+			.error(function(data, status) {
+				handleApiErrors($timeout, data, status);
+			})
+		;
 
 	}
 
@@ -2064,7 +2208,7 @@ function CustomerDetailCtrl($scope, $routeParams, $http) {
 
 }
 
-function ReportIncomeStatementCtrl($scope, $http) {
+function ReportIncomeStatementCtrl($scope, $http, $timeout) {
 
 	var monthNames = [ "January", "February", "March", "April", "May", "June",
 	"July", "August", "September", "October", "November", "December" ];
@@ -2093,20 +2237,25 @@ function ReportIncomeStatementCtrl($scope, $http) {
 
 	//console.log($scope.currentMonth);
 
-	$http.get('/api/accounts/' + 'b5d821ef2a71ab2af3f252bddc28df2d' + '/splits?date_posted_from=' + '2014-10-01' + '&date_posted_to=' + '2014-11-01', {'account_id': 'b5d821ef2a71ab2af3f252bddc28df2d'}).success(function(data, status, headers, config) {
-		var accountAmount = 0;
-		for (var split in data) {
-			console.log(data[split].transaction.num + ' ');
-			console.log(data[split]);
-			//accountAmount = accountAmount + data[split].amount;
-		
-		}
-		// $scope.incomeAccounts[config.account_id].total = format_currency($scope.incomeAccounts[config.account_id].type_id, $scope.incomeAccounts[config.account_id].currency, accountAmount);
-		// $scope.incomeTotal =  $scope.incomeTotal + accountAmount;
-		// $scope.displayIncomeTotal = format_currency(8, 'GBP', $scope.incomeTotal);
-		// $scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
-		// $scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
-	});
+	$http.get('/api/accounts/' + 'b5d821ef2a71ab2af3f252bddc28df2d' + '/splits?date_posted_from=' + '2014-10-01' + '&date_posted_to=' + '2014-11-01', {'account_id': 'b5d821ef2a71ab2af3f252bddc28df2d'})
+		.success(function(data, status, headers, config) {
+			var accountAmount = 0;
+			for (var split in data) {
+				console.log(data[split].transaction.num + ' ');
+				console.log(data[split]);
+				//accountAmount = accountAmount + data[split].amount;
+			
+			}
+			// $scope.incomeAccounts[config.account_id].total = format_currency($scope.incomeAccounts[config.account_id].type_id, $scope.incomeAccounts[config.account_id].currency, accountAmount);
+			// $scope.incomeTotal =  $scope.incomeTotal + accountAmount;
+			// $scope.displayIncomeTotal = format_currency(8, 'GBP', $scope.incomeTotal);
+			// $scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
+			// $scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 	generateIncomeAccounts($scope, $http);
 
@@ -2117,7 +2266,7 @@ function pad(number) {
 	return number;
 }
 
-function generateIncomeAccounts($scope, $http) {
+function generateIncomeAccounts($scope, $http, $timeout) {
 
 	$scope.incomeTotal = 0;
 	$scope.displayIncomeTotal = '';
@@ -2128,62 +2277,87 @@ function generateIncomeAccounts($scope, $http) {
 	$scope.grandTotal = 0;
 	$scope.displayGrandTotal = '';
 
-	$http.get('/api/accounts').success(function(data) {
-		var accounts = getSubAccounts($http, data, 0);
+	$http.get('/api/accounts')
+		.success(function(data) {
+			var accounts = getSubAccounts($http, data, 0);
 
-		var incomeAccounts = [];
-		var expensesAccounts = [];
+			var incomeAccounts = [];
+			var expensesAccounts = [];
 
-		for (var account in accounts) {
-			// would it be good if there was a way of returning flat accounts by type?
-			if (accounts[account].type_id == 8 && accounts[account].level == 0) {
-				incomeAccounts.push(accounts[account]);
-			} else if (accounts[account].type_id == 9 && accounts[account].level == 0) {
-				expensesAccounts.push(accounts[account]);
+			for (var account in accounts) {
+				// would it be good if there was a way of returning flat accounts by type?
+				if (accounts[account].type_id == 8 && accounts[account].level == 0) {
+					incomeAccounts.push(accounts[account]);
+				} else if (accounts[account].type_id == 9 && accounts[account].level == 0) {
+					expensesAccounts.push(accounts[account]);
+				}
 			}
-		}
 
-		$http.get('/api/accounts/' + incomeAccounts[0].guid).success(function(data) {
-		$scope.incomeAccounts = getSubAccounts($http, data, 0);		
-			for (var account in $scope.incomeAccounts) {
-				$http.get('/api/accounts/' + $scope.incomeAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account}).success(function(data, status, headers, config) {
-					var accountAmount = 0;
-					for (var split in data) {
-						accountAmount = accountAmount + data[split].amount;
-					
-					}
-					$scope.incomeAccounts[config.account_id].total = format_currency($scope.incomeAccounts[config.account_id].type_id, $scope.incomeAccounts[config.account_id].currency, accountAmount);
-					$scope.incomeTotal =  $scope.incomeTotal + accountAmount;
-					$scope.displayIncomeTotal = format_currency(8, 'GBP', $scope.incomeTotal);
-					$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
-					$scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
-				});
-			}	
-		});
+			$http.get('/api/accounts/' + incomeAccounts[0].guid)
+				.success(function(data) {
+					$scope.incomeAccounts = getSubAccounts($http, data, 0);		
+					for (var account in $scope.incomeAccounts) {
+						$http.get('/api/accounts/' + $scope.incomeAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account})
+							.success(function(data, status, headers, config) {
+								var accountAmount = 0;
+								for (var split in data) {
+									accountAmount = accountAmount + data[split].amount;
+								
+								}
+								$scope.incomeAccounts[config.account_id].total = format_currency($scope.incomeAccounts[config.account_id].type_id, $scope.incomeAccounts[config.account_id].currency, accountAmount);
+								$scope.incomeTotal =  $scope.incomeTotal + accountAmount;
+								$scope.displayIncomeTotal = format_currency(8, 'GBP', $scope.incomeTotal);
+								$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
+								$scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
+							})
+							.error(function(data, status) {
+								handleApiErrors($timeout, data, status);
+							})
+						;
+					}	
+				})
+				.error(function(data, status) {
+					handleApiErrors($timeout, data, status);
+				})
+			;
 
-		$http.get('/api/accounts/' + expensesAccounts[0].guid).success(function(data) {
-			$scope.expensesAccounts = getSubAccounts($http, data, 0);		
-			for (var account in $scope.expensesAccounts) {
-				$http.get('/api/accounts/' + $scope.expensesAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account}).success(function(data, status, headers, config) {
-					var accountAmount = 0;
-					for (var split in data) {
-						accountAmount = accountAmount + data[split].amount;
-					
-					}
-					$scope.expensesAccounts[config.account_id].total = format_currency($scope.expensesAccounts[config.account_id].type_id, $scope.expensesAccounts[config.account_id].currency, accountAmount);
-					$scope.expensesTotal =  $scope.expensesTotal + accountAmount;
-					$scope.displayExpensesTotal = format_currency(0, 'GBP', $scope.expensesTotal);
-					$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
-					$scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
-				});
-			}	
-		});
+			$http.get('/api/accounts/' + expensesAccounts[0].guid)
+				.success(function(data) {
+					$scope.expensesAccounts = getSubAccounts($http, data, 0);		
+					for (var account in $scope.expensesAccounts) {
+						$http.get('/api/accounts/' + $scope.expensesAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account})
+							.success(function(data, status, headers, config) {
+								var accountAmount = 0;
+								for (var split in data) {
+									accountAmount = accountAmount + data[split].amount;
+								
+								}
+								$scope.expensesAccounts[config.account_id].total = format_currency($scope.expensesAccounts[config.account_id].type_id, $scope.expensesAccounts[config.account_id].currency, accountAmount);
+								$scope.expensesTotal =  $scope.expensesTotal + accountAmount;
+								$scope.displayExpensesTotal = format_currency(0, 'GBP', $scope.expensesTotal);
+								$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
+								$scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
+							})
+							.error(function(data, status) {
+								handleApiErrors($timeout, data, status);
+							})
+						;
+					}	
+				})
+				.error(function(data, status) {
+					handleApiErrors($timeout, data, status);
+				})
+			;
 
-	});
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
 
 }
 
-function getSubAccounts($http, data, level) {
+function getSubAccounts($http, $timeout, data, level) {
 
 	var flatAccounts = [];
 
@@ -2198,6 +2372,19 @@ function getSubAccounts($http, data, level) {
 	}
 
 	return flatAccounts;
+}
+
+// this is not very angulary - should be injected as an errors/gnucash object
+function handleApiErrors($timeout, data, status) {
+	if (status == 400 && typeof data != 'undefined') {
+		if (data.errors[0] != 'undefined') {
+			// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
+			// need to define timeout
+			$timeout(function(){
+				alert(data.errors[0].message);
+			});
+		}
+	}
 }
 
 Number.prototype.formatMoney = function(c, d, t){
