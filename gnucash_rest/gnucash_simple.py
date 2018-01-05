@@ -171,7 +171,7 @@ def invoiceToDict(invoice):
         simple_invoice['notes'] = invoice.GetNotes()
         simple_invoice['active'] = invoice.GetActive()
         simple_invoice['currency'] = invoice.GetCurrency().get_mnemonic()
-        simple_invoice['owner'] = vendorToDict(invoice.GetOwner()) 
+        simple_invoice['owner'] = customerToDict(invoice.GetOwner()) 
         simple_invoice['owner_type'] = invoice.GetOwnerType()
         simple_invoice['billing_id'] = invoice.GetBillingID()
         simple_invoice['to_charge_amount'] = invoice.GetToChargeAmount().to_double()
