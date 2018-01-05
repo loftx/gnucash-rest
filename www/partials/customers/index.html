@@ -10,7 +10,8 @@
   </form>
 
   <div>
-    <table class="table">
+    <div ng-show="!customers" class="loader">Loading...</div>
+    <table ng-show="customers" class="table">
       <tr>
         <th>ID</th>
         <th>Name</th>

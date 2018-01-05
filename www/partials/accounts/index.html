@@ -1,7 +1,8 @@
 <div class="container">
   <h1>Accounts</h1>
   <div>
-  	<table class="table">
+  	<div ng-show="!accounts" class="loader">Loading...</div>
+    <table ng-show="accounts" class="table">
       <tr>
         <th>Name</th>
         <th>Description</th>

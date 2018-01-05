@@ -30,8 +30,9 @@
     </fieldset>
   </form>
 
-  <div>
-    <table class="table">
+  <div> 
+    <div ng-show="!invoices" class="loader">Loading...</div>
+    <table ng-show="invoices" class="table">
       <tr>
         <th>ID</th>
         <th>Opened</th>

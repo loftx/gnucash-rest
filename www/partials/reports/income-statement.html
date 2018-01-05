@@ -7,7 +7,8 @@
       <button type="button" class="btn" ng-repeat="month in months" ng-click="setMonth(month.id)">{{month.name}}</button>
     </div>
 
-  	<table class="table">
+  	<div ng-show="!incomeAccounts" class="loader">Loading...</div>
+    <table ng-show="incomeAccounts" class="table">
       <tr>
         <th>Income</th>
         <th style="text-align: right;">Total</th>
