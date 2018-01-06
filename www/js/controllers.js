@@ -2,7 +2,7 @@ function AccountListCtrl($scope, $http, $timeout) {
 	
 	$http.get('/api/accounts')
 		.success(function(data) {
-			$scope.accounts = getSubAccounts($http, data, 0);
+			$scope.accounts = getSubAccounts($http, $timeout, data, 0);
 
 			for (var account in $scope.accounts) {
 
@@ -67,7 +67,7 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route) {
 
 	$http.get('/api/accounts')
 		.success(function(data) {
-			var accounts = getSubAccounts($http, data, 0);
+			var accounts = getSubAccounts($http, $timeout, data, 0);
 			var nonPlaceholderAccounts = [];
 
 			// limit accounts to income accounts and remove placeholder accounts 
@@ -449,7 +449,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 
 	$http.get('/api/accounts')
 		.success(function(data) {
-			var accounts = getSubAccounts($http, data, 0);
+			var accounts = getSubAccounts($http, $timeout, data, 0);
 			var invoiceAccounts = [];
 
 			// limit accounts to income accounts and remove placeholder accounts 
@@ -763,7 +763,7 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout) {
 
 	$http.get('/api/accounts')
 		.success(function(data) {
-			var accounts = getSubAccounts($http, data, 0);
+			var accounts = getSubAccounts($http, $timeout, data, 0);
 			var billAccounts = [];
 
 			// limit accounts to income accounts and remove placeholder accounts 
@@ -1293,7 +1293,7 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout) {
 
 	$http.get('/api/accounts')
 		.success(function(data) {
-			var accounts = getSubAccounts($http, data, 0);
+			var accounts = getSubAccounts($http, $timeout, data, 0);
 			var billAccounts = [];
 
 			// limit accounts to asset accounts and remove placeholder accounts 
@@ -1855,7 +1855,7 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout) {
 
 	$http.get('/api/accounts')
 		.success(function(data) {
-			var accounts = getSubAccounts($http, data, 0);
+			var accounts = getSubAccounts($http, $timeout, data, 0);
 			var invoiceAccounts = [];
 
 			// limit accounts to asset accounts and remove placeholder accounts 
@@ -2279,7 +2279,7 @@ function generateIncomeAccounts($scope, $http, $timeout) {
 
 	$http.get('/api/accounts')
 		.success(function(data) {
-			var accounts = getSubAccounts($http, data, 0);
+			var accounts = getSubAccounts($http, $timeout, data, 0);
 
 			var incomeAccounts = [];
 			var expensesAccounts = [];
@@ -2295,7 +2295,7 @@ function generateIncomeAccounts($scope, $http, $timeout) {
 
 			$http.get('/api/accounts/' + incomeAccounts[0].guid)
 				.success(function(data) {
-					$scope.incomeAccounts = getSubAccounts($http, data, 0);		
+					$scope.incomeAccounts = getSubAccounts($http, $timeout, data, 0);		
 					for (var account in $scope.incomeAccounts) {
 						$http.get('/api/accounts/' + $scope.incomeAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account})
 							.success(function(data, status, headers, config) {
@@ -2323,7 +2323,7 @@ function generateIncomeAccounts($scope, $http, $timeout) {
 
 			$http.get('/api/accounts/' + expensesAccounts[0].guid)
 				.success(function(data) {
-					$scope.expensesAccounts = getSubAccounts($http, data, 0);		
+					$scope.expensesAccounts = getSubAccounts($http, $timeout, data, 0);		
 					for (var account in $scope.expensesAccounts) {
 						$http.get('/api/accounts/' + $scope.expensesAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account})
 							.success(function(data, status, headers, config) {
@@ -2364,7 +2364,7 @@ function getSubAccounts($http, $timeout, data, level) {
 	for (var i in data.subaccounts) {
 		data.subaccounts[i].level = level
 		flatAccounts.push(data.subaccounts[i]);
-		var subAccounts = getSubAccounts($http, data.subaccounts[i], level + 1);
+		var subAccounts = getSubAccounts($http, $timeout, data.subaccounts[i], level + 1);
 		for (var subAccount in subAccounts) {
 			subAccounts[subAccount].name = data.subaccounts[i].name + ':' + subAccounts[subAccount].name;
 			flatAccounts.push(subAccounts[subAccount]);
