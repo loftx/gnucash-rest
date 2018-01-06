@@ -40,8 +40,6 @@ import re
 import _strptime
 from datetime import datetime
 
-
-
 from decimal import Decimal
 
 from gnucash.gnucash_business import Vendor, Bill, Entry, GncNumeric, \
@@ -2093,15 +2091,17 @@ def end_session():
     #
     # Ref: https://lists.gnucash.org/pipermail/gnucash-devel/2013-February/034992.html
 
-    try:
-        session.save()
-    except gnucash.GnuCashBackendException as e:
-        raise Error('GnuCashBackendException',
-            'There was an error saving the session',
-            {
-                'message': e.args[0],
-                'code': parse_gnucash_backend_exception(e.args[0])
-            })
+    # Don't call session.save as this seems to prevent subsequent commands being run on shutdown leaving database in locked state (will this cause issues for xml backend?)
+
+    #try:
+    #    session.save()
+    #except gnucash.GnuCashBackendException as e:
+    #    raise Error('GnuCashBackendException',
+    #        'There was an error saving the session',
+    #        {
+    #            'message': e.args[0],
+    #            'code': parse_gnucash_backend_exception(e.args[0])
+    #        })
 
     session.end()
     session.destroy()
