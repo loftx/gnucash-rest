@@ -7,6 +7,26 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 
 	var lastParams = '';
 
+	$scope.$on('$viewContentLoaded', function() {
+		$('#invoiceDateDueFrom').datepicker({
+			'dateFormat': 'yy-mm-dd',
+			'onSelect': function(dateText) {
+				if (window.angular && angular.element) {
+					angular.element(this).controller("ngModel").$setViewValue(dateText);
+				}
+			}
+		});
+
+		$('#invoiceDateDueTo').datepicker({
+			'dateFormat': 'yy-mm-dd',
+			'onSelect': function(dateText) {
+				if (window.angular && angular.element) {
+					angular.element(this).controller("ngModel").$setViewValue(dateText);
+				}
+			}
+		});
+	});
+
 	$scope.change = function() {
 
 		var params = '';
