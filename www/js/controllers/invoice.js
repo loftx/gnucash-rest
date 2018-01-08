@@ -1,14 +1,15 @@
 function InvoiceListCtrl($scope, $http, $timeout) {
 
-	$scope.date_due_from = '';
-	$scope.date_due_to = '';
+	$scope.date_type = 'opened';
+	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
+	$scope.date_to = '';
 	$scope.is_paid = '';
 	$scope.is_active = 1;
 
 	var lastParams = '';
 
 	$scope.$on('$viewContentLoaded', function() {
-		$('#invoiceDateDueFrom').datepicker({
+		$('#invoiceDateFrom').datepicker({
 			'dateFormat': 'yy-mm-dd',
 			'onSelect': function(dateText) {
 				if (window.angular && angular.element) {
@@ -17,7 +18,7 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 			}
 		});
 
-		$('#invoiceDateDueTo').datepicker({
+		$('#invoiceDateTo').datepicker({
 			'dateFormat': 'yy-mm-dd',
 			'onSelect': function(dateText) {
 				if (window.angular && angular.element) {
@@ -31,18 +32,18 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 
 		var params = '';
 
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_due_from)) {
+		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_from)) {
 			if (params != '') {
 				params = params + '&';
 			}
-			params = params + 'date_due_from=' + $scope.date_due_from;
+			params = params + 'date_' + $scope.date_type + '_from=' + $scope.date_from;
 		}
 
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_due_to)) {
+		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_to)) {
 			if (params != '') {
 				params = params + '&';
 			}
-			params = params + 'date_due_to=' + $scope.date_due_to;
+			params = params + 'date_' + $scope.date_type + '_to=' + $scope.date_to;
 		}
 
 		if ($scope.is_paid != '') {

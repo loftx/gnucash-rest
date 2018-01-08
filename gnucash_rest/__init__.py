@@ -543,8 +543,12 @@ def api_invoices():
         
         is_paid = request.args.get('is_paid', None)
         is_active = request.args.get('is_active', None)
-        date_due_to = request.args.get('date_due_to', None)
         date_due_from = request.args.get('date_due_from', None)
+        date_due_to = request.args.get('date_due_to', None)
+        date_opened_from = request.args.get('date_opened_from', None)
+        date_opened_to = request.args.get('date_opened_to', None)
+        date_posted_from = request.args.get('date_posted_from', None)
+        date_posted_to = request.args.get('date_posted_to', None)
 
         if is_paid == '1':
             is_paid = 1
@@ -561,7 +565,8 @@ def api_invoices():
             is_active = None
 
         invoices = get_invoices(session.book, None, is_paid, is_active,
-            date_due_from, date_due_to)
+            date_due_from, date_due_to, date_opened_from, date_opened_to,
+            date_posted_from, date_posted_to)
 
         return Response(json.dumps(invoices), mimetype='application/json')
 
@@ -887,7 +892,7 @@ def api_customer_invoices(id):
         abort(404)
     
     invoices = get_invoices(session.book, customer['guid'], None, None, None,
-        None)
+        None, None, None, None, None)
     
     return Response(json.dumps(invoices), mimetype='application/json')
 
@@ -1164,8 +1169,10 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
 
     return splits
 
+# Might be a good idea to pass though these options as properties instead
 def get_invoices(book, customer, is_paid, is_active, date_due_from,
-    date_due_to):
+    date_due_to, date_opened_from, date_opened_to, date_posted_from,
+    date_posted_to):
 
     query = gnucash.Query()
     query.search_for('gncInvoice')
@@ -1202,6 +1209,30 @@ def get_invoices(book, customer, is_paid, is_active, date_due_from,
             QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
                 date_due_to, "%Y-%m-%d").date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
+
+    if date_opened_from != None:
+        pred_data = gnucash.gnucash_core.QueryDatePredicate(
+            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
+                date_opened_from, "%Y-%m-%d").date())
+        query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
+
+    if date_opened_to != None:
+        pred_data = gnucash.gnucash_core.QueryDatePredicate(
+            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
+                date_opened_to, "%Y-%m-%d").date())
+        query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
+
+    if date_posted_from != None:
+        pred_data = gnucash.gnucash_core.QueryDatePredicate(
+            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
+                date_posted_from, "%Y-%m-%d").date())
+        query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
+
+    if date_posted_to != None:
+        pred_data = gnucash.gnucash_core.QueryDatePredicate(
+            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
+                date_posted_to, "%Y-%m-%d").date())
+        query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
 
     # return only invoices
     pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL,

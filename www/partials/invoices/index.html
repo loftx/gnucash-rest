@@ -7,11 +7,18 @@
       <input type="text" placeholder="" ng-model="query">
       <input type="hidden" value="id" ng-init="orderProp='id'" ng-model="orderProp"> -->
 
-      <label>Date due from</label>
-      <input id="invoiceDateDueFrom" type="text" placeholder="" ng-model="date_due_from" ng-change="change()">
+      <label>Date type</label>
+      <select ng-model="date_type" ng-change="change()">
+        <option value="opened">Date opened</option>
+        <option value="due">Date due</option>
+        <option value="posted">Date posted</option>
+      </select>
 
-      <label>Date due to</label>
-      <input id="invoiceDateDueTo" type="text" placeholder="" ng-model="date_due_to" ng-change="change()">
+      <label>Date from</label>
+      <input id="invoiceDateFrom" type="text" placeholder="" ng-model="date_from" ng-change="change()">
+
+      <label>Date to</label>
+      <input id="invoiceDateTo" type="text" placeholder="" ng-model="date_to" ng-change="change()">
 
       <label>Paid</label>
       <select ng-model="is_paid" ng-change="change()">
