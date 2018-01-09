@@ -195,7 +195,7 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout) {
 		})
 	;
 
-	$http.get('/api/customers/' + $routeParams.customerId + '/invoices')
+	$http.get('/api/customers/' + $routeParams.customerId + '/invoices?is_active=1')
 		.success(function(data) {
 			$scope.invoices = data;
 		})

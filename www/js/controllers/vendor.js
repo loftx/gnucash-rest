@@ -192,7 +192,7 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout) {
 		})
 	;
 
-	$http.get('/api/vendors/' + $routeParams.vendorId + '/bills')
+	$http.get('/api/vendors/' + $routeParams.vendorId + '/bills?is_active=1')
 		.success(function(data) {
 			$scope.bills = data;
 		})

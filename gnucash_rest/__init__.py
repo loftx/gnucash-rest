@@ -909,8 +909,21 @@ def api_customer_invoices(id):
     
     if customer is None:
         abort(404)
+
+
+    is_active = request.args.get('is_active', None)
+
+    if is_active == '1':
+        is_active = 1
+    elif is_active == '0':
+        is_active = 0
+    else:
+        is_active = None
     
-    invoices = get_invoices(session.book, {'customer': customer['guid']})
+    invoices = get_invoices(session.book, {
+        'customer': customer['guid'],
+        'is_active': is_active
+    })
     
     return Response(json.dumps(invoices), mimetype='application/json')
 
@@ -997,9 +1010,21 @@ def api_vendor_bills(id):
     
     if vendor is None:
         abort(404)
+
+    is_active = request.args.get('is_active', None)
+
+    if is_active == '1':
+        is_active = 1
+    elif is_active == '0':
+        is_active = 0
+    else:
+        is_active = None
     
-    bills = get_bills(session.book, {'customer': vendor['guid']})
-    
+    bills = get_bills(session.book, {
+        'customer': vendor['guid'],
+        'is_active': is_active
+    })
+        
     return Response(json.dumps(bills), mimetype='application/json')
 
 def get_customers(book):
