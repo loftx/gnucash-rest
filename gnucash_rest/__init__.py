@@ -38,14 +38,22 @@ import re
 
 # to resolve bug in http://stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime
 import _strptime
-from datetime import datetime
+import datetime
 
 from decimal import Decimal
 
 from gnucash.gnucash_business import Vendor, Bill, Entry, GncNumeric, \
     Customer, Invoice, Split, Account, Transaction
 
-import datetime
+# not actually used - only used on frontend so far
+# from gnucash.gnucash_business import \
+#     GNC_DISC_PRETAX, \
+#     GNC_DISC_SAMETIME, \
+#     GNC_DISC_POSTTAX
+
+# from gnucash.gnucash_business import \
+#     GNC_AMT_TYPE_VALUE, \
+#     GNC_AMT_TYPE_PERCENT
 
 from gnucash import \
     QOF_QUERY_AND, \

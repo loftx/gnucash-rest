@@ -122,17 +122,26 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 		.success(function(data) {
 			$scope.invoice = data;
 
-			$scope.invoice.notes = nl2br($scope.invoice.notes);
 			$scope.invoice.date_opened = dateFormat($scope.invoice.date_opened);
 			$scope.invoice.date_due = dateFormat($scope.invoice.date_due);
 
 			for (var entry in $scope.invoice.entries) {
 				$scope.invoice.entries[entry].date = dateFormat($scope.invoice.entries[entry].date);
 				$scope.invoice.entries[entry].total_ex_discount = $scope.invoice.entries[entry].quantity * $scope.invoice.entries[entry].inv_price;
-				// does not take into account discounts - how do these work?
-				$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_ex_discount.formatMoney(2, '.', ',');
+
+				// doesn't take into account tax
+
+				if ($scope.invoice.entries[entry].discounted_type == 1) {
+					$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_ex_discount - $scope.invoice.entries[entry].discount;
+					$scope.invoice.entries[entry].discount = $scope.invoice.entries[entry].discount.formatMoney(2, '.', ',');
+				} else {
+					// TODO: percentage discounts
+				}
+
+				$scope.invoice.entries[entry].discounted_type = format_discount_type($scope.invoice.entries[entry].discounted_type, $scope.invoice.currency);
+				$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_inc_discount.formatMoney(2, '.', ',');
 				$scope.invoice.entries[entry].inv_price = $scope.invoice.entries[entry].inv_price.formatMoney(2, '.', ',');
-				$scope.invoice.entries[entry].discount = $scope.invoice.entries[entry].discount.formatMoney(2, '.', ',');
+				
 			}
 
 			$scope.invoice.total = $scope.invoice.total.formatMoney(2, '.', ',');

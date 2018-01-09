@@ -41,46 +41,50 @@ var n = this,
    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
  };
 
- function format_currency(type_id, currency, amount) {
+function format_currency_format(currency) {
+	if (currency == 'GBP') {
+		return '£';
+	} else if (currency == 'USD') {
+		return '$';
+	} else {
+		return currency + ' ';
+	}
+}
 
+function format_currency(type_id, currency, amount) {
 	if (type_id == 8) {
 		amount = -(amount);
 	}
-
-	var currencyformat = '';
-
-	if (currency == 'GBP') {
-		currencyformat = '£';
-	}else if (currency == 'USD') {
-
-		currencyformat = '$';
-	} else {
-		currencyformat = currency + ' ';
-	}
 	
 	if (amount < 0) {
-		return '-' + currencyformat + (-(amount)).formatMoney(2, '.', ',')
-	//	return '<span style="color: #FF0000">-' + currencyformat + (-(amount)).formatMoney(2, '.', ',') + '</span>';
+		return '-' + format_currency_format(currency) + (-(amount)).formatMoney(2, '.', ',');
 	} else {
-		return currencyformat + amount.formatMoney(2, '.', ',');
+		return format_currency_format(currency) + amount.formatMoney(2, '.', ',');
 	}
+}
 
- }
-
- function format_todays_date() {
+function format_todays_date() {
 	var today = new Date();
 	var dd = today.getDate();
 	var mm = today.getMonth()+1; //January is 0!
 	var yyyy = today.getFullYear();
 
 	if(dd<10) {
-		dd='0'+dd
+		dd='0'+dd;
 	} 
 
 	if(mm<10) {
-		mm='0'+mm
+		mm='0'+mm;
 	} 
 
 	today = yyyy + '-' + mm + '-' + dd;
 	return today;
- }
+}
+
+function format_discount_type(discount_type, currency) {
+	if (discount_type == 1) {
+		return format_currency_format(currency);
+	} else if (discount_type == 2) {
+		return '%';
+	}
+}
