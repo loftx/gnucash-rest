@@ -1,28 +1,49 @@
 function BillListCtrl($scope, $http, $timeout) {
 
-	$scope.date_opened_from = '';
-	$scope.date_opened_to = '';
+	$scope.date_type = 'opened';
+	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
+	$scope.date_to = '';
 	$scope.is_paid = '';
 	$scope.is_active = 1;
 
 	var lastParams = '';
 
+	$scope.$on('$viewContentLoaded', function() {
+		$('#billDateFrom').datepicker({
+			'dateFormat': 'yy-mm-dd',
+			'onSelect': function(dateText) {
+				if (window.angular && angular.element) {
+					angular.element(this).controller("ngModel").$setViewValue(dateText);
+				}
+			}
+		});
+
+		$('#billDateTo').datepicker({
+			'dateFormat': 'yy-mm-dd',
+			'onSelect': function(dateText) {
+				if (window.angular && angular.element) {
+					angular.element(this).controller("ngModel").$setViewValue(dateText);
+				}
+			}
+		});
+	});
+
 	$scope.change = function() {
 
 		var params = '';
 
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_opened_from)) {
+		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_from)) {
 			if (params != '') {
 				params = params + '&';
 			}
-			params = params + 'date_opened_from=' + $scope.date_opened_from;
+			params = params + 'date_' + $scope.date_type + '_from=' + $scope.date_from;
 		}
 
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_opened_to)) {
+		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_to)) {
 			if (params != '') {
 				params = params + '&';
 			}
-			params = params + 'date_opened_to=' + $scope.date_opened_to;
+			params = params + 'date_' + $scope.date_type + '_to=' + $scope.date_to;
 		}
 
 		if ($scope.is_paid != '') {
