@@ -122,6 +122,16 @@
       <td><a ng-click="populateEntry(entry.guid)" ng-show="!bill.posted">edit</a></td>
       <td><a ng-click="deleteEntry(entry.guid)" ng-show="!bill.posted">delete</a></td>
     </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Total</td>
+      <td>{{bill.total}}</td>
+      <td></td>
+      <td></td>
+    </tr>
   </table>
 
   <div ng-show="!bill.posted">

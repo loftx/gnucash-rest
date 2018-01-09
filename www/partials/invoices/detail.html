@@ -126,6 +126,18 @@
       <td><a ng-click="populateEntry(entry.guid)" ng-show="!invoice.posted">edit</a></td>
       <td><a ng-click="deleteEntry(entry.guid)" ng-show="!invoice.posted">delete</a></td>
     </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Total</td>
+      <td>{{invoice.total}}</td>
+      <td></td>
+      <td></td>
+    </tr>
   </table>
 
   <div ng-show="!invoice.posted">
