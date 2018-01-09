@@ -3,9 +3,9 @@
 
   <form>
     <fieldset>
-      <!-- <label>Search</label>
-      <input type="text" placeholder="" ng-model="query">
-      <input type="hidden" value="id" ng-init="orderProp='id'" ng-model="orderProp"> -->
+      <label>Search</label>
+      <input type="text" placeholder="Invoice ID or customer" ng-model="query">
+      <!-- <input type="hidden" value="id" ng-init="orderProp='id'" ng-model="orderProp"> -->
 
       <label>Date type</label>
       <select ng-model="date_type" ng-change="change()">
@@ -49,7 +49,7 @@
         <th>Total</th>
         <th>Paid</th>
       </tr>
-      <tr ng-repeat="invoice in invoices">
+      <tr ng-repeat="invoice in invoices | filter:query | orderBy:orderProp">
         <td><a href="#/invoices/{{invoice.id}}">{{invoice.id}}</a></td>
         <td>{{invoice.date_opened}}</a></td>
         <td>{{invoice.date_due}}</td>
