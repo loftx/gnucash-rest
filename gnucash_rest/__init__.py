@@ -1980,8 +1980,8 @@ def delete_entry(book, entry_guid):
 
     entry = book.EntryLookup(guid)
 
-    invoice = entry.Get_invoice()
-    bill = entry.Get_bill()
+    invoice = entry.GetInvoice()
+    bill = entry.GetBill()
 
     if invoice != None and entry != None:
         invoice.RemoveEntry(entry)
