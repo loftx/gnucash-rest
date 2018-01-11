@@ -131,14 +131,14 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 
 				// doesn't take into account tax
 
-				if ($scope.invoice.entries[entry].discounted_type == 1) {
+				if ($scope.invoice.entries[entry].discount_type == 1) {
 					$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_ex_discount - $scope.invoice.entries[entry].discount;
 					$scope.invoice.entries[entry].discount = $scope.invoice.entries[entry].discount.formatMoney(2, '.', ',');
 				} else {
 					// TODO: percentage discounts
 				}
 
-				$scope.invoice.entries[entry].discounted_type = format_discount_type($scope.invoice.entries[entry].discounted_type, $scope.invoice.currency);
+				$scope.invoice.entries[entry].discount_type = format_discount_type($scope.invoice.entries[entry].discount_type, $scope.invoice.currency);
 				$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_inc_discount.formatMoney(2, '.', ',');
 				$scope.invoice.entries[entry].inv_price = $scope.invoice.entries[entry].inv_price.formatMoney(2, '.', ',');
 				
@@ -268,14 +268,14 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 			
 			// doesn't take into account tax
 
-			if (data.discounted_type == 1) {
+			if (data.discount_type == 1) {
 				data.total_inc_discount = data.total_ex_discount - data.discount;
 				data.discount = data.discount.formatMoney(2, '.', ',');
 			} else {
 				// TODO: percentage discounts
 			}
 
-			data.discounted_type = format_discount_type(data.discounted_type, $scope.invoice.currency);
+			data.discount_type = format_discount_type(data.discount_type, $scope.invoice.currency);
 			data.total_inc_discount = data.total_inc_discount.formatMoney(2, '.', ',');
 			data.inv_price = data.inv_price.formatMoney(2, '.', ',');
 
@@ -402,14 +402,14 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 					
 					// doesn't take into account tax
 
-					if ($scope.invoice.entries[i].discounted_type == 1) {
+					if ($scope.invoice.entries[i].discount_type == 1) {
 						$scope.invoice.entries[i].total_inc_discount = $scope.invoice.entries[i].total_ex_discount - $scope.invoice.entries[i].discount;
 						$scope.invoice.entries[i].discount = $scope.invoice.entries[i].discount.formatMoney(2, '.', ',');
 					} else {
 						// TODO: percentage discounts
 					}
 
-					$scope.invoice.entries[i].discounted_type = format_discount_type($scope.invoice.entries[i].discounted_type, $scope.invoice.currency);
+					$scope.invoice.entries[i].discount_type = format_discount_type($scope.invoice.entries[i].discount_type, $scope.invoice.currency);
 					$scope.invoice.entries[i].total_inc_discount = $scope.invoice.entries[i].total_inc_discount.formatMoney(2, '.', ',');
 					$scope.invoice.entries[i].inv_price = $scope.invoice.entries[i].inv_price.formatMoney(2, '.', ',');
 				}

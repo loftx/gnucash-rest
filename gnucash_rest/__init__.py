@@ -780,15 +780,19 @@ def api_entry(guid):
             return Response(json.dumps(entry), mimetype='application/json')
         elif request.method == 'POST':
 
+            # TODO: discount should be checked as numeric / maybe also discount type / date
+
             date = str(request.form.get('date', ''))
             description = str(request.form.get('description', ''))
             account_guid = str(request.form.get('account_guid', ''))
             quantity = str(request.form.get('quantity', ''))
             price = str(request.form.get('price', ''))
+            discount_type = int(request.form.get('discount_type', ''))
+            discount = str(request.form.get('discount', ''))
 
             try:
                 entry = update_entry(session.book, guid, date, description,
-                    account_guid, quantity, price)
+                    account_guid, quantity, price, discount_type, discount)
             except Error as error:
                 return Response(json.dumps({'errors': [{'type' : error.type,
                     'message': error.message, 'data': error.data}]}),
@@ -1933,7 +1937,7 @@ def get_entry(book, entry_guid):
         return gnucash_simple.entryToDict(entry)
 
 def update_entry(book, entry_guid, date, description, account_guid, quantity,
-    price):
+    price, discount_type, discount):
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(entry_guid, guid)
@@ -1950,6 +1954,11 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
         raise Error('InvalidDateOpened',
             'The date opened must be provided in the form YYYY-MM-DD',
             {'field': 'date'})
+
+    # Only value based discounts are supported
+    if discount_type != GNC_AMT_TYPE_VALUE:
+        raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
+            {'field': 'discount_type'})
  
     gnucash.gnucash_core.GUIDString(account_guid, guid)
 
@@ -1959,15 +1968,37 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
         raise Error('NoAccount', 'No account exists with this GUID',
             {'field': 'account_guid'})
 
+    try:
+        quantity = Decimal(quantity).quantize(Decimal('.01'))
+    except ArithmeticError:
+        raise Error('InvalidQuantity', 'This quantity is not valid',
+            {'field': 'quantity'})
+
+    try:
+        price = Decimal(price).quantize(Decimal('.01'))
+    except ArithmeticError:
+        raise Error('InvalidPrice', 'This price is not valid',
+            {'field': 'price'})
+
+    # Currently only value based discounts are supported
+    try:
+        discount = Decimal(discount).quantize(Decimal('.01'))
+    except ArithmeticError:
+        raise Error('InvalidDiscounr', 'This discount is not valid',
+            {'field': 'discount'})
+
     entry.SetDate(date.date())
 
     entry.SetDateEntered(datetime.datetime.now())
     entry.SetDescription(description)
     entry.SetInvAccount(account)
-    entry.SetQuantity(
-        gnc_numeric_from_decimal(Decimal(quantity).quantize(Decimal('.01'))))
-    entry.SetInvPrice(
-        gnc_numeric_from_decimal(Decimal(price).quantize(Decimal('.01'))))
+    entry.SetQuantity(gnc_numeric_from_decimal(quantity))
+    entry.SetInvPrice(gnc_numeric_from_decimal(price))
+    # Do we need to set this?
+    # entry.SetInvDiscountHow()
+    entry.SetInvDiscountType(discount_type)
+    # Currently only value based discounts are supported
+    entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
 
     entry.CommitEdit()
 
