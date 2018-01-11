@@ -245,7 +245,9 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 			description: $scope.entry.description,
 			account_guid: $scope.entry.inv_account.guid,
 			quantity: $scope.entry.quantity,
-			price: $scope.entry.inv_price
+			price: $scope.entry.inv_price,
+			discount_type: $scope.entry.discount_type,
+			discount: $scope.entry.discount
 		};
 
 		$http({
@@ -263,10 +265,19 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 
 			data.date = dateFormat(data.date);
 			data.total_ex_discount = data.quantity * data.inv_price;
-			// does not take into account discounts - how do these work?
-			data.total_inc_discount = data.total_ex_discount.formatMoney(2, '.', ',');
+			
+			// doesn't take into account tax
+
+			if (data.discounted_type == 1) {
+				data.total_inc_discount = data.total_ex_discount - data.discount;
+				data.discount = data.discount.formatMoney(2, '.', ',');
+			} else {
+				// TODO: percentage discounts
+			}
+
+			data.discounted_type = format_discount_type(data.discounted_type, $scope.invoice.currency);
+			data.total_inc_discount = data.total_inc_discount.formatMoney(2, '.', ',');
 			data.inv_price = data.inv_price.formatMoney(2, '.', ',');
-			data.discount = data.discount.formatMoney(2, '.', ',');
 
 			$scope.invoice.entries.push(data);
 			$('#entryForm').modal('hide');
@@ -278,6 +289,8 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 			$scope.entry.inv_account.guid = '';
 			$scope.entry.quantity = '';
 			$scope.entry.inv_price = '';
+			$scope.entry.discount_type = '';
+			$scope.entry.discount = '';
 			
 		}).error(function(data, status, headers, config) {
 			if(typeof data.errors != 'undefined') {
@@ -310,7 +323,9 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 		$scope.entry.description = '';
 		$scope.entry.inv_account.guid = '';
 		$scope.entry.quantity = '';
-		$scope.entry.inv_price = '';		
+		$scope.entry.inv_price = '';
+		$scope.entry.discount_type = 1;
+		$scope.entry.discount = '';
 
 		$('#entryForm').modal('show');
 
@@ -359,7 +374,9 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 			description: $scope.entry.description,
 			account_guid: $scope.entry.inv_account.guid,
 			quantity: $scope.entry.quantity,
-			price: $scope.entry.inv_price
+			price: $scope.entry.inv_price,
+			discount_type: $scope.entry.discount_type,
+			discount: $scope.entry.discount
 		};
 
 		$http({
@@ -379,12 +396,22 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 				if ($scope.invoice.entries[i].guid == data.guid) {
 					$scope.invoice.entries[i] = data;
 
+					// TODO: this is a repeat of the invoice code - can we refactor this
 					$scope.invoice.entries[i].date = dateFormat($scope.invoice.entries[i].date);
 					$scope.invoice.entries[i].total_ex_discount = $scope.invoice.entries[i].quantity * $scope.invoice.entries[i].inv_price;
-					// does not take into account discounts - how do these work?
-					$scope.invoice.entries[i].total_inc_discount = $scope.invoice.entries[i].total_ex_discount.formatMoney(2, '.', ',');
+					
+					// doesn't take into account tax
+
+					if ($scope.invoice.entries[i].discounted_type == 1) {
+						$scope.invoice.entries[i].total_inc_discount = $scope.invoice.entries[i].total_ex_discount - $scope.invoice.entries[i].discount;
+						$scope.invoice.entries[i].discount = $scope.invoice.entries[i].discount.formatMoney(2, '.', ',');
+					} else {
+						// TODO: percentage discounts
+					}
+
+					$scope.invoice.entries[i].discounted_type = format_discount_type($scope.invoice.entries[i].discounted_type, $scope.invoice.currency);
+					$scope.invoice.entries[i].total_inc_discount = $scope.invoice.entries[i].total_inc_discount.formatMoney(2, '.', ',');
 					$scope.invoice.entries[i].inv_price = $scope.invoice.entries[i].inv_price.formatMoney(2, '.', ',');
-					$scope.invoice.entries[i].discount = $scope.invoice.entries[i].discount.formatMoney(2, '.', ',');
 				}
 			}
 
@@ -397,6 +424,8 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 			$scope.entry.inv_account.guid = '';
 			$scope.entry.quantity = '';
 			$scope.entry.inv_price = '';
+			$scope.entry.discount_type = 1;
+			$scope.entry.discount = '';
 			
 		}).error(function(data, status, headers, config) {
 			if(typeof data.errors != 'undefined') {

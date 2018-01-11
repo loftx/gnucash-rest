@@ -51,9 +51,9 @@ from gnucash.gnucash_business import Vendor, Bill, Entry, GncNumeric, \
 #     GNC_DISC_SAMETIME, \
 #     GNC_DISC_POSTTAX
 
-# from gnucash.gnucash_business import \
-#     GNC_AMT_TYPE_VALUE, \
-#     GNC_AMT_TYPE_PERCENT
+from gnucash.gnucash_business import \
+    GNC_AMT_TYPE_VALUE, \
+    GNC_AMT_TYPE_PERCENT
 
 from gnucash import \
     QOF_QUERY_AND, \
@@ -737,15 +737,19 @@ def api_invoice_entries(id):
                 mimetype='application/json')
         elif request.method == 'POST':
 
+            # TODO: discount should be checked as numeric / maybe also discount type / date
+
             date = str(request.form.get('date', ''))
             description = str(request.form.get('description', ''))
             account_guid = str(request.form.get('account_guid', ''))
             quantity = str(request.form.get('quantity', ''))
             price = str(request.form.get('price', ''))
+            discount_type = int(request.form.get('discount_type', ''))
+            discount = str(request.form.get('discount', ''))
 
             try:
                 entry = add_entry(session.book, id, date, description,
-                    account_guid, quantity, price)
+                    account_guid, quantity, price, discount_type, discount)
             except Error as error:
                 return Response(json.dumps({'errors': [{'type' : error.type,
                     'message': error.message, 'data': error.data}]}),
@@ -1105,7 +1109,6 @@ def get_accounts_flat(book):
     for n, account in enumerate(flat_accounts):
         if account['type_id'] in type_ids:
             filtered_flat_account.append(account)
-            print account['name'] + ' ' + str(account['type_id'])
 
     return filtered_flat_account
 
@@ -1809,7 +1812,7 @@ def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
 
     return gnucash_simple.billToDict(bill)
 
-def add_entry(book, invoice_id, date, description, account_guid, quantity, price):
+def add_entry(book, invoice_id, date, description, account_guid, quantity, price, discount_type, discount):
 
     invoice = get_gnucash_invoice(book, invoice_id)
 
@@ -1823,6 +1826,11 @@ def add_entry(book, invoice_id, date, description, account_guid, quantity, price
         raise Error('InvalidDateOpened',
             'The date opened must be provided in the form YYYY-MM-DD',
             {'field': 'date'})
+
+    # Only value based discounts are supported
+    if discount_type != GNC_AMT_TYPE_VALUE:
+        raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
+            {'field': 'discount_type'})
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(account_guid, guid)
@@ -1845,12 +1853,24 @@ def add_entry(book, invoice_id, date, description, account_guid, quantity, price
         raise Error('InvalidPrice', 'This price is not valid',
             {'field': 'price'})
 
+    # Currently only value based discounts are supported
+    try:
+        discount = Decimal(discount).quantize(Decimal('.01'))
+    except ArithmeticError:
+        raise Error('InvalidDiscounr', 'This discount is not valid',
+            {'field': 'discount'})
+
     entry = Entry(book, invoice, date.date())
     entry.SetDateEntered(datetime.datetime.now())
     entry.SetDescription(description)
     entry.SetInvAccount(account)
     entry.SetQuantity(gnc_numeric_from_decimal(quantity))
     entry.SetInvPrice(gnc_numeric_from_decimal(price))
+    # Do we need to set this?
+    # entry.SetInvDiscountHow()
+    entry.SetInvDiscountType(discount_type)
+    # Currently only value based discounts are supported
+    entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
 
     return gnucash_simple.entryToDict(entry)
 
@@ -1940,9 +1960,6 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
             {'field': 'account_guid'})
 
     entry.SetDate(date.date())
-
-    print 'desc'
-    print description
 
     entry.SetDateEntered(datetime.datetime.now())
     entry.SetDescription(description)
