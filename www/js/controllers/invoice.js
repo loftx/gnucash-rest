@@ -88,7 +88,7 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 
 }
 
-function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
+function InvoiceDetailCtrl($scope, $routeParams, $http, $location, $timeout) {
 
 	$http.get('/api/customers')
 		.success(function(data) {
@@ -147,7 +147,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $http, $timeout) {
 			$scope.invoice.total = $scope.invoice.total.formatMoney(2, '.', ',');
 		})
 		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
+			handleApiErrors($timeout, data, status, $location, 'invoice', 'invoices');
 		})
 	;
 

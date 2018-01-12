@@ -18,7 +18,7 @@ function pad(number) {
 }
 
 // this is not very angulary - should be injected as an errors/gnucash object
-function handleApiErrors($timeout, data, status) {
+function handleApiErrors($timeout, data, status, $location, type, redirect) {
 	if (status == 400 && typeof data != 'undefined') {
 		if (data.errors[0] != 'undefined') {
 			// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
@@ -26,7 +26,24 @@ function handleApiErrors($timeout, data, status) {
 			$timeout(function(){
 				alert(data.errors[0].message);
 			});
+		} else {
+			console.log(status);
+			console.log(data);
+			$timeout(function(){
+				alert('Unexpected error - see console for details');
+			});
 		}
+	} else if (status == 404) {
+		$timeout(function(){
+			$location.path('/' + redirect);
+			alert('This ' + type + ' does not exist');
+		});
+	} else {
+		console.log(status);
+		console.log(data);
+		$timeout(function(){
+			alert('Unexpected error - see console for details');
+		});
 	}
 }
 
