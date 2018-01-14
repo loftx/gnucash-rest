@@ -8,6 +8,21 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 
 	var lastParams = '';
 
+	$scope.invoice = {};
+	$scope.invoice.id = '';
+	$scope.invoice.customer_id = '';
+	$scope.invoice.date_opened = '';
+	$scope.invoice.notes = '';
+
+	$http.get('/api/customers')
+		.success(function(data) {
+			$scope.customers = data;
+		})
+		.error(function(data, status) {
+			handleApiErrors($timeout, data, status);
+		})
+	;
+
 	$scope.$on('$viewContentLoaded', function() {
 		$('#invoiceDateFrom').datepicker({
 			'dateFormat': 'yy-mm-dd',
@@ -85,6 +100,72 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 	}
 
 	$scope.change();
+
+	$scope.emptyInvoice = function() {
+
+		$scope.invoiceTitle = 'Add invoice';
+
+		$scope.invoiceNew = 1;
+
+		$scope.invoice.id = '';
+		$scope.invoice.date_opened = format_todays_date();
+		$scope.invoice.notes = '';
+
+		$('#invoiceForm').modal('show');
+
+	}
+
+	$scope.addInvoice = function() {
+
+		var data = {
+			id: '',
+			customer_id: $scope.invoice.customer_id,
+			currency: 'GBP',
+			date_opened: $scope.invoice.date_opened,
+			notes: $scope.invoice.notes
+		};
+
+		$http({
+			method: 'POST',
+			url: '/api/invoices',
+			transformRequest: function(obj) {
+				var str = [];
+				for(var p in obj)
+				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+				return str.join("&");
+			},
+			data: data,
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+		}).success(function(data) {
+
+			$scope.invoices.push(data);
+			$('#invoiceForm').modal('hide');
+			$('#invoiceAlert').hide();
+
+			$scope.invoice.id = '';
+			$scope.invoice.customer_id = '';
+			$scope.invoice.date_opened = '';
+			$scope.invoice.notes = '';
+			
+		}).error(function(data, status, headers, config) {
+			if(typeof data.errors != 'undefined') {
+				$('#invoiceAlert').show();
+				$scope.invoiceError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
+		});
+	}
+
+	$scope.saveInvoice = function() {
+		if ($scope.invoiceNew == 1) {
+			$scope.addInvoice();
+		} else {
+			// This may fail as it's possible to update the ID
+			//$scope.updateInvoice($scope.invoice.id);
+		}
+	}
 
 }
 
