@@ -1628,6 +1628,11 @@ def update_customer(book, id, name, contact, address_line_1, address_line_2,
 
 def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
+    # Check customer ID is provided to avoid "CRIT <qof> qof_query_string_predicate: assertion '*str != '\0'' failed" error
+    if customer_id == '':
+        raise Error('NoCustomer',
+            'A customer ID must be provided', {'field': 'id'})
+
     customer = book.CustomerLookupByID(customer_id)
 
     if customer is None:
