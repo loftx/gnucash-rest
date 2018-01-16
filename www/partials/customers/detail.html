@@ -10,6 +10,7 @@
       <th>Opened</th>
       <th>Due</th>
       <th>Posted</th>
+      <th>Total</th>
       <th>Paid</th>
       <th></th>
     </tr>
@@ -18,6 +19,7 @@
       <td>{{invoice.date_opened}}</a></td>
       <td>{{invoice.date_due}}</td>
       <td>{{invoice.date_posted}}</td>
+      <td>{{invoice.total}}</td>
       <td>
         <span ng-show="invoice.paid">Yes</span>
         <span ng-show="!invoice.paid">No</span>

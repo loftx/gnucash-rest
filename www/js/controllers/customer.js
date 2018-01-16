@@ -207,6 +207,11 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout) {
 	$http.get('/api/customers')
 		.success(function(data) {
 			$scope.customers = data;
+
+			// TODO: rather than apply these individually (e.g. here and in InvoiceListCtrl it might be good to have this all in a function/service)
+			for (var invoice in $scope.invoices) {
+				$scope.invoices[invoice].total = format_currency(8, 'GBP', -$scope.invoices[invoice].total);
+			}
 		})
 		.error(function(data, status) {
 			handleApiErrors($timeout, data, status);
