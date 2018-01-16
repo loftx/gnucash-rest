@@ -1,4 +1,4 @@
-angular.module('gnucash', []).
+angular.module('gnucash', ['core']).
 config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/accounts', {

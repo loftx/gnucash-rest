@@ -1,6 +1,6 @@
-function AccountListCtrl($scope, $http, $timeout) {
+function AccountListCtrl($scope, $http, $timeout, api) {
 	
-	$http.get('/api/accounts')
+	$http.get(api.url + '/accounts')
 		.success(function(data) {
 			$scope.accounts = getSubAccounts($http, $timeout, data, 0);
 
@@ -13,7 +13,7 @@ function AccountListCtrl($scope, $http, $timeout) {
 			}
 		})
 		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
+			api.handleErrors(data, status);
 		})
 	;
 
