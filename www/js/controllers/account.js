@@ -1,22 +1,6 @@
-function AccountListCtrl($scope, $http, $timeout, api) {
-	
-	$http.get(api.url + '/accounts')
-		.success(function(data) {
-			$scope.accounts = getSubAccounts($http, $timeout, data, 0);
-
-			for (var account in $scope.accounts) {
-
-				$scope.accounts[account].balance_html = format_currency($scope.accounts[account].type_id, $scope.accounts[account].currency, $scope.accounts[account].balance);
-
-				$scope.accounts[account].balance_gbp_html = format_currency($scope.accounts[account].type_id, $scope.accounts[account].currency, $scope.accounts[account].balance_gbp);
-
-			}
-		})
-		.error(function(data, status) {
-			api.handleErrors(data, status);
-		})
-	;
-
+function AccountListCtrl($scope, $http, $timeout, api, Account) {
+	// could also handle some errors here?
+	$scope.accounts = Account.getAccounts();
 }
 
 function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route) {

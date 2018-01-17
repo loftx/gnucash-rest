@@ -1,4 +1,7 @@
-angular.module('gnucash', ['core']).
+angular.module('gnucash', [
+	'core',
+	'core.account' // this could be more modular https://docs.angularjs.org/tutorial/step_13 e.g. app/phone-detail/phone-detail.module.js / app/phone-detail/phone-detail.component.js:
+]).
 config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/accounts', {

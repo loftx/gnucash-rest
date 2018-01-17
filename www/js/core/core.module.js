@@ -1,10 +1,30 @@
-coreModule = angular.module('core', []);
+angular.module('core', ['core.account']);
 
-coreModule.factory('api', function($timeout, $location) {
+angular.module('core').factory('api', function($timeout, $location) {
 	return {
-		url: '/api',
+
+		getUrl: function () {
+			if (localStorage.getItem('url') == null) {
+				return '/api';
+			} else {
+				return localStorage.getItem('url');
+			}
+		},
+
+		getHeaders: function () {
+			if (localStorage.getItem('headers') == null) {
+				return {};
+			} else {
+				return JSON.parse(localStorage.getItem('headers'));
+			}
+		},
+		
 		handleErrors: function (data, status, type, redirect) {
-			if (status == 400 && typeof data != 'undefined') {
+			if (status == 0 && data == '') {
+				$timeout(function(){
+					alert('Possible cross domain call - check CORS headers.');
+				});
+			} else if (status == 400 && typeof data != 'undefined') {
 				if (data.errors[0] != 'undefined') {
 					// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
 					// need to define timeout
@@ -12,8 +32,8 @@ coreModule.factory('api', function($timeout, $location) {
 						alert(data.errors[0].message);
 					});
 				} else {
-					console.log(status);
-					console.log(data);
+					console.log('status: ' + status);
+					console.log('data: ' + data);
 					$timeout(function(){
 						alert('Unexpected error - see console for details');
 					});
@@ -26,8 +46,8 @@ coreModule.factory('api', function($timeout, $location) {
 					alert('This ' + type + ' does not exist');
 				});
 			} else {
-				console.log(status);
-				console.log(data);
+				console.log('status: ' + status);
+					console.log('data: ' + data);
 				$timeout(function(){
 					alert('Unexpected error - see console for details');
 				});

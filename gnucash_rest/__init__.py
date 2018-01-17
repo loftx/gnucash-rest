@@ -167,8 +167,16 @@ def api_session():
     else:
         abort(405)
 
-@app.route('/accounts', methods=['GET', 'POST'])
+@app.route('/accounts', methods=['GET', 'POST', 'OPTIONS'])
 def api_accounts():
+
+    if request.method == 'OPTIONS':
+
+        return Response('', headers={
+                'Access-Control-Allow-Methods': 'GET,OPTIONS,POST',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Access-Control-Allow-Headers,Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization'
+        })
 
     try:
         session = get_session()
@@ -181,7 +189,10 @@ def api_accounts():
 
         accounts = get_accounts(session.book)
 
-        return Response(json.dumps(accounts), mimetype='application/json')
+        return Response(json.dumps(accounts), mimetype='application/json',
+            headers={
+                'Access-Control-Allow-Origin': '*'
+        })
 
     elif request.method == 'POST':
 
