@@ -1,7 +1,8 @@
 <div class="container">
   <h1>{{account.name}}</h1>
   <div>
-  	<table class="table">
+    <div ng-show="!splits" class="loader">Loading...</div>
+    <table ng-show="splits" class="table">
       <tr>
         <th>Date</th>
         <th>Num</th>

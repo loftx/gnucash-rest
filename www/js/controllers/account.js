@@ -1,55 +1,20 @@
-function AccountListCtrl($scope, $http, $timeout, api, Account) {
+function AccountListCtrl($scope, Account) {
 	// could also handle some errors here?
 	$scope.accounts = Account.getAccounts();
 }
 
-function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route) {
-	$http.get('/api/accounts/' + $routeParams.accountGuid)
-		.success(function(data) {
-			$scope.account = data;
+function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Account) {
 
-			$http.get('/api/accounts/' + $routeParams.accountGuid + '/splits').success(function(data) {
-				$scope.splits = data;
+	// This will give us no way to get the splits back...
+	$scope.account = Account.getAccount($routeParams.accountGuid).then(
+		function(account) {
+			$scope.splits = Account.getSplits(account);
+		}
+	);
 
-				for (var split in $scope.splits) {
+	// will need to renable this for placeholders
 
-					//console.log($scope.splits[split].amount);
-
-					if ($scope.account.type_id == 0) {
-						if ($scope.splits[split].amount > 0) {
-							$scope.splits[split].income = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
-							$scope.splits[split].charge = '';
-						} else {
-							$scope.splits[split].income = '';
-							$scope.splits[split].charge = format_currency($scope.account.type_id, $scope.account.currency, -$scope.splits[split].amount);
-						}
-					} else if ($scope.account.type_id != 8) {
-						$scope.splits[split].charge = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
-						$scope.splits[split].income = '';
-					} else {
-						$scope.splits[split].income = format_currency(8, $scope.account.currency, $scope.splits[split].amount);
-						$scope.splits[split].charge = '';
-					}
-
-					$scope.splits[split].balance = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].balance);
-					$scope.splits[split].amount = format_currency($scope.account.type_id, $scope.account.currency, $scope.splits[split].amount);
-					
-					/*if ($scope.account.type_id == 8) {
-						$scope.splits[split].balance = -($scope.splits[split].balance);
-						$scope.splits[split].amount = -($scope.splits[split].amount);
-					}*/
-
-					
-				}
-			});
-
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
-
-	$http.get('/api/accounts')
+	/*$http.get('/api/accounts')
 		.success(function(data) {
 			var accounts = getSubAccounts($http, $timeout, data, 0);
 			var nonPlaceholderAccounts = [];
@@ -66,7 +31,7 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route) {
 		.error(function(data, status) {
 			handleApiErrors($timeout, data, status);
 		})
-	;
+	;*/
 
 	$('#transactionDatePosted').datepicker({
 		'dateFormat': 'yy-mm-dd',
