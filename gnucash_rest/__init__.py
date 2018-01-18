@@ -127,6 +127,16 @@ def _run_on_start():
     # register method to close gnucash connection gracefully
     atexit.register(shutdown)
 
+@app.after_request
+def after_request(response):
+    if app.cors_origin != '':
+        header = response.headers
+        header['Access-Control-Allow-Methods'] = 'GET,OPTIONS,POST'
+        header['Access-Control-Allow-Origin'] = app.cors_origin
+        header['Access-Control-Allow-Headers'] = 'Access-Control-Allow-Headers,Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization'
+
+    return response
+
 @app.route('/', methods=['GET'])
 @requires_auth
 def api_root():
@@ -167,16 +177,8 @@ def api_session():
     else:
         abort(405)
 
-@app.route('/accounts', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/accounts', methods=['GET', 'POST'])
 def api_accounts():
-
-    if request.method == 'OPTIONS':
-
-        return Response('', headers={
-                'Access-Control-Allow-Methods': 'GET,OPTIONS,POST',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Access-Control-Allow-Headers,Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization'
-        })
 
     try:
         session = get_session()
@@ -189,10 +191,12 @@ def api_accounts():
 
         accounts = get_accounts(session.book)
 
-        return Response(json.dumps(accounts), mimetype='application/json',
-            headers={
-                'Access-Control-Allow-Origin': '*'
-        })
+        return Response(json.dumps(accounts), mimetype='application/json')
+
+        # return Response(json.dumps(accounts), mimetype='application/json',
+        #     headers={
+        #         'Access-Control-Allow-Origin': '*'
+        # })
 
     elif request.method == 'POST':
 
