@@ -1,4 +1,4 @@
-function InvoiceListCtrl($scope, $http, $timeout) {
+function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 
 	$scope.date_type = 'opened';
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
@@ -6,7 +6,7 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 	$scope.is_paid = '';
 	$scope.is_active = 1;
 
-	var lastParams = '';
+	var lastParams = {};
 
 	$scope.invoice = {};
 	$scope.invoice.id = '';
@@ -14,14 +14,7 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 	$scope.invoice.date_opened = '';
 	$scope.invoice.notes = '';
 
-	$http.get('/api/customers')
-		.success(function(data) {
-			$scope.customers = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	$scope.customers = Customer.query();
 
 	$scope.$on('$viewContentLoaded', function() {
 		$('#invoiceDateFrom').datepicker({
@@ -45,57 +38,18 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 
 	$scope.change = function() {
 
-		var params = '';
-
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_from)) {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'date_' + $scope.date_type + '_from=' + $scope.date_from;
-		}
-
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_to)) {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'date_' + $scope.date_type + '_to=' + $scope.date_to;
-		}
-
-		if ($scope.is_paid != '') {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'is_paid=' + $scope.is_paid;
-		}
-
-		if ($scope.is_active != '') {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'is_active=' + $scope.is_active;
-		}
-
-		if (params != '') {
-			params = '?' +  params;
-		}
+		var params = {
+			'date_from': $scope.date_from,
+			'date_to': $scope.date_to,
+			'date_type': $scope.date_type,
+			'is_paid': $scope.is_paid,
+			'is_active': $scope.is_active
+		};
 		
 		if (params != lastParams) {
-
-			$http.get('/api/invoices' + params)
-				.success(function(data) {
-					$scope.invoices = data;
-
-					for (var invoice in $scope.invoices) {
-						$scope.invoices[invoice].total = format_currency(8, 'GBP', -$scope.invoices[invoice].total);
-					}
-				})
-				.error(function(data, status) {
-					handleApiErrors($timeout, data, status);
-				})
-			;
+			$scope.invoices = Invoice.query(params);
 
 			lastParams = params;
-
 		}
 	}
 
@@ -169,68 +123,13 @@ function InvoiceListCtrl($scope, $http, $timeout) {
 
 }
 
-function InvoiceDetailCtrl($scope, $routeParams, $http, $location, $timeout) {
+function InvoiceDetailCtrl($scope, $routeParams, $http, $location, $timeout, Customer, Account, Invoice) {
 
-	$http.get('/api/customers')
-		.success(function(data) {
-			$scope.customers = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	$scope.customers = Customer.query();
 
-	$http.get('/api/accounts')
-		.success(function(data) {
-			var accounts = getSubAccounts($http, $timeout, data, 0);
-			var invoiceAccounts = [];
+	$scope.accounts = Account.getInvoiceAccountsForDropdown();
 
-			// limit accounts to income accounts and remove placeholder accounts 
-			for (var i in accounts) {
-				if (accounts[i].type_id == 8 && !accounts[i].placeholder) {
-					invoiceAccounts.push(accounts[i]);
-				}
-			}
-
-			$scope.accounts = invoiceAccounts;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
-
-	$http.get('/api/invoices/' + $routeParams.invoiceId)
-		.success(function(data) {
-			$scope.invoice = data;
-
-			$scope.invoice.date_opened = dateFormat($scope.invoice.date_opened);
-			$scope.invoice.date_due = dateFormat($scope.invoice.date_due);
-
-			for (var entry in $scope.invoice.entries) {
-				$scope.invoice.entries[entry].date = dateFormat($scope.invoice.entries[entry].date);
-				$scope.invoice.entries[entry].total_ex_discount = $scope.invoice.entries[entry].quantity * $scope.invoice.entries[entry].inv_price;
-
-				// doesn't take into account tax
-
-				if ($scope.invoice.entries[entry].discount_type == 1) {
-					$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_ex_discount - $scope.invoice.entries[entry].discount;
-					$scope.invoice.entries[entry].discount = $scope.invoice.entries[entry].discount.formatMoney(2, '.', ',');
-				} else {
-					// TODO: percentage discounts
-				}
-
-				$scope.invoice.entries[entry].discount_type = format_discount_type($scope.invoice.entries[entry].discount_type, $scope.invoice.currency);
-				$scope.invoice.entries[entry].total_inc_discount = $scope.invoice.entries[entry].total_inc_discount.formatMoney(2, '.', ',');
-				$scope.invoice.entries[entry].inv_price = $scope.invoice.entries[entry].inv_price.formatMoney(2, '.', ',');
-				
-			}
-
-			$scope.invoice.total = $scope.invoice.total.formatMoney(2, '.', ',');
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status, $location, 'invoice', 'invoices');
-		})
-	;
+	$scope.invoice = Invoice.get($routeParams.invoiceId);
 
 	$scope.entry = {};
 	$scope.entry.inv_account = {};

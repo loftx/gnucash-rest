@@ -1,25 +1,8 @@
-//angular.module('core.account', ['ngResource']);
-//
-// angular.
-//   module('core.account').
-//   factory('Account', ['$resource',
-//     // need more control over this...
-//     function($resource) {
-//       return $resource('phones/:phoneId.json', {}, {
-//         query: {
-//           method: 'GET',
-//           params: {phoneId: 'phones'},
-//           isArray: true
-//         }
-//       });
-//     }
-//   ]);
-
 angular.module('core.account', []);
 
 angular.module('core.account').
 factory('Account', function($q, $http, $timeout, api) {
-    obj = {
+    var obj = {
 
       // well use this to get the http bit, then post process it normally?
       getAccounts: function() {
@@ -28,9 +11,7 @@ factory('Account', function($q, $http, $timeout, api) {
         $http.get(api.getUrl() + '/accounts', {headers: api.getHeaders()})
           .success(function(data) {
 
-            var accounts = [];
-
-            accounts = obj.getSubAccounts(data, 0);
+            var accounts = obj.getSubAccounts(data, 0);
 
             for (var i in accounts) {
               accounts[i] = obj.formatAccount(accounts[i]);
@@ -72,6 +53,60 @@ factory('Account', function($q, $http, $timeout, api) {
             }
 
             deferred.resolve(splits);
+          })
+          .error(function(data, status) {
+            api.handleErrors(data, status, 'accounts');
+          })
+        ;
+
+        return deferred.promise;
+      },
+
+      // could this be combined with getAccounts - it really just runs getAccounts and runs some processing on it - can we chain though defers?
+      getAccountsForDropdown: function() {
+        var deferred = $q.defer();
+
+        $http.get(api.getUrl() + '/accounts', {headers: api.getHeaders()})
+          .success(function(data) {
+
+            var accounts = obj.getSubAccounts(data, 0);
+            var nonPlaceholderAccounts = [];
+
+            // limit accounts to income accounts and remove placeholder accounts 
+            for (var i in accounts) {
+              if (!accounts[i].placeholder) {
+                nonPlaceholderAccounts.push(accounts[i]);
+              }
+            }
+
+            deferred.resolve(nonPlaceholderAccounts);
+          })
+          .error(function(data, status) {
+            api.handleErrors(data, status, 'accounts');
+          })
+        ;
+
+        return deferred.promise;
+      },
+
+      // this is very similar to getAccountsForDropdown
+      getInvoiceAccountsForDropdown: function() {
+        var deferred = $q.defer();
+
+        $http.get(api.getUrl() + '/accounts', {headers: api.getHeaders()})
+          .success(function(data) {
+
+            var accounts = obj.getSubAccounts(data, 0);
+            var invoiceAccounts = [];
+
+            // limit accounts to income accounts and remove placeholder accounts 
+            for (var i in accounts) {
+              if (accounts[i].type_id == 8 && !accounts[i].placeholder) {
+                invoiceAccounts.push(accounts[i]);
+              }
+            }
+
+            deferred.resolve(invoiceAccounts);
           })
           .error(function(data, status) {
             api.handleErrors(data, status, 'accounts');

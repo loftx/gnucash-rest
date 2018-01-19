@@ -5,33 +5,13 @@ function AccountListCtrl($scope, Account) {
 
 function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Account) {
 
-	// This will give us no way to get the splits back...
 	$scope.account = Account.getAccount($routeParams.accountGuid).then(
 		function(account) {
 			$scope.splits = Account.getSplits(account);
 		}
 	);
 
-	// will need to renable this for placeholders
-
-	/*$http.get('/api/accounts')
-		.success(function(data) {
-			var accounts = getSubAccounts($http, $timeout, data, 0);
-			var nonPlaceholderAccounts = [];
-
-			// limit accounts to income accounts and remove placeholder accounts 
-			for (var i in accounts) {
-				if (!accounts[i].placeholder) {
-					nonPlaceholderAccounts.push(accounts[i]);
-				}
-			}
-
-			$scope.accounts = nonPlaceholderAccounts;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;*/
+	$scope.accounts = Account.getAccountsForDropdown($routeParams.accountGuid);
 
 	$('#transactionDatePosted').datepicker({
 		'dateFormat': 'yy-mm-dd',
@@ -245,21 +225,4 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 
 	}
 
-}
-
-function getSubAccounts($http, $timeout, data, level) {
-
-	var flatAccounts = [];
-
-	for (var i in data.subaccounts) {
-		data.subaccounts[i].level = level
-		flatAccounts.push(data.subaccounts[i]);
-		var subAccounts = getSubAccounts($http, $timeout, data.subaccounts[i], level + 1);
-		for (var subAccount in subAccounts) {
-			subAccounts[subAccount].name = data.subaccounts[i].name + ':' + subAccounts[subAccount].name;
-			flatAccounts.push(subAccounts[subAccount]);
-		}
-	}
-
-	return flatAccounts;
 }
