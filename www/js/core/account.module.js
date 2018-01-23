@@ -1,14 +1,14 @@
 angular.module('core.account', []);
 
 angular.module('core.account').
-factory('Account', function($q, $http, $timeout, api) {
+factory('Account', function($q, $http, $timeout, Api) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
       getAccounts: function() {
         var deferred = $q.defer();
 
-        $http.get(api.getUrl() + '/accounts', {headers: api.getHeaders()})
+        $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
           .success(function(data) {
 
             var accounts = obj.getSubAccounts(data, 0);
@@ -20,7 +20,7 @@ factory('Account', function($q, $http, $timeout, api) {
             deferred.resolve(accounts);
           })
           .error(function(data, status) {
-            api.handleErrors(data, status, 'accounts');
+            Api.handleErrors(data, status, 'accounts');
           })
         ;
 
@@ -30,12 +30,12 @@ factory('Account', function($q, $http, $timeout, api) {
       getAccount: function(accountGuid) {
         var deferred = $q.defer();
 
-        $http.get(api.getUrl() + '/accounts/' + accountGuid, {headers: api.getHeaders()})
+        $http.get(Api.getUrl() + '/accounts/' + accountGuid, {headers: Api.getHeaders()})
           .success(function(data) {
             deferred.resolve(data);
           })
           .error(function(data, status) {
-            api.handleErrors(data, status, 'accounts');
+            Api.handleErrors(data, status, 'accounts');
           })
         ;
 
@@ -45,7 +45,7 @@ factory('Account', function($q, $http, $timeout, api) {
       getSplits: function(account) {
         var deferred = $q.defer();
 
-        $http.get(api.getUrl() + '/accounts/' + account.guid + '/splits', {headers: api.getHeaders()})
+        $http.get(Api.getUrl() + '/accounts/' + account.guid + '/splits', {headers: Api.getHeaders()})
           .success(function(splits) {
 
             for (var i in splits) {
@@ -55,7 +55,7 @@ factory('Account', function($q, $http, $timeout, api) {
             deferred.resolve(splits);
           })
           .error(function(data, status) {
-            api.handleErrors(data, status, 'accounts');
+            Api.handleErrors(data, status, 'accounts');
           })
         ;
 
@@ -66,7 +66,7 @@ factory('Account', function($q, $http, $timeout, api) {
       getAccountsForDropdown: function() {
         var deferred = $q.defer();
 
-        $http.get(api.getUrl() + '/accounts', {headers: api.getHeaders()})
+        $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
           .success(function(data) {
 
             var accounts = obj.getSubAccounts(data, 0);
@@ -82,7 +82,7 @@ factory('Account', function($q, $http, $timeout, api) {
             deferred.resolve(nonPlaceholderAccounts);
           })
           .error(function(data, status) {
-            api.handleErrors(data, status, 'accounts');
+            Api.handleErrors(data, status, 'accounts');
           })
         ;
 
@@ -93,7 +93,7 @@ factory('Account', function($q, $http, $timeout, api) {
       getInvoiceAccountsForDropdown: function() {
         var deferred = $q.defer();
 
-        $http.get(api.getUrl() + '/accounts', {headers: api.getHeaders()})
+        $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
           .success(function(data) {
 
             var accounts = obj.getSubAccounts(data, 0);
@@ -109,12 +109,40 @@ factory('Account', function($q, $http, $timeout, api) {
             deferred.resolve(invoiceAccounts);
           })
           .error(function(data, status) {
-            api.handleErrors(data, status, 'accounts');
+            Api.handleErrors(data, status, 'accounts');
           })
         ;
 
         return deferred.promise;
       },
+
+      // this is very similar to getAccountsForDropdown
+      getAccountsOfTypesForDropdown: function(type_ids) {
+        var deferred = $q.defer();
+
+        $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
+          .success(function(data) {
+
+            var accounts = obj.getSubAccounts(data, 0);
+            var invoiceAccounts = [];
+
+            // limit accounts to income accounts and remove placeholder accounts 
+            for (var i in accounts) {
+              if (type_ids.indexOf(accounts[i].type_id) != -1 && !accounts[i].placeholder) {
+                invoiceAccounts.push(accounts[i]);
+              }
+            }
+
+            deferred.resolve(invoiceAccounts);
+          })
+          .error(function(data, status) {
+            Api.handleErrors(data, status, 'accounts');
+          })
+        ;
+
+        return deferred.promise;
+      },
+
 
       formatSplit: function(split, account) {
         if (account.type_id == 0) {

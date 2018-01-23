@@ -1,7 +1,7 @@
 angular.module('core.invoice', []);
 
 angular.module('core.invoice').
-  factory('Invoice', function($q, $http, $timeout, api) {
+  factory('Invoice', function($q, $http, $timeout, Api, Money) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -9,7 +9,7 @@ angular.module('core.invoice').
         var deferred = $q.defer();
 
         
-        $http.get(api.getUrl() + '/invoices' + obj.generateQueryString(params), {headers: api.getHeaders()})
+        $http.get(Api.getUrl() + '/invoices' + obj.generateQueryString(params), {headers: Api.getHeaders()})
           .success(function(invoices) {
 
             for (var i in invoices) {
@@ -19,7 +19,7 @@ angular.module('core.invoice').
             deferred.resolve(invoices);
           })
           .error(function(data, status) {
-            api.handleErrors(data, status, 'invoices');
+            Api.handleErrors(data, status, 'invoices');
           })
         ;
 
@@ -29,7 +29,7 @@ angular.module('core.invoice').
       get: function(invoiceID) {
         var deferred = $q.defer();
 
-        $http.get(api.getUrl() + '/invoices/' + invoiceID, {headers: api.getHeaders()})
+        $http.get(Api.getUrl() + '/invoices/' + invoiceID, {headers: Api.getHeaders()})
           .success(function(invoice) {
 
             invoice = obj.formatInvoice(invoice);
@@ -37,9 +37,50 @@ angular.module('core.invoice').
             deferred.resolve(invoice);
           })
           .error(function(data, status) {
-            api.handleErrors(data, status, 'invoices');
+            Api.handleErrors(data, status, 'invoices');
           })
         ;
+
+        return deferred.promise;
+      },
+
+      add: function(params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'POST',
+          url: Api.getUrl() + '/invoices',
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(invoice) {
+
+          invoice = obj.formatInvoice(invoice);
+
+          deferred.resolve(invoice);
+        
+        }).error(function(data, status, headers, config) {
+
+          console.log(data);
+
+          // Api.handleErrors(data, status, 'invoices');
+
+          /*if(typeof data.errors != 'undefined') {
+            $('#invoiceAlert').show();
+            $scope.invoiceError = data.errors[0].message;
+          } else {
+            console.log(data);
+            console.log(status);  
+          }*/
+        });
 
         return deferred.promise;
       },
@@ -95,7 +136,7 @@ angular.module('core.invoice').
           invoice.entries[i] = obj.formatEntry(invoice.entries[i], invoice.currency);
         }
 
-        invoice.total = format_currency(8, invoice.currency, -invoice.total);
+        invoice.total = Money.format_currency(8, invoice.currency, -invoice.total);
 
         return invoice;
       },
@@ -111,18 +152,17 @@ angular.module('core.invoice').
 
         if (entry.discount_type == 1) {
           entry.total_inc_discount = entry.total_ex_discount - entry.discount;
-          entry.discount = format_currency(8, currency, -entry.discount);
+          entry.discount = Money.format_currency(8, currency, -entry.discount);
         } else {
           // TODO: percentage discounts
         }
 
-        // was using format_money instead of format_currency but it's not avaliable here - fix
         // also 8s are haescoded
         // it would be good to get format_currency in it's own module or in core...
 
-        entry.discount_type = format_discount_type(entry.discount_type, currency);
-        entry.total_inc_discount = format_currency(8, currency, -entry.total_inc_discount);
-        entry.inv_price = format_currency(8, currency, -entry.inv_price);
+        entry.discount_type = Money.format_discount_type(entry.discount_type, currency);
+        entry.total_inc_discount = Money.format_currency(8, currency, -entry.total_inc_discount);
+        entry.inv_price = Money.format_currency(8, currency, -entry.inv_price);
 
         return entry;
       }

@@ -1,13 +1,6 @@
-function CustomerListCtrl($scope, $http, $timeout) {
+function CustomerListCtrl($scope, $http, $timeout, Customer) {
 	
-	$http.get('/api/customers')
-		.success(function(data) {
-			$scope.customers = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	$scope.customers = Customer.query();
 
 	$scope.orderProp = "id";
 
@@ -185,73 +178,20 @@ function CustomerListCtrl($scope, $http, $timeout) {
 	}
 }
 
-function CustomerDetailCtrl($scope, $routeParams, $http, $timeout) {
-	$http.get('/api/customers/' + $routeParams.customerId)
-		.success(function(data) {
-			$scope.customer = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Account, Invoice) {
 
-	$http.get('/api/customers/' + $routeParams.customerId + '/invoices?is_active=1')
-		.success(function(data) {
-			$scope.invoices = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	$scope.customer = Customer.get($routeParams.customerId);
+	
+	// Using $scope.invoices = Invoice.query(params); causes "$scope.invoices.push is not a function" - probably because it's a promise not an array...
+	Customer.getInvoices($routeParams.customerId).then(function(invoices) {
+		$scope.invoices = invoices;
+	});
 
-	$http.get('/api/customers')
-		.success(function(data) {
-			$scope.customers = data;
+	$scope.customers = Customer.query();
 
-			// TODO: rather than apply these individually (e.g. here and in InvoiceListCtrl it might be good to have this all in a function/service)
-			for (var invoice in $scope.invoices) {
-				$scope.invoices[invoice].total = format_currency(8, 'GBP', -$scope.invoices[invoice].total);
-			}
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	$scope.accounts = Account.getAccountsForDropdown([11]);
 
-	$http.get('/api/accounts')
-		.success(function(data) {
-			var accounts = getSubAccounts($http, $timeout, data, 0);
-			var invoiceAccounts = [];
-
-			// limit accounts to asset accounts and remove placeholder accounts 
-			for (var i in accounts) {
-				if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
-					invoiceAccounts.push(accounts[i]);
-				}
-			}
-
-			$scope.accounts = invoiceAccounts;
-
-			$scope.transferAccounts = [];
-
-			// limit accounts to asset accounts and remove placeholder accounts 
-			for (var i in accounts) {
-				if (accounts[i].type_id == 2
-					|| accounts[i].type_id == 1
-					|| accounts[i].type_id == 0
-					|| accounts[i].type_id == 4
-					|| accounts[i].type_id == 3
-				) {
-				//if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
-					//console.log(accounts[i].type_id + ' ' + accounts[i].name)
-					$scope.transferAccounts.push(accounts[i]);
-				}
-			}
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	$scope.transferAccounts = Account.getAccountsForDropdown([2, 1, 0, 4, 3]);
 
 	$scope.orderProp = "id";
 
@@ -301,28 +241,17 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout) {
 
 	$scope.addInvoice = function() {
 
-		var data = {
+		var params = {
 			id: '',
 			customer_id: $scope.invoice.customer_id,
+			// TODO: currency should be based on the customer selected
 			currency: 'GBP',
 			date_opened: $scope.invoice.date_opened,
 			notes: $scope.invoice.notes
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/invoices',
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
-			$scope.invoices.push(data);
+		Invoice.add(params).then(function(invoice) {
+			$scope.invoices.push(invoice);
 			$('#invoiceForm').modal('hide');
 			$('#invoiceAlert').hide();
 
@@ -330,16 +259,10 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout) {
 			$scope.invoice.customer_id = '';
 			$scope.invoice.date_opened = '';
 			$scope.invoice.notes = '';
-			
-		}).error(function(data, status, headers, config) {
-			if(typeof data.errors != 'undefined') {
-				$('#invoiceAlert').show();
-				$scope.invoiceError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
+		}, function(reason) {
+			console.log('????');
 		});
+		
 	}
 
 	$scope.saveInvoice = function() {

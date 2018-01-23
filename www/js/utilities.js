@@ -19,6 +19,7 @@ function pad(number) {
 
 // this is not very angulary - should be injected as an errors/gnucash object
 function handleApiErrors($timeout, data, status, $location, type, redirect) {
+	console.log('Depricated: Replace call with core.handleApiErrors');
 	if (status == 400 && typeof data != 'undefined') {
 		if (data.errors[0] != 'undefined') {
 			// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
@@ -48,7 +49,8 @@ function handleApiErrors($timeout, data, status, $location, type, redirect) {
 }
 
 Number.prototype.formatMoney = function(c, d, t){
-var n = this, 
+	console.log('Depricated: Replace call with core.formatMoney');
+	var n = this, 
 	c = isNaN(c = Math.abs(c)) ? 2 : c, 
 	d = d == undefined ? "." : d, 
 	t = t == undefined ? "," : t, 
@@ -59,6 +61,7 @@ var n = this,
  };
 
 function format_currency_format(currency) {
+	console.log('Depricated: Replace call with core.format_currency_format');
 	if (currency == 'GBP') {
 		return '£';
 	} else if (currency == 'USD') {
@@ -69,6 +72,7 @@ function format_currency_format(currency) {
 }
 
 function format_currency(type_id, currency, amount) {
+	console.log('Depricated: Replace call with core.format_currency');
 	if (type_id == 8) {
 		amount = -(amount);
 	}
@@ -99,6 +103,7 @@ function format_todays_date() {
 }
 
 function format_discount_type(discount_type, currency) {
+	console.log('Depricated: Replace call with core.format_discount_type');
 	if (discount_type == 1) {
 		return format_currency_format(currency);
 	} else if (discount_type == 2) {

@@ -1,5 +1,7 @@
 function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 
+	$scope.invoices = [];
+
 	$scope.date_type = 'opened';
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
 	$scope.date_to = '';
@@ -34,6 +36,15 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 				}
 			}
 		});
+
+		$('#invoiceDateOpened').datepicker({
+			'dateFormat': 'yy-mm-dd',
+			'onSelect': function(dateText) {
+				if (window.angular && angular.element) {
+					angular.element(this).controller("ngModel").$setViewValue(dateText);
+				}
+			}
+		});
 	});
 
 	$scope.change = function() {
@@ -47,7 +58,12 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 		};
 		
 		if (params != lastParams) {
-			$scope.invoices = Invoice.query(params);
+			
+
+			// Using $scope.invoices = Invoice.query(params); causes "$scope.invoices.push is not a function" - probably because it's a promise not an array...
+			Invoice.query(params).then(function(invoices) {
+				$scope.invoices = invoices;
+			});
 
 			lastParams = params;
 		}
@@ -71,28 +87,18 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 
 	$scope.addInvoice = function() {
 
-		var data = {
+		var params = {
 			id: '',
 			customer_id: $scope.invoice.customer_id,
+			// TODO: currency should be based on the customer selected
 			currency: 'GBP',
 			date_opened: $scope.invoice.date_opened,
 			notes: $scope.invoice.notes
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/invoices',
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
-			$scope.invoices.push(data);
+		Invoice.add(params).then(function(invoice) {
+			$scope.invoices.push(invoice);
+			console.log($scope.invoices);
 			$('#invoiceForm').modal('hide');
 			$('#invoiceAlert').hide();
 
@@ -100,16 +106,10 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 			$scope.invoice.customer_id = '';
 			$scope.invoice.date_opened = '';
 			$scope.invoice.notes = '';
-			
-		}).error(function(data, status, headers, config) {
-			if(typeof data.errors != 'undefined') {
-				$('#invoiceAlert').show();
-				$scope.invoiceError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
+		}, function(reason) {
+			console.log('????');
 		});
+				
 	}
 
 	$scope.saveInvoice = function() {
