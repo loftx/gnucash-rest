@@ -1,17 +1,23 @@
 function AccountListCtrl($scope, Account) {
 	// could also handle some errors here?
-	$scope.accounts = Account.getAccounts();
+	Account.getAccounts().then(function(accounts) {
+		$scope.accounts = accounts;
+	});
 }
 
 function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Account) {
 
-	$scope.account = Account.getAccount($routeParams.accountGuid).then(
-		function(account) {
-			$scope.splits = Account.getSplits(account);
-		}
-	);
+	Account.getAccount($routeParams.accountGuid).then(function(account) {
+		$scope.account = account;
 
-	$scope.accounts = Account.getAccountsForDropdown($routeParams.accountGuid);
+		Account.getSplits(account).then(function(splits) {
+			$scope.splits = splits;
+		});
+	});
+
+	Account.getAccountsForDropdown($routeParams.accountGuid).then(function(accounts) {
+		$scope.accounts = accounts;
+	});
 
 	$('#transactionDatePosted').datepicker({
 		'dateFormat': 'yy-mm-dd',

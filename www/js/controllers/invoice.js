@@ -16,7 +16,9 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 	$scope.invoice.date_opened = '';
 	$scope.invoice.notes = '';
 
-	$scope.customers = Customer.query();
+	Customer.query().then(function(customers) {
+		$scope.customers = customers;
+	});
 
 	$scope.$on('$viewContentLoaded', function() {
 		$('#invoiceDateFrom').datepicker({
@@ -125,11 +127,17 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 
 function InvoiceDetailCtrl($scope, $routeParams, $http, $location, $timeout, Customer, Account, Invoice) {
 
-	$scope.customers = Customer.query();
+	Customer.query().then(function(customers) {
+		$scope.customers = customers;
+	});
 
-	$scope.accounts = Account.getInvoiceAccountsForDropdown();
+	Account.getInvoiceAccountsForDropdown().then(function(accounts) {
+		$scope.accounts = accounts;
+	});
 
-	$scope.invoice = Invoice.get($routeParams.invoiceId);
+	Invoice.get($routeParams.invoiceId).then(function(invoice) {
+		$scope.invoice = invoice;
+	});
 
 	$scope.entry = {};
 	$scope.entry.inv_account = {};

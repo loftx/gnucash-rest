@@ -1,6 +1,8 @@
 function CustomerListCtrl($scope, $http, $timeout, Customer) {
 	
-	$scope.customers = Customer.query();
+	Customer.query().then(function(customers) {
+		$scope.customers = customers;
+	});
 
 	$scope.orderProp = "id";
 
@@ -180,18 +182,25 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 
 function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Account, Invoice) {
 
-	$scope.customer = Customer.get($routeParams.customerId);
+	Customer.get($routeParams.customerId).then(function(customer) {
+		$scope.customer = customer;
+	});
 	
-	// Using $scope.invoices = Invoice.query(params); causes "$scope.invoices.push is not a function" - probably because it's a promise not an array...
 	Customer.getInvoices($routeParams.customerId).then(function(invoices) {
 		$scope.invoices = invoices;
 	});
 
-	$scope.customers = Customer.query();
+	Customer.query().then(function(customers) {
+		$scope.customers = customers;
+	});
 
-	$scope.accounts = Account.getAccountsForDropdown([11]);
+	Account.getAccountsForDropdown([11]).then(function(accounts) {
+		$scope.accounts = accounts;
+	});
 
-	$scope.transferAccounts = Account.getAccountsForDropdown([2, 1, 0, 4, 3]);
+	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
+		$scope.transferAccounts = transferAccounts;
+	});
 
 	$scope.orderProp = "id";
 
