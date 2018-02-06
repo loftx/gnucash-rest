@@ -62,6 +62,9 @@ function generateIncomeAccounts($scope, Account, Money) {
 			};
 
 			for (var i in $scope.incomeAccounts) {
+
+				$scope.incomeAccounts[i].total = Money.format_currency($scope.incomeAccounts[i].type_id, $scope.incomeAccounts[i].currency, 0);
+				
 				Account.getSplits($scope.incomeAccounts[i], params).then(function(splits) {
 					var accountAmount = 0;
 					for (var split in splits) {
@@ -92,6 +95,9 @@ function generateIncomeAccounts($scope, Account, Money) {
 			};
 
 			for (var i in $scope.expensesAccounts) {
+
+				$scope.expensesAccounts[i].total = Money.format_currency($scope.expensesAccounts[i].type_id, $scope.expensesAccounts[i].currency, 0);
+
 				Account.getSplits($scope.expensesAccounts[i], params).then(function(splits) {
 
 					var accountAmount = 0;

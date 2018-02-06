@@ -45,7 +45,7 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
       getSplits: function(account, params) {
         var deferred = $q.defer();
 
-        $http.get(Api.getUrl() + '/accounts/' + account.guid + '/splits', {headers: Api.getHeaders()})
+        $http.get(Api.getUrl() + '/accounts/' + account.guid + '/splits' + obj.generateQueryString(params), {headers: Api.getHeaders()})
           .success(function(splits) {
 
             for (var i in splits) {
@@ -143,6 +143,32 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
         return deferred.promise;
       },
 
+      // TODO: Sperate this out into Api
+      generateQueryString: function(params) {
+
+        var queryParams = '';
+
+        if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test(params.date_posted_from)) {
+          if (queryParams != '') {
+            queryParams = queryParams + '&';
+          }
+          queryParams = queryParams + 'date_posted_from=' + params.date_posted_from;
+        }
+
+        if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test(params.date_posted_to)) {
+          if (queryParams != '') {
+            queryParams = queryParams + '&';
+          }
+          queryParams = queryParams + 'date_posted_to=' + params.date_posted_to;
+        }
+
+        if (queryParams != '') {
+          queryParams = '?' +  queryParams;
+        }
+
+        return queryParams;
+
+      },
 
       formatSplit: function(split, account) {
         if (account.type_id == 0) {
