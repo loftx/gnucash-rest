@@ -1,7 +1,7 @@
-angular.module('core.invoice', []);
+angular.module('core.bill', []);
 
-angular.module('core.invoice').
-  factory('Invoice', function($q, $http, $timeout, Api, Money) {
+angular.module('core.bill').
+  factory('Bill', function($q, $http, $timeout, Api, Money) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -9,42 +9,42 @@ angular.module('core.invoice').
         var deferred = $q.defer();
 
         
-        $http.get(Api.getUrl() + '/invoices' + obj.generateQueryString(params), {headers: Api.getHeaders()})
-          .success(function(invoices) {
+        $http.get(Api.getUrl() + '/bills' + obj.generateQueryString(params), {headers: Api.getHeaders()})
+          .success(function(bills) {
 
-            for (var i in invoices) {
-              invoices[i] = obj.formatInvoice(invoices[i]);
+            for (var i in bills) {
+              bills[i] = obj.format(bills[i]);
             }
 
-            deferred.resolve(invoices);
+            deferred.resolve(bills);
           })
           .error(function(data, status) {
-            Api.handleErrors(data, status, 'invoices');
+            Api.handleErrors(data, status, 'bills');
           })
         ;
 
         return deferred.promise;
       },
 
-      get: function(invoiceID) {
+      get: function(billID) {
         var deferred = $q.defer();
 
-        $http.get(Api.getUrl() + '/invoices/' + invoiceID, {headers: Api.getHeaders()})
-          .success(function(invoice) {
+        $http.get(Api.getUrl() + '/bills/' + billID, {headers: Api.getHeaders()})
+          .success(function(bill) {
 
-            invoice = obj.formatInvoice(invoice);
+            bill = obj.format(bill);
 
-            deferred.resolve(invoice);
+            deferred.resolve(bill);
           })
           .error(function(data, status) {
-            Api.handleErrors(data, status, 'invoices');
+            Api.handleErrors(data, status, 'bills');
           })
         ;
 
         return deferred.promise;
       },
 
-      add: function(params) {
+      /*add: function(params) {
         var deferred = $q.defer();
 
         var headers = Api.getHeaders();
@@ -70,9 +70,26 @@ angular.module('core.invoice').
         }).error(deferred.reject);
 
         return deferred.promise;
+      }, */
+
+      format: function(bill) {
+
+        // $scope.bill.notes = nl2br($scope.bill.notes);
+
+        bill.date_opened = dateFormat(bill.date_opened);
+        bill.date_due = dateFormat(bill.date_due);
+
+        for (var i in bill.entries) {
+          bill.entries[i] = obj.formatEntry(bill.entries[i], bill.currency);
+        }
+
+        bill.total = Money.format_currency(8, bill.currency, -bill.total);
+
+        return bill;
       },
 
       // should seperate param validation and querystring building
+      // TODO: This is identical to invoices
       generateQueryString: function(params) {
 
         var queryParams = '';
@@ -114,24 +131,24 @@ angular.module('core.invoice').
       },
 
       // this could be not exposed
-      formatInvoice: function(invoice) {
+      format: function(bill) {
 
-        invoice.date_opened = dateFormat(invoice.date_opened);
-        invoice.date_due = dateFormat(invoice.date_due);
+        bill.date_opened = dateFormat(bill.date_opened);
+        bill.date_due = dateFormat(bill.date_due);
 
-        for (var i in invoice.entries) {
-          invoice.entries[i] = obj.formatEntry(invoice.entries[i], invoice.currency);
+        for (var i in bill.entries) {
+          bill.entries[i] = obj.formatEntry(bill.entries[i], bill.currency);
         }
 
-        invoice.total = Money.format_currency(8, invoice.currency, -invoice.total);
+        bill.total = Money.format_currency(8, bill.currency, -bill.total);
 
-        return invoice;
+        return bill;
       },
 
-      // move this to entries
+      // move this to entries (it is slighly different to invoices as uses bill_price instead of inv_price)
       formatEntry: function(entry, currency) {
         entry.date = dateFormat(entry.date);
-        entry.total_ex_discount = entry.quantity * entry.inv_price;
+        entry.total_ex_discount = entry.quantity * entry.bill_price;
 
         // doesn't take into account tax
 
@@ -144,12 +161,12 @@ angular.module('core.invoice').
           // TODO: percentage discounts
         }
 
-        // also 8s are haescoded
+        // also 8s are hardcoded
         // it would be good to get format_currency in it's own module or in core...
 
         entry.discount_type = Money.format_discount_type(entry.discount_type, currency);
         entry.total_inc_discount = Money.format_currency(8, currency, -entry.total_inc_discount);
-        entry.inv_price = Money.format_currency(8, currency, -entry.inv_price);
+        entry.bill_price = Money.format_currency(8, currency, -entry.bill_price);
 
         return entry;
       }

@@ -1,4 +1,4 @@
-function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
+function InvoiceListCtrl($scope, Invoice, Customer) {
 
 	$scope.invoices = [];
 
@@ -61,7 +61,6 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 		
 		if (params != lastParams) {
 			
-
 			// Using $scope.invoices = Invoice.query(params); causes "$scope.invoices.push is not a function" - probably because it's a promise not an array...
 			Invoice.query(params).then(function(invoices) {
 				$scope.invoices = invoices;
@@ -108,8 +107,16 @@ function InvoiceListCtrl($scope, $http, $timeout, Invoice, Customer) {
 			$scope.invoice.customer_id = '';
 			$scope.invoice.date_opened = '';
 			$scope.invoice.notes = '';
-		}, function(reason) {
-			console.log('????');
+		}, function(data) {
+
+			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+			if(typeof data.errors != 'undefined') {
+				$('#invoiceAlert').show();
+				$scope.invoiceError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
 		});
 				
 	}

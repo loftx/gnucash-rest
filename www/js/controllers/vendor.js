@@ -1,13 +1,8 @@
-function VendorListCtrl($scope, $http, $timeout) {
+function VendorListCtrl($scope, $http, $timeout, Vendor) {
 
-	$http.get('/api/vendors')
-		.success(function(data) {
-			$scope.vendors = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	Vendor.query().then(function(vendors) {
+		$scope.vendors = vendors;
+	});
 
 	$scope.orderProp = "id";
 
@@ -109,140 +104,29 @@ function VendorListCtrl($scope, $http, $timeout) {
 
 	}
 
-	/* $scope.populateCustomer = function(id) {
-
-		$http.get('/api/customers/' + id).success(function(data) {
-			$scope.customerTitle = 'Edit customer';
-			$scope.customerNew = 0;
-			$scope.customer = data;
-			$('#customerForm').modal('show');
-		});
-
-	}
-
-	$scope.updateCustomer = function(id) {
-
-		var data = {
-			id: id,
-			name: $scope.customer.name,
-			contact: $scope.customer.address.name,
-			address_line_1: $scope.customer.address.line_1,
-			address_line_2: $scope.customer.address.line_2,
-			address_line_3: $scope.customer.address.line_3,
-			address_line_4: $scope.customer.address.line_4,
-			phone: $scope.customer.address.phone,
-			fax: $scope.customer.address.fax,
-			email: $scope.customer.address.email
-		};
-
-		$http({
-			method: 'POST',
-			url: '/api/customers/' + id,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
-			for (var i = 0; i < $scope.customers.length; i++) {
-				if ($scope.customers[i].id == data.id) {
-					$scope.customers[i] = data;
-				}
-			}
-
-			$('#customerForm').modal('hide');
-			$('#customerAlert').hide();
-
-			$scope.customer.id = '';
-			$scope.customer.name = '';
-			$scope.customer.address.name = '';
-			$scope.customer.address.line_1 = '';
-			$scope.customer.address.line_2 = '';
-			$scope.customer.address.line_3 = '';
-			$scope.customer.address.line_4 = '';
-			$scope.customer.address.phone = '';
-			$scope.customer.address.fax = '';
-			$scope.customer.address.email = '';
-			
-		}).error(function(data, status, headers, config) {
-			if(typeof data.errors != 'undefined') {
-				$('#customerAlert').show();
-				$scope.customerError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-	} */
-
 }
 
-function VendorDetailCtrl($scope, $routeParams, $http, $timeout) {
+function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account) {
 
-	$http.get('/api/vendors/' + $routeParams.vendorId)
-		.success(function(data) {
-			$scope.vendor = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	Vendor.get($routeParams.vendorId).then(function(vendor) {
+		$scope.vendor = vendor;
+	});
 
-	$http.get('/api/vendors/' + $routeParams.vendorId + '/bills?is_active=1')
-		.success(function(data) {
-			$scope.bills = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	Vendor.getBills($routeParams.vendorId).then(function(bills) {
+		$scope.bills = bills;
+	});
 
-	$http.get('/api/vendors')
-		.success(function(data) {
-			$scope.vendors = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	Vendor.query().then(function(vendors) {
+		$scope.vendors = vendors;
+	});
 
-	$http.get('/api/accounts')
-		.success(function(data) {
-			var accounts = getSubAccounts($http, $timeout, data, 0);
-			var billAccounts = [];
+	Account.getAccountsForDropdown([12]).then(function(accounts) {
+		$scope.accounts = accounts;
+	});
 
-			// limit accounts to asset accounts and remove placeholder accounts 
-			for (var i in accounts) {
-				if (accounts[i].type_id == 12 && !accounts[i].placeholder) {
-					billAccounts.push(accounts[i]);
-				}
-			}
-
-			$scope.accounts = billAccounts;
-
-			$scope.transferAccounts = [];
-
-			// limit accounts to asset accounts and remove placeholder accounts 
-			for (var i in accounts) {
-				if (accounts[i].type_id == 2
-					|| accounts[i].type_id == 1
-					|| accounts[i].type_id == 0
-					|| accounts[i].type_id == 4
-					|| accounts[i].type_id == 3
-				) {
-				//if (accounts[i].type_id == 11 && !accounts[i].placeholder) {
-					$scope.transferAccounts.push(accounts[i]);
-				}
-			}
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
+		$scope.transferAccounts = transferAccounts;
+	});
 
 	$scope.orderProp = "id";
 
@@ -484,75 +368,5 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout) {
 		$('#billForm').modal('show');
 
 	}
-
-	/* $scope.populateCustomer = function(id) {
-
-		$http.get('/api/customers/' + id).success(function(data) {
-			$scope.customerTitle = 'Edit customer';
-			$scope.customerNew = 0;
-			$scope.customer = data;
-			$('#customerForm').modal('show');
-		});
-
-	}
-
-	$scope.updateCustomer = function(id) {
-
-		var data = {
-			id: id,
-			name: $scope.customer.name,
-			contact: $scope.customer.address.name,
-			address_line_1: $scope.customer.address.line_1,
-			address_line_2: $scope.customer.address.line_2,
-			address_line_3: $scope.customer.address.line_3,
-			address_line_4: $scope.customer.address.line_4,
-			phone: $scope.customer.address.phone,
-			fax: $scope.customer.address.fax,
-			email: $scope.customer.address.email
-		};
-
-		$http({
-			method: 'POST',
-			url: '/api/customers/' + id,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
-			for (var i = 0; i < $scope.customers.length; i++) {
-				if ($scope.customers[i].id == data.id) {
-					$scope.customers[i] = data;
-				}
-			}
-
-			$('#customerForm').modal('hide');
-			$('#customerAlert').hide();
-
-			$scope.customer.id = '';
-			$scope.customer.name = '';
-			$scope.customer.address.name = '';
-			$scope.customer.address.line_1 = '';
-			$scope.customer.address.line_2 = '';
-			$scope.customer.address.line_3 = '';
-			$scope.customer.address.line_4 = '';
-			$scope.customer.address.phone = '';
-			$scope.customer.address.fax = '';
-			$scope.customer.address.email = '';
-			
-		}).error(function(data, status, headers, config) {
-			if(typeof data.errors != 'undefined') {
-				$('#customerAlert').show();
-				$scope.customerError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-	} */
 
 }

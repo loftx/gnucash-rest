@@ -1,4 +1,4 @@
-function BillListCtrl($scope, $http, $timeout) {
+function BillListCtrl($scope, Bill) {
 
 	$scope.date_type = 'opened';
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
@@ -30,117 +30,43 @@ function BillListCtrl($scope, $http, $timeout) {
 
 	$scope.change = function() {
 
-		var params = '';
-
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_from)) {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'date_' + $scope.date_type + '_from=' + $scope.date_from;
-		}
-
-		if(/[0-9]{4}-[0-9]{2}-[0-9]{2}/i.test($scope.date_to)) {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'date_' + $scope.date_type + '_to=' + $scope.date_to;
-		}
-
-		if ($scope.is_paid != '') {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'is_paid=' + $scope.is_paid;
-		}
-
-		if ($scope.is_active != '') {
-			if (params != '') {
-				params = params + '&';
-			}
-			params = params + 'is_active=' + $scope.is_active;
-		}
-
-		if (params != '') {
-			params = '?' +  params;
-		}
+		var params = {
+			'date_from': $scope.date_from,
+			'date_to': $scope.date_to,
+			'date_type': $scope.date_type,
+			'is_paid': $scope.is_paid,
+			'is_active': $scope.is_active
+		};
 		
 		if (params != lastParams) {
-
-			$http.get('/api/bills' + params)
-				.success(function(data) {
-					$scope.bills = data;
-
-					for (var bill in $scope.bills) {
-						$scope.bills[bill].total = format_currency(8, 'GBP', -$scope.bills[bill].total);
-					}
-				})
-				.error(function(data, status) {
-					handleApiErrors($timeout, data, status);
-				})
-			;
+			
+			// Using $scope.bills = Invoice.query(params); causes "$scope.bills.push is not a function" - probably because it's a promise not an array...
+			Bill.query(params).then(function(bills) {
+				$scope.bills = bills;
+			});
 
 			lastParams = params;
-
 		}
+		
 	}
 
 	$scope.change();
 
 }
 
-function BillDetailCtrl($scope, $routeParams, $http, $timeout) {
+function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Account) {
 
-	$http.get('/api/vendors')
-		.success(function(data) {
-			$scope.vendors = data;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	Vendor.query().then(function(vendors) {
+		$scope.vendors = vendors;
+	});
 
-	$http.get('/api/accounts')
-		.success(function(data) {
-			var accounts = getSubAccounts($http, $timeout, data, 0);
-			var billAccounts = [];
+	Account.getAccountsForDropdown([12]).then(function(accounts) {
+		$scope.accounts = accounts;
+	});
 
-			// limit accounts to income accounts and remove placeholder accounts 
-			for (var i in accounts) {
-				if (accounts[i].type_id == 9 && !accounts[i].placeholder) {
-					billAccounts.push(accounts[i]);
-				}
-			}
-
-			$scope.accounts = billAccounts;
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
-
-	$http.get('/api/bills/' + $routeParams.billId)
-		.success(function(data) {
-			$scope.bill = data;
-
-			$scope.bill.notes = nl2br($scope.bill.notes);
-			$scope.bill.date_opened = dateFormat($scope.bill.date_opened);
-			$scope.bill.date_due = dateFormat($scope.bill.date_due);
-
-			for (var entry in $scope.bill.entries) {
-				$scope.bill.entries[entry].date = dateFormat($scope.bill.entries[entry].date);
-				$scope.bill.entries[entry].total_ex_discount = $scope.bill.entries[entry].quantity * $scope.bill.entries[entry].bill_price;
-				// does not take into account discounts - how do these work?
-				$scope.bill.entries[entry].total_inc_discount = $scope.bill.entries[entry].total_ex_discount.formatMoney(2, '.', ',');
-				$scope.bill.entries[entry].bill_price = $scope.bill.entries[entry].bill_price.formatMoney(2, '.', ',');
-				$scope.bill.entries[entry].discount = $scope.bill.entries[entry].discount.formatMoney(2, '.', ',');
-			}
-
-			$scope.bill.total = $scope.bill.total.formatMoney(2, '.', ',');
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+	Bill.get($routeParams.billId).then(function(bill) {
+		$scope.bill = bill;
+	});
 
 	$scope.entry = {};
 	$scope.entry.bill_account = {};
