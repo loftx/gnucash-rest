@@ -10,7 +10,7 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 	Account.getAccount($routeParams.accountGuid).then(function(account) {
 		$scope.account = account;
 
-		Account.getSplits(account).then(function(splits) {
+		Account.getSplits(account, {}).then(function(splits) {
 			$scope.splits = splits;
 		});
 	});

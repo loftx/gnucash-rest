@@ -1,7 +1,7 @@
 angular.module('core.account', []);
 
 angular.module('core.account').
-factory('Account', function($q, $http, $timeout, Api) {
+factory('Account', function($q, $http, $timeout, Api, Money) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -42,7 +42,7 @@ factory('Account', function($q, $http, $timeout, Api) {
         return deferred.promise;
       },
 
-      getSplits: function(account) {
+      getSplits: function(account, params) {
         var deferred = $q.defer();
 
         $http.get(Api.getUrl() + '/accounts/' + account.guid + '/splits', {headers: Api.getHeaders()})
@@ -147,22 +147,22 @@ factory('Account', function($q, $http, $timeout, Api) {
       formatSplit: function(split, account) {
         if (account.type_id == 0) {
           if (split.amount > 0) {
-            split.income = format_currency(account.type_id, account.currency, split.amount);
+            split.income = Money.format_currency(account.type_id, account.currency, split.amount);
             split.charge = '';
           } else {
             split.income = '';
-            split.charge = format_currency(account.type_id, account.currency, -split.amount);
+            split.charge = Money.format_currency(account.type_id, account.currency, -split.amount);
           }
         } else if (account.type_id != 8) {
-          split.charge = format_currency(8, account.currency, split.amount);
+          split.charge = Money.format_currency(8, account.currency, split.amount);
           split.income = '';
         } else {
-          split.income = format_currency(8, account.currency, split.amount);
+          split.income = Money.format_currency(8, account.currency, split.amount);
           split.charge = '';
         }
 
-        split.balance = format_currency(account.type_id, account.currency, split.balance);
-        split.amount = format_currency(account.type_id, account.currency, split.amount);
+        split.formatted_balance = Money.format_currency(account.type_id, account.currency, split.balance);
+        split.formatted_amount = Money.format_currency(account.type_id, account.currency, split.amount);
         
         /*if (account.type_id == 8) {
           split.balance = -(split.balance);
@@ -174,13 +174,12 @@ factory('Account', function($q, $http, $timeout, Api) {
 
       // this could be not exposed
       formatAccount: function(account) {
-        account.balance_html = format_currency(account.type_id, account.currency, account.balance);
-        account.balance_gbp_html = format_currency(account.type_id, account.currency, account.balance_gbp);
+        account.balance_html = Money.format_currency(account.type_id, account.currency, account.balance);
+        account.balance_gbp_html = Money.format_currency(account.type_id, account.currency, account.balance_gbp);
 
         return account;
       },
       
-      // this could be not exposed
       getSubAccounts: function(data, level) {
 
         var flatAccounts = [];
@@ -196,7 +195,7 @@ factory('Account', function($q, $http, $timeout, Api) {
         }
 
         return flatAccounts;
-      }
+      },
 
     }
 

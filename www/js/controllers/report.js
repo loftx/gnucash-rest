@@ -1,4 +1,4 @@
-function ReportIncomeStatementCtrl($scope, $http, $timeout) {
+function ReportIncomeStatementCtrl($scope, Account, Money) {
 
 	var monthNames = [ "January", "February", "March", "April", "May", "June",
 	"July", "August", "September", "October", "November", "December" ];
@@ -20,14 +20,14 @@ function ReportIncomeStatementCtrl($scope, $http, $timeout) {
 
 	$scope.setMonth = function(month_id) {
 		$scope.currentMonth = 9-month_id;
-		generateIncomeAccounts($scope, $http);
+		generateIncomeAccounts($scope, Account, Money);
 	}
 
-	generateIncomeAccounts($scope, $http);
+	generateIncomeAccounts($scope, Account, Money);
 
 }
 
-function generateIncomeAccounts($scope, $http, $timeout) {
+function generateIncomeAccounts($scope, Account, Money) {
 
 	$scope.incomeTotal = 0;
 	$scope.displayIncomeTotal = '';
@@ -38,82 +38,85 @@ function generateIncomeAccounts($scope, $http, $timeout) {
 	$scope.grandTotal = 0;
 	$scope.displayGrandTotal = '';
 
-	$http.get('/api/accounts')
-		.success(function(data) {
-			var accounts = getSubAccounts($http, $timeout, data, 0);
+	Account.getAccounts().then(function(accounts) {
+		
+		var incomeAccounts = [];
+		var expensesAccounts = [];
 
-			var incomeAccounts = [];
-			var expensesAccounts = [];
-
-			for (var account in accounts) {
-				// would it be good if there was a way of returning flat accounts by type?
-				if (accounts[account].type_id == 8 && accounts[account].level == 0) {
-					incomeAccounts.push(accounts[account]);
-				} else if (accounts[account].type_id == 9 && accounts[account].level == 0) {
-					expensesAccounts.push(accounts[account]);
-				}
+		for (var account in accounts) {
+			// would it be good if there was a way of returning flat accounts by type?
+			if (accounts[account].type_id == 8 && accounts[account].level == 0) {
+				incomeAccounts.push(accounts[account]);
+			} else if (accounts[account].type_id == 9 && accounts[account].level == 0) {
+				expensesAccounts.push(accounts[account]);
 			}
+		}
 
-			$http.get('/api/accounts/' + incomeAccounts[0].guid)
-				.success(function(data) {
-					$scope.incomeAccounts = getSubAccounts($http, $timeout, data, 0);		
-					for (var account in $scope.incomeAccounts) {
-						$http.get('/api/accounts/' + $scope.incomeAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account})
-							.success(function(data, status, headers, config) {
-								var accountAmount = 0;
-								for (var split in data) {
-									accountAmount = accountAmount + data[split].amount;
-								
-								}
-								$scope.incomeAccounts[config.account_id].total = format_currency($scope.incomeAccounts[config.account_id].type_id, $scope.incomeAccounts[config.account_id].currency, accountAmount);
-								$scope.incomeTotal =  $scope.incomeTotal + accountAmount;
-								$scope.displayIncomeTotal = format_currency(8, 'GBP', $scope.incomeTotal);
-								$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
-								$scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
-							})
-							.error(function(data, status) {
-								handleApiErrors($timeout, data, status);
-							})
-						;
-					}	
-				})
-				.error(function(data, status) {
-					handleApiErrors($timeout, data, status);
-				})
-			;
+		Account.getAccount(incomeAccounts[0].guid).then(function(account) {
 
-			$http.get('/api/accounts/' + expensesAccounts[0].guid)
-				.success(function(data) {
-					$scope.expensesAccounts = getSubAccounts($http, $timeout, data, 0);		
-					for (var account in $scope.expensesAccounts) {
-						$http.get('/api/accounts/' + $scope.expensesAccounts[account].guid + '/splits?date_posted_from=' + $scope.months[$scope.currentMonth].date_from + '&date_posted_to=' + $scope.months[$scope.currentMonth].date_to, {'account_id': account})
-							.success(function(data, status, headers, config) {
-								var accountAmount = 0;
-								for (var split in data) {
-									accountAmount = accountAmount + data[split].amount;
-								
-								}
-								$scope.expensesAccounts[config.account_id].total = format_currency($scope.expensesAccounts[config.account_id].type_id, $scope.expensesAccounts[config.account_id].currency, accountAmount);
-								$scope.expensesTotal =  $scope.expensesTotal + accountAmount;
-								$scope.displayExpensesTotal = format_currency(0, 'GBP', $scope.expensesTotal);
-								$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
-								$scope.displayGrandTotal = format_currency(8, 'GBP', $scope.grandTotal);
-							})
-							.error(function(data, status) {
-								handleApiErrors($timeout, data, status);
-							})
-						;
-					}	
-				})
-				.error(function(data, status) {
-					handleApiErrors($timeout, data, status);
-				})
-			;
+			$scope.incomeAccounts = Account.getSubAccounts(account, 0);		
 
-		})
-		.error(function(data, status) {
-			handleApiErrors($timeout, data, status);
-		})
-	;
+			var params = {
+				'date_posted_from': $scope.months[$scope.currentMonth].date_from,
+				'date_posted_to': $scope.months[$scope.currentMonth].date_to
+			};
+
+			for (var i in $scope.incomeAccounts) {
+				Account.getSplits($scope.incomeAccounts[i], params).then(function(splits) {
+					var accountAmount = 0;
+					for (var split in splits) {
+						accountAmount = accountAmount + splits[split].amount;
+					
+					}
+
+					for (var j in $scope.incomeAccounts) {
+						if (splits.length != 0 && $scope.incomeAccounts[j].guid == splits[0].account.guid) {
+							$scope.incomeAccounts[j].total = Money.format_currency($scope.incomeAccounts[j].type_id, $scope.incomeAccounts[j].currency, accountAmount);
+							$scope.incomeTotal =  $scope.incomeTotal + accountAmount;
+							$scope.displayIncomeTotal = Money.format_currency(8, 'GBP', $scope.incomeTotal);
+							$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
+							$scope.displayGrandTotal = Money.format_currency(8, 'GBP', $scope.grandTotal);
+						}
+					}
+				});
+			}
+		});
+
+		Account.getAccount(expensesAccounts[0].guid).then(function(accounts) {
+
+			$scope.expensesAccounts = Account.getSubAccounts(accounts, 0);
+
+			var params = {
+				'date_posted_from': $scope.months[$scope.currentMonth].date_from,
+				'date_posted_to': $scope.months[$scope.currentMonth].date_to
+			};
+
+			for (var i in $scope.expensesAccounts) {
+				Account.getSplits($scope.expensesAccounts[i], params).then(function(splits) {
+
+					var accountAmount = 0;
+					for (var split in splits) {
+						accountAmount = accountAmount + splits[split].amount;
+					
+					}
+
+					for (var j in $scope.expensesAccounts) {
+						if (splits.length != 0 && $scope.expensesAccounts[j].guid == splits[0].account.guid) {
+
+							$scope.expensesAccounts[j].total = Money.format_currency($scope.expensesAccounts[j].type_id, $scope.expensesAccounts[j].currency, accountAmount);
+							$scope.expensesTotal =  $scope.expensesTotal + accountAmount;
+							$scope.displayExpensesTotal = Money.format_currency(0, 'GBP', $scope.expensesTotal);
+							$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
+							$scope.displayGrandTotal = Money.format_currency(8, 'GBP', $scope.grandTotal);
+						}
+					}
+
+				});
+
+			}	
+
+		});
+
+	});
 
 }
