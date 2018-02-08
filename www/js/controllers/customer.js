@@ -1,4 +1,4 @@
-function CustomerListCtrl($scope, $http, $timeout, Customer) {
+function CustomerListCtrl($scope, Customer) {
 	
 	Customer.query().then(function(customers) {
 		$scope.customers = customers;
@@ -21,7 +21,7 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 
 	$scope.addCustomer = function() {
 
-		var data = {
+		var params = {
 			id: '',
 			currency: 'GBP',
 			name: $scope.customer.name,
@@ -35,20 +35,8 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 			email: $scope.customer.address.email
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/customers',
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
-			$scope.customers.push(data);
+		Customer.add(params).then(function(customer) {
+			$scope.customers.push(customer);
 			$('#customerForm').modal('hide');
 			$('#customerAlert').hide();
 
@@ -62,8 +50,9 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 			$scope.customer.address.phone = '';
 			$scope.customer.address.fax = '';
 			$scope.customer.address.email = '';
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
+			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 			if(typeof data.errors != 'undefined') {
 				$('#customerAlert').show();
 				$scope.customerError = data.errors[0].message;
@@ -72,6 +61,7 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 				console.log(status);	
 			}
 		});
+
 	}
 
 	$scope.saveCustomer = function() {
@@ -106,23 +96,18 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 
 	$scope.populateCustomer = function(id) {
 
-		$http.get('/api/customers/' + id)
-			.success(function(data) {
-				$scope.customerTitle = 'Edit customer';
-				$scope.customerNew = 0;
-				$scope.customer = data;
-				$('#customerForm').modal('show');
-			})
-			.error(function(data, status) {
-				handleApiErrors($timeout, data, status);
-			})
-		;
+		Customer.get(id).then(function(customer) {
+			$scope.customerTitle = 'Edit customer';
+			$scope.customerNew = 0;
+			$scope.customer = customer;
+			$('#customerForm').modal('show');
+		});
 
 	}
 
 	$scope.updateCustomer = function(id) {
 
-		var data = {
+		var params = {
 			id: id,
 			name: $scope.customer.name,
 			contact: $scope.customer.address.name,
@@ -135,22 +120,10 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 			email: $scope.customer.address.email
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/customers/' + id,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
+		Customer.update(id, params).then(function(customer) {
 			for (var i = 0; i < $scope.customers.length; i++) {
-				if ($scope.customers[i].id == data.id) {
-					$scope.customers[i] = data;
+				if ($scope.customers[i].id == customer.id) {
+					$scope.customers[i] = customer;
 				}
 			}
 
@@ -167,8 +140,9 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 			$scope.customer.address.phone = '';
 			$scope.customer.address.fax = '';
 			$scope.customer.address.email = '';
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
+			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 			if(typeof data.errors != 'undefined') {
 				$('#customerAlert').show();
 				$scope.customerError = data.errors[0].message;
@@ -177,6 +151,7 @@ function CustomerListCtrl($scope, $http, $timeout, Customer) {
 				console.log(status);	
 			}
 		});
+
 	}
 }
 
@@ -285,68 +260,53 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Acc
 
 	$scope.postInvoice = function(id) {
 
-		$http.get('/api/invoices/' + $scope.invoice.id)
-			.success(function(data) {
+		Invoice.get($scope.invoice.id).then(function(invoice) {
+			
+			var params = {
+				customer_id: invoice.owner.id,
+				currency: invoice.currency,
+				date_opened: invoice.date_opened,
+				notes: invoice.notes,
+				posted: 1,
+				posted_account_guid: $scope.invoice.posted_account,
+				posted_date: $scope.invoice.date_posted,
+				due_date: $scope.invoice.date_due,
+				posted_memo: $scope.invoice.posted_memo,
+				posted_accumulatesplits: $scope.invoice.posted_accumulatesplits, // this is True but should be 1
+				posted_autopay: 0
+			};
 
-				var data = {
-					customer_id: data.owner.id,
-					currency: data.currency,
-					date_opened: data.date_opened,
-					notes: data.notes,
-					posted: 1,
-					posted_account_guid: $scope.invoice.posted_account,
-					posted_date: $scope.invoice.date_posted,
-					due_date: $scope.invoice.date_due,
-					posted_memo: $scope.invoice.posted_memo,
-					posted_accumulatesplits: $scope.invoice.posted_accumulatesplits, // this is True but should be 1
-					posted_autopay: 0
-				};
+			Invoice.update($scope.invoice.id, params).then(function(invoice) {
+			
+				$('#invoicePostForm').modal('hide');
+				$('#invoicePostAlert').hide();
 
-				$http({
-					method: 'POST',
-					url: '/api/invoices/' + $scope.invoice.id,
-					transformRequest: function(obj) {
-						var str = [];
-						for(var p in obj)
-						str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-						return str.join("&");
-					},
-					data: data,
-					headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-				}).success(function(data) {
-
-					$('#invoicePostForm').modal('hide');
-					$('#invoicePostAlert').hide();
-
-					$scope.invoice = data;
-				
-					for (var i in $scope.invoices) {
-						if ($scope.invoices[i].id == $scope.invoice.id) {
-							$scope.invoices[i] = $scope.invoice;
-						}
+				$scope.invoice = invoice;
+			
+				for (var i in $scope.invoices) {
+					if ($scope.invoices[i].id == $scope.invoice.id) {
+						$scope.invoices[i] = $scope.invoice;
 					}
-					
-				}).error(function(data, status, headers, config) {
-					if(typeof data.errors != 'undefined') {
-						$('#invoicePostAlert').show();
-						$scope.invoiceError = data.errors[0].message;
-					} else {
-						console.log(data);
-						console.log(status);	
-					}
-				});
-		
-			})
-			.error(function(data, status) {
-				handleApiErrors($timeout, data, status);
-			})
-		;	
+				}
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#invoicePostAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
 
 	}
 
+	// id is unused here as it's undefined when passed though
 	$scope.payInvoice = function(id) {
 
-		var data = {
+		var params = {
 			posted_account_guid: $scope.invoice.post_account,
 			transfer_account_guid: $scope.invoice.transfer_account,
 			payment_date: $scope.invoice.date_paid,
@@ -355,31 +315,20 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Acc
 			auto_pay: 0,
 		};
 
-		$http({
-			method: 'PAY',
-			url: '/api/invoices/' + $scope.invoice.id,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
+		Invoice.pay($scope.invoice.id, params).then(function(invoice) {
+			
 			$('#invoicePayForm').modal('hide');
 			$('#invoicePayAlert').hide();
 
-			$scope.invoice = data;
-			
+			$scope.invoice = invoice;
+
 			for (var i in $scope.invoices) {
 				if ($scope.invoices[i].id == $scope.invoice.id) {
 					$scope.invoices[i] = $scope.invoice;
 				}
 			}
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
 			if(typeof data.errors != 'undefined') {
 				$('#invoicePayAlert').show();
 				$scope.invoiceError = data.errors[0].message;
@@ -430,23 +379,18 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Acc
 
 	$scope.populateCustomer = function(id) {
 
-		$http.get('/api/customers/' + id)
-			.success(function(data) {
-				$scope.customerTitle = 'Edit customer';
-				$scope.customerNew = 0;
-				$scope.customer = data;
-				$('#customerForm').modal('show');
-			})
-			.error(function(data, status) {
-				handleApiErrors($timeout, data, status);
-			})
-		;
+		Customer.get(id).then(function(customer) {
+			$scope.customerTitle = 'Edit customer';
+			$scope.customerNew = 0;
+			$scope.customer = customer;
+			$('#customerForm').modal('show');
+		});
 
 	}
 
 	$scope.updateCustomer = function(id) {
 
-		var data = {
+		var params = {
 			id: id,
 			name: $scope.customer.name,
 			contact: $scope.customer.address.name,
@@ -459,19 +403,7 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Acc
 			email: $scope.customer.address.email
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/customers/' + id,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
+		Customer.update(id, params).then(function(customer) {
 			for (var i = 0; i < $scope.customers.length; i++) {
 				if ($scope.customers[i].id == data.id) {
 					$scope.customers[i] = data;
@@ -491,8 +423,9 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Acc
 			$scope.customer.address.phone = '';
 			$scope.customer.address.fax = '';
 			$scope.customer.address.email = '';
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
+			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 			if(typeof data.errors != 'undefined') {
 				$('#customerAlert').show();
 				$scope.customerError = data.errors[0].message;
@@ -501,6 +434,7 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Acc
 				console.log(status);	
 			}
 		});
+
 	}
 
 }

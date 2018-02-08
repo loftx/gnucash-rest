@@ -193,7 +193,7 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 			notes: $scope.invoice.notes
 		};
 
-		Invoice.save($scope.invoice.id, params).then(function(invoice) {
+		Invoice.update($scope.invoice.id, params).then(function(invoice) {
 			
 			$scope.invoice = invoice;
 

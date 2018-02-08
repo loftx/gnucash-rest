@@ -72,7 +72,7 @@ angular.module('core.invoice').
         return deferred.promise;
       },
 
-      save: function(invoiceID, params) {
+      update: function(invoiceID, params) {
         var deferred = $q.defer();
 
         var headers = Api.getHeaders();
@@ -80,6 +80,35 @@ angular.module('core.invoice').
 
         $http({
           method: 'POST',
+          url: Api.getUrl() + '/invoices/' + invoiceID,
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(invoice) {
+
+          invoice = obj.format(invoice);
+
+          deferred.resolve(invoice);
+        
+        }).error(deferred.reject);
+
+        return deferred.promise;
+      },
+
+      // this is idential to update apart from the verb
+      pay: function(invoiceID, params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'PAY',
           url: Api.getUrl() + '/invoices/' + invoiceID,
           transformRequest: function(obj) {
             var str = [];
@@ -158,7 +187,8 @@ angular.module('core.invoice').
       format: function(invoice) {
 
         invoice.formatted_date_opened = dateFormat(invoice.date_opened);
-        invoice.date_due = dateFormat(invoice.date_due);
+        invoice.formatted_date_due = dateFormat(invoice.date_due);
+        invoice.formatted_date_posted = dateFormat(invoice.date_posted);
 
         for (var i in invoice.entries) {
           invoice.entries[i] = Entry.format(invoice.entries[i], invoice.currency);

@@ -9,6 +9,8 @@
     </fieldset>
   </form>
 
+  <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyCustomer()">Add customer</a>
+
   <div>
     <div ng-show="!customers" class="loader">Loading...</div>
     <table ng-show="customers" class="table">
@@ -26,7 +28,7 @@
       </tr>
     </table>
 
-    <a role="button" class="btn" ng-click="emptyCustomer()">Add customer</a>
+    <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyCustomer()">Add customer</a>
      
     <div id="customerForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-header">

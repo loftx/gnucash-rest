@@ -16,10 +16,10 @@
     </tr>
     <tr ng-repeat="invoice in invoices">
       <td><a href="#/invoices/{{invoice.id}}">{{invoice.id}}</a></td>
-      <td>{{invoice.date_opened}}</a></td>
-      <td>{{invoice.date_due}}</td>
-      <td>{{invoice.date_posted}}</td>
-      <td>{{invoice.total}}</td>
+      <td>{{invoice.formatted_date_opened}}</a></td>
+      <td>{{invoice.formatted_date_due}}</td>
+      <td>{{invoice.formatted_date_posted}}</td>
+      <td>{{invoice.formatted_total}}</td>
       <td>
         <span ng-show="invoice.paid">Yes</span>
         <span ng-show="!invoice.paid">No</span>

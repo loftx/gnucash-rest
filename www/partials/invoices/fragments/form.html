@@ -1,0 +1,53 @@
+<div id="invoiceForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">{{invoiceTitle}}</h3>
+  </div>
+  <div class="modal-body" style="max-height: 800px;">
+
+    <div id="invoiceAlert" class="alert  alert-error" style="display: none;">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Error</strong> {{invoiceError}}
+    </div>
+
+    <form class="form-horizontal" style="margin: 0px;">
+        <fieldset>
+
+          <!-- Text input-->
+          <div class="control-group">
+            <label class="control-label" for="invoiceId">Invoice ID</label>
+            <div class="controls">
+              <input id="invoiceId" ng-model="invoice.id" name="invoiceId" class="input-xlarge" type="text" disabled="disabled">
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="invoiceDateOpened">Date opened</label>
+            <div class="controls">
+              <input id="invoiceDateOpened" ng-model="invoice.date_opened" name="invoiceDateOpened" class="input-xlarge" type="text">
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="invoiceCompany">Company</label>
+            <div class="controls">
+              <select data-ng-model="invoice.owner.id" data-ng-options="customer.id as customer.name for customer in customers" class="input-xlarge"></select>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="invoiceNotes">Notes</label>
+            <div class="controls">
+              <textarea id="invoiceNotes" ng-model="invoice.notes" name="invoiceNotes" class="input-xlarge"></textarea>
+            </div>
+          </div>
+
+        </fieldset>
+      </form>
+      
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" ng-click="saveInvoice()">Save changes</button>
+  </div>
+</div>

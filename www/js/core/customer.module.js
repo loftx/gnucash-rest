@@ -59,6 +59,58 @@ angular.module('core.customer').
         return deferred.promise;
       },
 
+      add: function(params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'POST',
+          url: Api.getUrl() + '/customers',
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(customer) {
+
+          deferred.resolve(customer);
+        
+        }).error(deferred.reject);
+
+        return deferred.promise;
+      },
+
+      update: function(customerID, params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'POST',
+          url: Api.getUrl() + '/customers/' + customerID,
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(customers) {
+
+          deferred.resolve(customers);
+        
+        }).error(deferred.reject);
+
+        return deferred.promise;
+      },
+
     }
 
     // could only expose certain functions
