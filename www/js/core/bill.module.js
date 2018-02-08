@@ -63,7 +63,7 @@ angular.module('core.bill').
           headers: headers
         }).success(function(invoice) {
 
-          invoice = obj.formatInvoice(invoice);
+          invoice = obj.format(invoice);
 
           deferred.resolve(invoice);
         
@@ -73,9 +73,6 @@ angular.module('core.bill').
       }, */
 
       format: function(bill) {
-
-        // $scope.bill.notes = nl2br($scope.bill.notes);
-
         bill.date_opened = dateFormat(bill.date_opened);
         bill.date_due = dateFormat(bill.date_due);
 

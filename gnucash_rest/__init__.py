@@ -131,7 +131,7 @@ def _run_on_start():
 def after_request(response):
     if app.cors_origin != '':
         header = response.headers
-        header['Access-Control-Allow-Methods'] = 'GET,OPTIONS,POST'
+        header['Access-Control-Allow-Methods'] = 'GET,OPTIONS,POST,DELETE,PAY'
         header['Access-Control-Allow-Origin'] = app.cors_origin
         header['Access-Control-Allow-Headers'] = 'Access-Control-Allow-Headers,Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization'
 

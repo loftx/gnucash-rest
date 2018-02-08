@@ -43,7 +43,7 @@ angular.module('core.vendor').
           .success(function(bills) {
 
             for (var i in bills) {
-              //bills[i] = Invoice.formatInvoice(bills[i]);
+              //bills[i] = Invoice.format(bills[i]);
             }
 
             deferred.resolve(bills);

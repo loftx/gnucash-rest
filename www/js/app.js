@@ -4,7 +4,8 @@ angular.module('gnucash', [
 	'core.invoice',
 	'core.bill',
 	'core.customer',
-	'core.vendor'
+	'core.vendor',
+	'core.entry'
 ]).
 config(['$routeProvider', function($routeProvider) {
 	$routeProvider.

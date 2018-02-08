@@ -1,7 +1,7 @@
 angular.module('core.invoice', []);
 
 angular.module('core.invoice').
-  factory('Invoice', function($q, $http, $timeout, Api, Money) {
+  factory('Invoice', function($q, $http, $timeout, Api, Money, Entry) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -13,7 +13,7 @@ angular.module('core.invoice').
           .success(function(invoices) {
 
             for (var i in invoices) {
-              invoices[i] = obj.formatInvoice(invoices[i]);
+              invoices[i] = obj.format(invoices[i]);
             }
 
             deferred.resolve(invoices);
@@ -32,7 +32,7 @@ angular.module('core.invoice').
         $http.get(Api.getUrl() + '/invoices/' + invoiceID, {headers: Api.getHeaders()})
           .success(function(invoice) {
 
-            invoice = obj.formatInvoice(invoice);
+            invoice = obj.format(invoice);
 
             deferred.resolve(invoice);
           })
@@ -63,7 +63,35 @@ angular.module('core.invoice').
           headers: headers
         }).success(function(invoice) {
 
-          invoice = obj.formatInvoice(invoice);
+          invoice = obj.format(invoice);
+
+          deferred.resolve(invoice);
+        
+        }).error(deferred.reject);
+
+        return deferred.promise;
+      },
+
+      save: function(invoiceID, params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'POST',
+          url: Api.getUrl() + '/invoices/' + invoiceID,
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(invoice) {
+
+          invoice = obj.format(invoice);
 
           deferred.resolve(invoice);
         
@@ -113,46 +141,33 @@ angular.module('core.invoice').
 
       },
 
-      // this could be not exposed
-      formatInvoice: function(invoice) {
+      recalculate: function(invoice) {
 
-        invoice.date_opened = dateFormat(invoice.date_opened);
-        invoice.date_due = dateFormat(invoice.date_due);
+        invoice.total = 0;
 
         for (var i in invoice.entries) {
-          invoice.entries[i] = obj.formatEntry(invoice.entries[i], invoice.currency);
+          invoice.total = invoice.total + invoice.entries[i].total_inc_discount;
         }
 
-        invoice.total = Money.format_currency(8, invoice.currency, -invoice.total);
+        invoice = obj.format(invoice);
 
         return invoice;
       },
 
-      // move this to entries
-      formatEntry: function(entry, currency) {
-        entry.date = dateFormat(entry.date);
-        entry.total_ex_discount = entry.quantity * entry.inv_price;
+      // this could be not exposed
+      format: function(invoice) {
 
-        // doesn't take into account tax
+        invoice.formatted_date_opened = dateFormat(invoice.date_opened);
+        invoice.date_due = dateFormat(invoice.date_due);
 
-        entry.total_inc_discount = entry.total_ex_discount;
-
-        if (entry.discount_type == 1) {
-          entry.total_inc_discount = entry.total_ex_discount - entry.discount;
-          entry.discount = Money.format_currency(8, currency, -entry.discount);
-        } else {
-          // TODO: percentage discounts
+        for (var i in invoice.entries) {
+          invoice.entries[i] = Entry.format(invoice.entries[i], invoice.currency);
         }
 
-        // also 8s are haescoded
-        // it would be good to get format_currency in it's own module or in core...
+        invoice.formatted_total = Money.format_currency(8, invoice.currency, -invoice.total);
 
-        entry.discount_type = Money.format_discount_type(entry.discount_type, currency);
-        entry.total_inc_discount = Money.format_currency(8, currency, -entry.total_inc_discount);
-        entry.inv_price = Money.format_currency(8, currency, -entry.inv_price);
-
-        return entry;
-      }
+        return invoice;
+      },
 
     }
 

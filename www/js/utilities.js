@@ -1,8 +1,3 @@
-function nl2br (str, is_xhtml) {
-	var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
-	return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
-}
-
 function dateFormat(str) {
 	if (str != null) {
 		var d = new Date(str.substring(0,4) + '-' + str.substring(5,7) + '-' + str.substring(8,10));
@@ -19,7 +14,7 @@ function pad(number) {
 
 // this is not very angulary - should be injected as an errors/gnucash object
 function handleApiErrors($timeout, data, status, $location, type, redirect) {
-	console.log('Depricated: Replace call with core.handleApiErrors');
+	console.log('Depricated: Replace call with Api.handleApiErrors');
 	if (status == 400 && typeof data != 'undefined') {
 		if (data.errors[0] != 'undefined') {
 			// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
@@ -49,7 +44,7 @@ function handleApiErrors($timeout, data, status, $location, type, redirect) {
 }
 
 Number.prototype.formatMoney = function(c, d, t){
-	console.log('Depricated: Replace call with core.formatMoney');
+	console.log('Depricated: Replace call with Money.formatMoney');
 	var n = this, 
 	c = isNaN(c = Math.abs(c)) ? 2 : c, 
 	d = d == undefined ? "." : d, 
@@ -59,30 +54,6 @@ Number.prototype.formatMoney = function(c, d, t){
 	j = (j = i.length) > 3 ? j % 3 : 0;
    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
  };
-
-function format_currency_format(currency) {
-	console.log('Depricated: Replace call with core.format_currency_format');
-	if (currency == 'GBP') {
-		return '£';
-	} else if (currency == 'USD') {
-		return '$';
-	} else {
-		return currency + ' ';
-	}
-}
-
-function format_currency(type_id, currency, amount) {
-	console.log('Depricated: Replace call with core.format_currency');
-	if (type_id == 8) {
-		amount = -(amount);
-	}
-	
-	if (amount < 0) {
-		return '-' + format_currency_format(currency) + (-(amount)).formatMoney(2, '.', ',');
-	} else {
-		return format_currency_format(currency) + amount.formatMoney(2, '.', ',');
-	}
-}
 
 function format_todays_date() {
 	var today = new Date();
@@ -100,13 +71,4 @@ function format_todays_date() {
 
 	today = yyyy + '-' + mm + '-' + dd;
 	return today;
-}
-
-function format_discount_type(discount_type, currency) {
-	console.log('Depricated: Replace call with core.format_discount_type');
-	if (discount_type == 1) {
-		return format_currency_format(currency);
-	} else if (discount_type == 2) {
-		return '%';
-	}
 }

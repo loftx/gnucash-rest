@@ -46,7 +46,7 @@ angular.module('core.customer').
           .success(function(invoices) {
 
             for (var i in invoices) {
-              invoices[i] = Invoice.formatInvoice(invoices[i]);
+              invoices[i] = Invoice.format(invoices[i]);
             }
 
             deferred.resolve(invoices);
