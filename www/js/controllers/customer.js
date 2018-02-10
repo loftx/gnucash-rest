@@ -155,7 +155,7 @@ function CustomerListCtrl($scope, Customer) {
 	}
 }
 
-function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Account, Invoice) {
+function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice) {
 
 	Customer.get($routeParams.customerId).then(function(customer) {
 		$scope.customer = customer;
@@ -244,7 +244,13 @@ function CustomerDetailCtrl($scope, $routeParams, $http, $timeout, Customer, Acc
 			$scope.invoice.date_opened = '';
 			$scope.invoice.notes = '';
 		}, function(reason) {
-			console.log('????');
+			if(typeof data.errors != 'undefined') {
+				$('#invoiceAlert').show();
+				$scope.invoiceError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
 		});
 		
 	}

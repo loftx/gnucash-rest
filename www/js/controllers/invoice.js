@@ -224,7 +224,7 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 			discount: $scope.entry.discount
 		};
 
-		Entry.add($scope.invoice.id, params).then(function(entry) {
+		Entry.add('invoice', $scope.invoice.id, params).then(function(entry) {
 			
 			$scope.invoice.entries.push(entry);
 

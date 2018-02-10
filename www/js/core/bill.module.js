@@ -44,7 +44,8 @@ angular.module('core.bill').
         return deferred.promise;
       },
 
-      /*add: function(params) {
+      // idential to invoice?
+      add: function(params) {
         var deferred = $q.defer();
 
         var headers = Api.getHeaders();
@@ -52,7 +53,7 @@ angular.module('core.bill').
 
         $http({
           method: 'POST',
-          url: Api.getUrl() + '/invoices',
+          url: Api.getUrl() + '/bills',
           transformRequest: function(obj) {
             var str = [];
             for(var p in obj)
@@ -61,26 +62,98 @@ angular.module('core.bill').
           },
           data: params,
           headers: headers
-        }).success(function(invoice) {
+        }).success(function(bill) {
 
-          invoice = obj.format(invoice);
+          bill = obj.format(bill);
 
-          deferred.resolve(invoice);
+          deferred.resolve(bill);
         
         }).error(deferred.reject);
 
         return deferred.promise;
-      }, */
+      },
+
+      // identical to invoice
+      update: function(billID, params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'POST',
+          url: Api.getUrl() + '/bills/' + billID,
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(bill) {
+
+          bill = obj.format(bill);
+
+          deferred.resolve(bill);
+        
+        }).error(deferred.reject);
+
+        return deferred.promise;
+      },
+
+      // this is idential to update apart from the verb and identical to invoice
+      pay: function(billID, params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'PAY',
+          url: Api.getUrl() + '/bills/' + billID,
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(bill) {
+
+          bill = obj.format(bill);
+
+          deferred.resolve(bill);
+        
+        }).error(deferred.reject);
+
+        return deferred.promise;
+      },
+
+      recalculate: function(bill) {
+
+        bill.total = 0;
+
+        for (var i in bill.entries) {
+          bill.total = bill.total + bill.entries[i].total_inc_discount;
+        }
+
+        bill = obj.format(bill);
+
+        return bill;
+      },
 
       format: function(bill) {
-        bill.date_opened = dateFormat(bill.date_opened);
-        bill.date_due = dateFormat(bill.date_due);
+        bill.formatted_date_opened = dateFormat(bill.date_opened);
+        bill.formatted_date_due = dateFormat(bill.date_due);
+        bill.formatted_date_posted = dateFormat(bill.date_posted);
 
         for (var i in bill.entries) {
           bill.entries[i] = obj.formatEntry(bill.entries[i], bill.currency);
         }
 
-        bill.total = Money.format_currency(8, bill.currency, -bill.total);
+        bill.formatted_total = Money.format_currency(8, bill.currency, -bill.total);
 
         return bill;
       },
@@ -127,20 +200,6 @@ angular.module('core.bill').
 
       },
 
-      // this could be not exposed
-      format: function(bill) {
-
-        bill.date_opened = dateFormat(bill.date_opened);
-        bill.date_due = dateFormat(bill.date_due);
-
-        for (var i in bill.entries) {
-          bill.entries[i] = obj.formatEntry(bill.entries[i], bill.currency);
-        }
-
-        bill.total = Money.format_currency(8, bill.currency, -bill.total);
-
-        return bill;
-      },
 
       // move this to entries (it is slighly different to invoices as uses bill_price instead of inv_price)
       formatEntry: function(entry, currency) {

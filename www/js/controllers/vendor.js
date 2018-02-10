@@ -1,4 +1,4 @@
-function VendorListCtrl($scope, $http, $timeout, Vendor) {
+function VendorListCtrl($scope, Vendor) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -21,7 +21,7 @@ function VendorListCtrl($scope, $http, $timeout, Vendor) {
 
 	$scope.addVendor = function() {
 
-		var data = {
+		var params = {
 			id: '',
 			currency: 'GBP',
 			name: $scope.vendor.name,
@@ -35,20 +35,8 @@ function VendorListCtrl($scope, $http, $timeout, Vendor) {
 			email: $scope.vendor.address.email
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/vendors',
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
-			$scope.vendors.push(data);
+		Vendor.add(params).then(function(vendor) {
+			$scope.vendors.push(vendor);
 			$('#vendorForm').modal('hide');
 			$('#vendorAlert').hide();
 
@@ -62,8 +50,9 @@ function VendorListCtrl($scope, $http, $timeout, Vendor) {
 			$scope.vendor.address.phone = '';
 			$scope.vendor.address.fax = '';
 			$scope.vendor.address.email = '';
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
+			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 			if(typeof data.errors != 'undefined') {
 				$('#vendorAlert').show();
 				$scope.vendorError = data.errors[0].message;
@@ -106,7 +95,7 @@ function VendorListCtrl($scope, $http, $timeout, Vendor) {
 
 }
 
-function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account) {
+function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account) {
 
 	Vendor.get($routeParams.vendorId).then(function(vendor) {
 		$scope.vendor = vendor;
@@ -176,28 +165,17 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account
 
 	$scope.addBill = function() {
 
-		var data = {
+		var params = {
 			id: '',
 			vendor_id: $scope.bill.vendor_id,
+			// TODO: currency should be based on the customer selected
 			currency: 'GBP',
 			date_opened: $scope.bill.date_opened,
 			notes: $scope.bill.notes
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/bills',
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
-			$scope.bills.push(data);
+		Bill.add(params).then(function(bill) {
+			$scope.bills.push(bill);
 			$('#billForm').modal('hide');
 			$('#billAlert').hide();
 
@@ -205,8 +183,7 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account
 			$scope.bill.vendor_id = '';
 			$scope.bill.date_opened = '';
 			$scope.bill.notes = '';
-			
-		}).error(function(data, status, headers, config) {
+		}, function(reason) {
 			if(typeof data.errors != 'undefined') {
 				$('#billAlert').show();
 				$scope.billError = data.errors[0].message;
@@ -215,6 +192,7 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account
 				console.log(status);	
 			}
 		});
+
 	}
 
 	$scope.saveBill = function() {
@@ -222,74 +200,58 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account
 			$scope.addBill();
 		} else {
 			// This may fail as it's possible to update the ID
-			//$scope.updateInvoice($scope.invoice.id);
+			//$scope.updateBill($scope.bill.id);
 		}
 	}
 
 	$scope.postBill = function(id) {
 
-		$http.get('/api/bills/' + $scope.bill.id)
-			.success(function(data) {
+		Bill.get($scope.bill.id).then(function(bill) {
+			
+			var params = {
+				vendor_id: bill.owner.id,
+				currency: bill.currency,
+				date_opened: bill.date_opened,
+				notes: bill.notes,
+				posted: 1,
+				posted_account_guid: $scope.bill.posted_account,
+				posted_date: $scope.bill.date_posted,
+				due_date: $scope.bill.date_due,
+				posted_memo: $scope.bill.posted_memo,
+				posted_accumulatesplits: $scope.bill.posted_accumulatesplits, // this is True but should be 1
+				posted_autopay: 0
+			};
 
-				var data = {
-					vendor_id: data.owner.id,
-					currency: data.currency,
-					date_opened: data.date_opened,
-					notes: data.notes,
-					posted: 1,
-					posted_account_guid: $scope.bill.posted_account,
-					posted_date: $scope.bill.date_posted,
-					due_date: $scope.bill.date_due,
-					posted_memo: $scope.bill.posted_memo,
-					posted_accumulatesplits: $scope.bill.posted_accumulatesplits, // this is True but should be 1
-					posted_autopay: 0
-				};
+			Bill.update($scope.bill.id, params).then(function(bill) {
+			
+				$('#billPostForm').modal('hide');
+				$('#billPostAlert').hide();
 
-				$http({
-					method: 'POST',
-					url: '/api/bills/' + $scope.bill.id,
-					transformRequest: function(obj) {
-						var str = [];
-						for(var p in obj)
-						str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-						return str.join("&");
-					},
-					data: data,
-					headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-				}).success(function(data) {
+				$scope.bill = bill;
 
-					$('#billPostForm').modal('hide');
-					$('#billPostAlert').hide();
-
-					$scope.bill = data;
-
-					for (var i in $scope.bills) {
-						if ($scope.bills[i].id == $scope.bill.id) {
-							$scope.bills[i] = $scope.bill;
-						}
+				for (var i in $scope.bills) {
+					if ($scope.bills[i].id == $scope.bill.id) {
+						$scope.bills[i] = $scope.bill;
 					}
-		
-				}).error(function(data, status, headers, config) {
-					if(typeof data.errors != 'undefined') {
-						$('#billPostAlert').show();
-						$scope.billError = data.errors[0].message;
-					} else {
-						console.log(data);
-						console.log(status);	
-					}
-				});
-		
-			})
-			.error(function(data, status) {
-				handleApiErrors($timeout, data, status);
-			})
-		;	
+				}
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#billPostAlert').show();
+					$scope.billError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
 
 	}
 
 	$scope.payBill = function(id) {
 			
-		var data = {
+		var params = {
 			posted_account_guid: $scope.bill.post_account,
 			transfer_account_guid: $scope.bill.transfer_account,
 			payment_date: $scope.bill.date_paid,
@@ -298,31 +260,20 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account
 			auto_pay: 0,
 		};
 
-		$http({
-			method: 'PAY',
-			url: '/api/bills/' + $scope.bill.id,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
+		Bill.pay($scope.bill.id, params).then(function(bill) {
+			
 			$('#billPayForm').modal('hide');
 			$('#billPayAlert').hide();
 
-			$scope.bill = data;
+			$scope.bill = bill;
 
 			for (var i in $scope.bills) {
 				if ($scope.bills[i].id == $scope.bill.id) {
 					$scope.bills[i] = $scope.bill;
 				}
 			}
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
 			if(typeof data.errors != 'undefined') {
 				$('#billPayAlert').show();
 				$scope.billError = data.errors[0].message;
@@ -330,7 +281,7 @@ function VendorDetailCtrl($scope, $routeParams, $http, $timeout, Vendor, Account
 				console.log(data);
 				console.log(status);	
 			}
-		});	
+		});
 
 	}
 

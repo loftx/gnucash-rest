@@ -22,7 +22,7 @@ angular.module('core.entry').
         return deferred.promise;
       },
 
-      add: function(invoiceID, params) {
+      add: function(type, id, params) {
         var deferred = $q.defer();
 
         var headers = Api.getHeaders();
@@ -30,7 +30,7 @@ angular.module('core.entry').
 
         $http({
           method: 'POST',
-          url: Api.getUrl() + '/invoices/' + invoiceID + '/entries',
+          url: Api.getUrl() + '/' + type + 's/' + id + '/entries',
           transformRequest: function(obj) {
             var str = [];
             for(var p in obj)

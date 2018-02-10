@@ -40,7 +40,7 @@ function BillListCtrl($scope, Bill) {
 		
 		if (params != lastParams) {
 			
-			// Using $scope.bills = Invoice.query(params); causes "$scope.bills.push is not a function" - probably because it's a promise not an array...
+			// Using $scope.bills = Bills.query(params); causes "$scope.bills.push is not a function" - probably because it's a promise not an array...
 			Bill.query(params).then(function(bills) {
 				$scope.bills = bills;
 			});
@@ -54,7 +54,7 @@ function BillListCtrl($scope, Bill) {
 
 }
 
-function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Account) {
+function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -100,23 +100,14 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 
 	$scope.populateBill = function(id) {
 
-		$http.get('/api/bills/' + id)
-			.success(function(data) {
-				$scope.invoiceTitle = 'Edit bill';
-				//$scope.billNew = 0;
-				$scope.bill = data;
-				$('#billForm').modal('show');
-			})
-			.error(function(data, status) {
-				handleApiErrors($timeout, data, status);
-			})
-		;
+		$scope.billTitle = 'Edit bill';
+		$('#billForm').modal('show');
 
 	}
 
 	$scope.saveBill = function() {
 
-		var data = {
+		var params = {
 			id: $scope.bill.id,
 			vendor_id: $scope.bill.owner.id,
 			currency: 'GBP',
@@ -124,26 +115,14 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 			notes: $scope.bill.notes
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/bills/' + $scope.bill.id,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
+		Bill.update($scope.bill.id, params).then(function(bill) {
+			
+			$scope.bill = bill;
 
 			$('#billForm').modal('hide');
 			$('#billAlert').hide();
 
-			$scope.bill = data;
-
-			
-		}).error(function(data, status, headers, config) {
+		}, function(data) {
 			if(typeof data.errors != 'undefined') {
 				$('#billAlert').show();
 				$scope.billError = data.errors[0].message;
@@ -157,7 +136,7 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 
 	$scope.addEntry = function() {
 
-		var data = {
+		var params = {
 			date: $scope.entry.date,
 			description: $scope.entry.description,
 			account_guid: $scope.entry.bill_account.guid,
@@ -165,29 +144,19 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 			price: $scope.entry.bill_price
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/bills/' + $scope.bill.id + '/entries' ,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
+		Entry.add('bill', $scope.bill.id, params).then(function(entry) {
+			
+			$scope.bill.entries.push(entry);
 
-			data.date = dateFormat(data.date);
-			data.total_ex_discount = data.quantity * data.bill_price;
-			// does not take into account discounts - how do these work?
-			data.total_inc_discount = data.total_ex_discount.formatMoney(2, '.', ',');
-			data.bill_price = data.bill_price.formatMoney(2, '.', ',');
-			data.discount = data.discount.formatMoney(2, '.', ',');
+			$scope.bill = Bill.recalculate($scope.bill);
 
-			$scope.bill.entries.push(data);
 			$('#entryForm').modal('hide');
 			$('#entryAlert').hide();
+
+			/*data.total_ex_discount = data.quantity * data.bill_price;
+			// does not take into account discounts - how do these work?
+			data.total_inc_discount = data.total_ex_discount.formatMoney(2, '.', ',');
+			data.bill_price = data.bill_price.formatMoney(2, '.', ',');*/
 
 			$scope.entry.guid = '';
 			$scope.entry.date = '';
@@ -195,8 +164,10 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 			$scope.entry.bill_account.guid = '';
 			$scope.entry.quantity = '';
 			$scope.entry.bill_price = '';
-			
-		}).error(function(data, status, headers, config) {
+			$scope.entry.discount_type = '';
+			$scope.entry.discount = '';
+
+		}, function(data) {
 			if(typeof data.errors != 'undefined') {
 				$('#entryAlert').show();
 				$scope.entryError = data.errors[0].message;
@@ -205,6 +176,7 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 				console.log(status);	
 			}
 		});
+
 	}
 
 	$scope.saveEntry = function() {
@@ -235,88 +207,72 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 
 	$scope.deleteEntry = function(guid) {
 
-		$http({
-			method: 'DELETE',
-			url: '/api/entries/' + guid
-		}).success(function(data) {
-
+		Entry.delete(guid).then(function() {
 			for (var i = 0; i < $scope.bill.entries.length; i++) {
 				if ($scope.bill.entries[i].guid == guid) {
 					$scope.bill.entries.splice(i, 1);
 				}
+
+				$scope.bill = Bill.recalculate($scope.bill);
 			}
-			
-		}).error(function(data, status, headers, config) {
+		}, function(data) {
 			console.log(data);
-			console.log(status);
 		});
 
 	}
 
 	$scope.populateEntry = function(guid) {
 
-		$http.get('/api/entries/' + guid)
-			.success(function(data) {
-				$scope.entryTitle = 'Edit entry';
-				$scope.entryNew = 0;
-				$scope.entry = data;
-				$('#entryForm').modal('show');
-			})
-			.error(function(data, status) {
-				handleApiErrors($timeout, data, status);
-			})
-		;
+		Entry.get(guid).then(function(entry) {
+			$scope.entryTitle = 'Edit entry';
+			$scope.entryNew = 0;
+			$scope.entry = entry;
+			$('#entryForm').modal('show');
+		});
 
 	}
 
 	$scope.updateEntry = function(guid) {
 
-		var data = {
+		var params = {
 			guid: $scope.entry.guid,
 			date: $scope.entry.date,
 			description: $scope.entry.description,
 			account_guid: $scope.entry.bill_account.guid,
 			quantity: $scope.entry.quantity,
-			price: $scope.entry.bill_price
+			price: $scope.entry.bill_price,
+			discount_type: $scope.entry.discount_type,
+			discount: $scope.entry.discount
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/entries/' + guid,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
+		Entry.update(guid, params).then(function(entry) {
+			
 			for (var i = 0; i < $scope.bill.entries.length; i++) {
-				if ($scope.bill.entries[i].guid == data.guid) {
-					$scope.bill.entries[i] = data;
-
-					$scope.bill.entries[i].date = dateFormat($scope.bill.entries[i].date);
-					$scope.bill.entries[i].total_ex_discount = $scope.bill.entries[i].quantity * $scope.bill.entries[i].bill_price;
-					// does not take into account discounts - how do these work?
-					$scope.bill.entries[i].total_inc_discount = $scope.bill.entries[i].total_ex_discount.formatMoney(2, '.', ',');
-					$scope.bill.entries[i].bill_price = $scope.bill.entries[i].bill_price.formatMoney(2, '.', ',');
-					$scope.bill.entries[i].discount = $scope.bill.entries[i].discount.formatMoney(2, '.', ',');
+				if ($scope.bill.entries[i].guid == entry.guid) {
+					$scope.bill.entries[i] = entry;
 				}
 			}
 
+			$scope.bill = Bill.recalculate($scope.bill);
+			
 			$('#entryForm').modal('hide');
 			$('#entryAlert').hide();
+
+			/*data.total_ex_discount = data.quantity * data.bill_price;
+			// does not take into account discounts - how do these work?
+			data.total_inc_discount = data.total_ex_discount.formatMoney(2, '.', ',');
+			data.bill_price = data.bill_price.formatMoney(2, '.', ',');*/
 
 			$scope.entry.guid = '';
 			$scope.entry.date = '';
 			$scope.entry.description = '';
-			$scope.entry.bill_account.guid = '';
+			$scope.entry.inv_account.guid = '';
 			$scope.entry.quantity = '';
-			$scope.entry.bill_price = '';
-			
-		}).error(function(data, status, headers, config) {
+			$scope.entry.inv_price = '';
+			$scope.entry.discount_type = 1;
+			$scope.entry.discount = '';
+
+		}, function(data) {
 			if(typeof data.errors != 'undefined') {
 				$('#entryAlert').show();
 				$scope.entryError = data.errors[0].message;
@@ -325,6 +281,7 @@ function BillDetailCtrl($scope, $routeParams, $http, $timeout, Bill, Vendor, Acc
 				console.log(status);	
 			}
 		});
+
 	}
 
 }
