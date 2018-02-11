@@ -5,7 +5,7 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
-      getAccounts: function() {
+      query: function() {
         var deferred = $q.defer();
 
         $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
@@ -27,7 +27,7 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
         return deferred.promise;
       },
 
-      getAccount: function(accountGuid) {
+      get: function(accountGuid) {
         var deferred = $q.defer();
 
         $http.get(Api.getUrl() + '/accounts/' + accountGuid, {headers: Api.getHeaders()})

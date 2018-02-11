@@ -1,13 +1,13 @@
 function AccountListCtrl($scope, Account) {
 	// could also handle some errors here?
-	Account.getAccounts().then(function(accounts) {
+	Account.query().then(function(accounts) {
 		$scope.accounts = accounts;
 	});
 }
 
-function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Account) {
+function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 
-	Account.getAccount($routeParams.accountGuid).then(function(account) {
+	Account.get($routeParams.accountGuid).then(function(account) {
 		$scope.account = account;
 
 		Account.getSplits(account, {}).then(function(splits) {
@@ -30,7 +30,7 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 
 	$scope.addTransaction = function() {
 
-		var data = {
+		var params = {
 			currency: 'GBP',
 			num: $scope.transaction.num,
 			date_posted: $scope.transaction.date_posted,
@@ -42,26 +42,15 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 		};
 
 		if ($scope.account.type_id == 0) { // bank
-			data.splitvalue1 = -Math.round($scope.transaction.splitValue1*100);
-			data.splitvalue2 = Math.round($scope.transaction.splitValue1*100);
+			params.splitvalue1 = -Math.round($scope.transaction.splitValue1*100);
+			params.splitvalue2 = Math.round($scope.transaction.splitValue1*100);
 		} else {
-			data.splitvalue1 = Math.round($scope.transaction.splitValue1*100);
-			data.splitvalue2 = -Math.round($scope.transaction.splitValue1*100);
+			params.splitvalue1 = Math.round($scope.transaction.splitValue1*100);
+			params.splitvalue2 = -Math.round($scope.transaction.splitValue1*100);
 		}
 
-		$http({
-			method: 'POST',
-			url: '/api/transactions',
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
+		Transaction.add(params).then(function(transaction) {
+			
 			//$scope.invoice.entries.push(data);
 			$('#transactionForm').modal('hide');
 			$('#transactionAlert').hide();
@@ -73,8 +62,9 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 			$scope.transaction.splitValue1 = '';
 
 			$route.reload();
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
+			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 			if(typeof data.errors != 'undefined') {
 				$('#transactionAlert').show();
 				$scope.transactionError = data.errors[0].message;
@@ -83,6 +73,7 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 				console.log(status);	
 			}
 		});
+
 	}
 
 	$scope.emptyTransaction = function() {
@@ -105,37 +96,32 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 
 	$scope.populateTransaction = function(guid) {
 
-		$http.get('/api/transactions/' + guid)
-			.success(function(data) {
-				$scope.transactionTitle = 'Edit transaction';
-				$scope.transactionNew = 0;
+		Transaction.get(guid).then(function(transaction) {
+			$scope.transactionTitle = 'Edit transaction';
+			$scope.transactionNew = 0;
 
-				$scope.transaction = data;
+			$scope.transaction = transaction;
 
-				if ($scope.transaction.splits.length == 2) {
-					if ($scope.transaction.splits[0].account.guid == $routeParams.accountGuid) {
-						$scope.transaction.splitGuid1 = $scope.transaction.splits[1].guid;
-						$scope.transaction.splitAccount1 = $scope.transaction.splits[1].account.guid;
-						$scope.transaction.splitValue1 = $scope.transaction.splits[1].amount;
-						$scope.transaction.splitGuid2 = $scope.transaction.splits[0].guid;
-						$scope.transaction.splitAccount2 = $scope.transaction.splits[0].account.guid;
-						$scope.transaction.splitValue2 = $scope.transaction.splits[0].amount;
-					} else {
-						$scope.transaction.splitGuid1 = $scope.transaction.splits[0].guid;
-						$scope.transaction.splitAccount1 = $scope.transaction.splits[0].account.guid;
-						$scope.transaction.splitValue1 = $scope.transaction.splits[0].amount;
-						$scope.transaction.splitGuid2 = $scope.transaction.splits[1].guid;
-						$scope.transaction.splitAccount2 = $scope.transaction.splits[1].account.guid;
-						$scope.transaction.splitValue2 = $scope.transaction.splits[1].amount;
-					}
+			if ($scope.transaction.splits.length == 2) {
+				if ($scope.transaction.splits[0].account.guid == $routeParams.accountGuid) {
+					$scope.transaction.splitGuid1 = $scope.transaction.splits[1].guid;
+					$scope.transaction.splitAccount1 = $scope.transaction.splits[1].account.guid;
+					$scope.transaction.splitValue1 = $scope.transaction.splits[1].amount;
+					$scope.transaction.splitGuid2 = $scope.transaction.splits[0].guid;
+					$scope.transaction.splitAccount2 = $scope.transaction.splits[0].account.guid;
+					$scope.transaction.splitValue2 = $scope.transaction.splits[0].amount;
+				} else {
+					$scope.transaction.splitGuid1 = $scope.transaction.splits[0].guid;
+					$scope.transaction.splitAccount1 = $scope.transaction.splits[0].account.guid;
+					$scope.transaction.splitValue1 = $scope.transaction.splits[0].amount;
+					$scope.transaction.splitGuid2 = $scope.transaction.splits[1].guid;
+					$scope.transaction.splitAccount2 = $scope.transaction.splits[1].account.guid;
+					$scope.transaction.splitValue2 = $scope.transaction.splits[1].amount;
 				}
+			}
 
-				$('#transactionForm').modal('show');
-			})
-			.error(function(data, status) {
-				handleApiErrors($timeout, data, status);
-			})
-		;
+			$('#transactionForm').modal('show');
+		});
 
 	}
 
@@ -150,7 +136,7 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 
 	$scope.updateTransaction = function(guid) {
 
-		var data = {
+		var params = {
 			currency: 'GBP',
 			num: $scope.transaction.num,
 			date_posted: $scope.transaction.date_posted,
@@ -163,45 +149,44 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 			splitaccount2: $scope.account.guid
 		};
 
-		$http({
-			method: 'POST',
-			url: '/api/transactions/' + guid,
-			transformRequest: function(obj) {
-				var str = [];
-				for(var p in obj)
-				str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-				return str.join("&");
-			},
-			data: data,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		}).success(function(data) {
-
+		Transaction.update(guid, params).then(function(transaction) {
+			
 			$('#transactionForm').modal('hide');
 			$('#transactionAlert').hide();
 
-			$route.reload();
+			for (var i = 0; i < $scope.splits.length; i++) {
+				if ($scope.splits[i].transaction.guid == transaction.guid) {
+					for (var j = 0; j < transaction.splits.length; j++) {
+						if ($scope.splits[i].guid == transaction.splits[j].guid) {
+							$scope.splits[i] = transaction.splits[j];
+						}
+					}
 
-			/*for (var i = 0; i < $scope.customers.length; i++) {
-				if ($scope.customers[i].id == data.id) {
-					$scope.customers[i] = data;
+					// add transaction and other split to the split as it doesn't appear
+					for (var j = 0; j < transaction.splits.length; j++) {
+						if ($scope.splits[i].guid != transaction.splits[j].guid) {
+							console.log($scope.splits[i]);
+							console.log(transaction.splits[j]);
+							$scope.splits[i].other_split = transaction.splits[j];
+							
+							$scope.splits[i].transaction = transaction;
+						}
+					}
 				}
 			}
 
-			$('#customerForm').modal('hide');
-			$('#customerAlert').hide();
+			$scope.transaction.num = '';
+			$scope.transaction.date_posted = '';
+			$scope.transaction.description = '';
+			$scope.transaction.splitGuid1 = '';
+			$scope.transaction.splitValue1 = '';
+			$scope.transaction.splitAccount1 = '';
+			$scope.transaction.splitGuid2 = '';
+			$scope.transaction.splitValue1 = '';
+			$scope.account.guid = '';
 
-			$scope.customer.id = '';
-			$scope.customer.name = '';
-			$scope.customer.address.name = '';
-			$scope.customer.address.line_1 = '';
-			$scope.customer.address.line_2 = '';
-			$scope.customer.address.line_3 = '';
-			$scope.customer.address.line_4 = '';
-			$scope.customer.address.phone = '';
-			$scope.customer.address.fax = '';
-			$scope.customer.address.email = '';*/
-			
-		}).error(function(data, status, headers, config) {
+
+		}, function(data) {
 			if(typeof data.errors != 'undefined') {
 				$('#transactionAlert').show();
 				$scope.transactionError = data.errors[0].message;
@@ -214,10 +199,7 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 
 	$scope.deleteTransaction = function(guid) {
 
-		$http({
-			method: 'DELETE',
-			url: '/api/transactions/' + guid
-		}).success(function(data) {
+		Transaction.delete(guid).then(function() {
 
 			for (var i = 0; i < $scope.splits.length; i++) {
 				if ($scope.splits[i].transaction.guid == guid) {
@@ -225,8 +207,8 @@ function AccountDetailCtrl($scope, $routeParams, $http, $timeout, $route, Accoun
 				}
 			}
 			
-		}).error(function(data, status) {
-			handleApiErrors($timeout, data, status);
+		}, function(data) {
+			console.log(data);
 		});
 
 	}

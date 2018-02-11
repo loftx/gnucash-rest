@@ -38,7 +38,7 @@ function generateIncomeAccounts($scope, Account, Money) {
 	$scope.grandTotal = 0;
 	$scope.displayGrandTotal = '';
 
-	Account.getAccounts().then(function(accounts) {
+	Account.query().then(function(accounts) {
 		
 		var incomeAccounts = [];
 		var expensesAccounts = [];
@@ -52,7 +52,7 @@ function generateIncomeAccounts($scope, Account, Money) {
 			}
 		}
 
-		Account.getAccount(incomeAccounts[0].guid).then(function(account) {
+		Account.get(incomeAccounts[0].guid).then(function(account) {
 
 			$scope.incomeAccounts = Account.getSubAccounts(account, 0);		
 
@@ -85,7 +85,7 @@ function generateIncomeAccounts($scope, Account, Money) {
 			}
 		});
 
-		Account.getAccount(expensesAccounts[0].guid).then(function(accounts) {
+		Account.get(expensesAccounts[0].guid).then(function(accounts) {
 
 			$scope.expensesAccounts = Account.getSubAccounts(accounts, 0);
 
