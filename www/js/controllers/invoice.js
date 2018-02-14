@@ -155,6 +155,8 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 	$scope.entry.inv_account.guid = '';
 	$scope.entry.quantity = '';
 	$scope.entry.inv_price = '';
+	$scope.entry.discount_type = '';
+	$scope.entry.discount = '';
 
 	$scope.$on('$viewContentLoaded', function() {
 		$('#entryDate').datepicker({

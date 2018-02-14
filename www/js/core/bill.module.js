@@ -1,7 +1,7 @@
 angular.module('core.bill', []);
 
 angular.module('core.bill').
-  factory('Bill', function($q, $http, $timeout, Api, Money) {
+  factory('Bill', function($q, $http, $timeout, Api, Money, Entry) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -150,7 +150,7 @@ angular.module('core.bill').
         bill.formatted_date_posted = dateFormat(bill.date_posted);
 
         for (var i in bill.entries) {
-          bill.entries[i] = obj.formatEntry(bill.entries[i], bill.currency);
+          bill.entries[i] = Entry.format(bill.entries[i]);
         }
 
         bill.formatted_total = Money.format_currency(8, bill.currency, -bill.total);
@@ -199,33 +199,6 @@ angular.module('core.bill').
         return queryParams;
 
       },
-
-
-      // move this to entries (it is slighly different to invoices as uses bill_price instead of inv_price)
-      formatEntry: function(entry, currency) {
-        entry.date = dateFormat(entry.date);
-        entry.total_ex_discount = entry.quantity * entry.bill_price;
-
-        // doesn't take into account tax
-
-        entry.total_inc_discount = entry.total_ex_discount;
-
-        if (entry.discount_type == 1) {
-          entry.total_inc_discount = entry.total_ex_discount - entry.discount;
-          entry.discount = Money.format_currency(8, currency, -entry.discount);
-        } else {
-          // TODO: percentage discounts
-        }
-
-        // also 8s are hardcoded
-        // it would be good to get format_currency in it's own module or in core...
-
-        entry.discount_type = Money.format_discount_type(entry.discount_type, currency);
-        entry.total_inc_discount = Money.format_currency(8, currency, -entry.total_inc_discount);
-        entry.bill_price = Money.format_currency(8, currency, -entry.bill_price);
-
-        return entry;
-      }
 
     }
 

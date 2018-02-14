@@ -33,8 +33,11 @@
         <option value="1">Yes</option>
         <option value="0">No</option>
       </select>
+
     </fieldset>
   </form>
+
+  <a style="margin-bottom: 25px;" role="button" class="btn" ng-click="emptyBill()">Add bill</a>
 
   <div>
     <div ng-show="!bills" class="loader">Loading...</div>
@@ -42,7 +45,7 @@
       <tr>
         <th>ID</th>
         <th>Opened</th>
-        <!-- <th>Due</th> -->
+        <th>Due</th>
         <th>Vendor</th>
         <th>Posted</th>
         <th>Total</th>
@@ -50,11 +53,11 @@
       </tr>
       <tr ng-repeat="bill in bills | filter:query | orderBy:orderProp">
         <td><a href="#/bills/{{bill.id}}">{{bill.id}}</a></td>
-        <td>{{bill.date_opened}}</a></td>
-        <!-- <td>{{bill.date_due}}</td> -->
+        <td>{{bill.formatted_date_opened}}</a></td>
+        <td>{{bill.formatted_date_due}}</td>
         <td><a href="#/customers/{{bill.owner.id}}">{{bill.owner.name}}</a></td>
-        <td>{{bill.date_posted}}</td>
-        <td>{{bill.total}}</td>
+        <td>{{bill.formatted_date_posted}}</td>
+        <td>{{bill.formatted_total}}</td>
         <td>
           <span ng-show="bill.paid">Yes</span>
           <span ng-show="!bill.paid">No</span>
@@ -62,4 +65,12 @@
       </tr>
     </table>
   </div>
+
+  <a style="margin-bottom: 25px;" role="button" class="btn" ng-click="emptyBill()">Add bill</a>
+
+  <!-- copied from vendors/details.html -->
+  <div ng-include src="'partials/bills/fragments/form.html'"></div>
+  <div ng-include src="'partials/bills/fragments/postform.html'"></div>
+  <div ng-include src="'partials/bills/fragments/payform.html'"></div>
+
 </div>

@@ -1,10 +1,20 @@
-function BillListCtrl($scope, Bill) {
+function BillListCtrl($scope, Vendor, Bill) {
 
 	$scope.date_type = 'opened';
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
 	$scope.date_to = '';
 	$scope.is_paid = '';
 	$scope.is_active = 1;
+
+	Vendor.query().then(function(vendors) {
+		$scope.vendors = vendors;
+	});
+
+	$scope.bill = {};
+	$scope.bill.id = '';
+	$scope.bill.vendor_id = '';
+	$scope.bill.date_opened = '';
+	$scope.bill.notes = '';
 
 	var lastParams = '';
 
@@ -50,17 +60,97 @@ function BillListCtrl($scope, Bill) {
 		
 	}
 
+	// copied from vendor.js
+	$scope.addBill = function() {
+
+		var params = {
+			id: '',
+			vendor_id: $scope.bill.vendor_id,
+			// TODO: currency should be based on the customer selected
+			currency: 'GBP',
+			date_opened: $scope.bill.date_opened,
+			notes: $scope.bill.notes
+		};
+
+		Bill.add(params).then(function(bill) {
+			$scope.bills.push(bill);
+			$('#billForm').modal('hide');
+			$('#billAlert').hide();
+
+			$scope.bill.id = '';
+			$scope.bill.vendor_id = '';
+			$scope.bill.date_opened = '';
+			$scope.bill.notes = '';
+		}, function(reason) {
+			if(typeof data.errors != 'undefined') {
+				$('#billAlert').show();
+				$scope.billError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
+		});
+
+	}
+
+	// copied from vendor.js
+	$scope.saveBill = function() {
+		if ($scope.billNew == 1) {
+			$scope.addBill();
+		} else {
+			// This may fail as it's possible to update the ID
+			//$scope.updateBill($scope.bill.id);
+		}
+	}
+
+	// copied from vendor.js
+	$scope.emptyPostBill = function(id) {
+
+		$scope.bill.id = id;
+		$scope.bill.date_posted = format_todays_date();
+		$scope.bill.date_due = format_todays_date();
+		$scope.bill.posted_accumulatesplits = true;
+
+		$('#billPostForm').modal('show');
+
+	}
+
+	// copied from vendor.js
+	$scope.emptyPayBill = function(id) {
+
+		$scope.bill.id = id;
+		$scope.bill.date_paid = format_todays_date();
+
+		$('#billPayForm').modal('show');
+
+	}
+
+	// copied from vendor.js - but removed vendor line
+	$scope.emptyBill = function() {
+
+		$scope.billTitle = 'Add bill';
+
+		$scope.billNew = 1;
+
+		$scope.bill.id = '';
+		$scope.bill.date_opened = format_todays_date();
+		$scope.bill.notes = '';
+
+		$('#billForm').modal('show');
+
+	}
+
 	$scope.change();
 
 }
 
-function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account) {
+function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
 	});
 
-	Account.getAccountsForDropdown([12]).then(function(accounts) {
+	Account.getBillAccountsForDropdown().then(function(accounts) {
 		$scope.accounts = accounts;
 	});
 
@@ -77,6 +167,8 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account) {
 	$scope.entry.bill_account.guid = '';
 	$scope.entry.quantity = '';
 	$scope.entry.bill_price = '';
+	$scope.entry.discount_type = '';
+	$scope.entry.discount = '';
 
 	$scope.$on('$viewContentLoaded', function() {
 		$('#entryDate').datepicker({
@@ -141,7 +233,9 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account) {
 			description: $scope.entry.description,
 			account_guid: $scope.entry.bill_account.guid,
 			quantity: $scope.entry.quantity,
-			price: $scope.entry.bill_price
+			price: $scope.entry.bill_price,
+			discount_type: $scope.entry.discount_type,
+			discount: $scope.entry.discount
 		};
 
 		Entry.add('bill', $scope.bill.id, params).then(function(entry) {
@@ -152,11 +246,6 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account) {
 
 			$('#entryForm').modal('hide');
 			$('#entryAlert').hide();
-
-			/*data.total_ex_discount = data.quantity * data.bill_price;
-			// does not take into account discounts - how do these work?
-			data.total_inc_discount = data.total_ex_discount.formatMoney(2, '.', ',');
-			data.bill_price = data.bill_price.formatMoney(2, '.', ',');*/
 
 			$scope.entry.guid = '';
 			$scope.entry.date = '';
@@ -199,7 +288,9 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account) {
 		$scope.entry.description = '';
 		$scope.entry.bill_account.guid = '';
 		$scope.entry.quantity = '';
-		$scope.entry.bill_price = '';		
+		$scope.entry.bill_price = '';
+		$scope.entry.discount_type = 1;
+		$scope.entry.discount = '';	
 
 		$('#entryForm').modal('show');
 
@@ -257,11 +348,6 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account) {
 			
 			$('#entryForm').modal('hide');
 			$('#entryAlert').hide();
-
-			/*data.total_ex_discount = data.quantity * data.bill_price;
-			// does not take into account discounts - how do these work?
-			data.total_inc_discount = data.total_ex_discount.formatMoney(2, '.', ',');
-			data.bill_price = data.bill_price.formatMoney(2, '.', ',');*/
 
 			$scope.entry.guid = '';
 			$scope.entry.date = '';

@@ -93,7 +93,12 @@ angular.module('core.entry').
       // from invoices module (is there a seperate one for bills?)
       format: function(entry) {
         entry.formatted_date = dateFormat(entry.date);
-        entry.total_ex_discount = entry.quantity * entry.inv_price;
+
+        if (entry.inv_account.hasOwnProperty('guid')) {
+          entry.total_ex_discount = entry.quantity * entry.inv_price;
+        } else if (entry.bill_account.hasOwnProperty('guid')) {
+          entry.total_ex_discount = entry.quantity * entry.bill_price;
+        }
 
         // doesn't take into account tax
 
@@ -101,7 +106,12 @@ angular.module('core.entry').
 
         if (entry.discount_type == 1) {
           entry.total_inc_discount = entry.total_ex_discount - entry.discount;
-          entry.formatted_discount = Money.format_currency(8, entry.inv_account.currency, -entry.discount);
+
+          if (entry.inv_account.hasOwnProperty('guid')) {
+            entry.formatted_discount = Money.format_currency(8, entry.inv_account.currency, -entry.discount);
+          } else if (entry.bill_account.hasOwnProperty('guid')) {
+            entry.formatted_discount = Money.format_currency(8, entry.bill_account.currency, -entry.discount);
+          } 
         } else {
           // TODO: percentage discounts
         }
@@ -109,11 +119,16 @@ angular.module('core.entry').
         // also 8s are hardcoded
         // it would be good to get format_currency in it's own module or in core...
 
-        entry.formatted_discount_type = Money.format_discount_type(entry.discount_type, entry.inv_account.currency);
+        if (entry.inv_account.hasOwnProperty('guid')) { 
+          entry.formatted_discount_type = Money.format_discount_type(entry.discount_type, entry.inv_account.currency);
+          entry.formatted_inv_price = Money.format_currency(8, entry.inv_account.currency, -entry.inv_price);
+          entry.formatted_total_inc_discount = Money.format_currency(8, entry.inv_account.currency, -entry.total_inc_discount);
+        } else if (entry.bill_account.hasOwnProperty('guid')) {
+          entry.formatted_discount_type = Money.format_discount_type(entry.discount_type, entry.bill_account.currency);
+          entry.formatted_bill_price = Money.format_currency(8, entry.bill_account.currency, -entry.bill_price);
+          entry.formatted_total_inc_discount = Money.format_currency(8, entry.bill_account.currency, -entry.total_inc_discount);
+        } 
         
-        entry.formatted_inv_price = Money.format_currency(8, entry.inv_account.currency, -entry.inv_price);
-        entry.formatted_total_inc_discount = Money.format_currency(8, entry.inv_account.currency, -entry.total_inc_discount);
-
         return entry;
       },
 

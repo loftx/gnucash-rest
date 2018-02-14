@@ -116,6 +116,33 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
         return deferred.promise;
       },
 
+       // this is very similar to getAccountsForDropdown - could take a placeholder e.g. https://github.com/Gnucash/gnucash/blob/310442ffe68d583b633d380c9b0e5d5524bf1a47/libgnucash/engine/Account.h
+      getBillAccountsForDropdown: function() {
+        var deferred = $q.defer();
+
+        $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
+          .success(function(data) {
+
+            var accounts = obj.getSubAccounts(data, 0);
+            var invoiceAccounts = [];
+
+            // limit accounts to income accounts and remove placeholder accounts 
+            for (var i in accounts) {
+              if (accounts[i].type_id == 9 && !accounts[i].placeholder) {
+                invoiceAccounts.push(accounts[i]);
+              }
+            }
+
+            deferred.resolve(invoiceAccounts);
+          })
+          .error(function(data, status) {
+            Api.handleErrors(data, status, 'accounts');
+          })
+        ;
+
+        return deferred.promise;
+      },
+
       // this is very similar to getAccountsForDropdown
       getAccountsOfTypesForDropdown: function(type_ids) {
         var deferred = $q.defer();
