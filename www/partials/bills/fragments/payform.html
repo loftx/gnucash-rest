@@ -1,0 +1,47 @@
+<div id="billPayForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Pay bill</h3>
+  </div>
+  <div class="modal-body">
+
+  <div id="billPayAlert" class="alert  alert-error" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>Error</strong> {{billError}}
+  </div>
+
+    <form class="form-horizontal" style="margin: 0px;">
+      <fieldset>
+
+        <div class="control-group">
+          <label class="control-label" for="billDatePaid">Date</label>
+          <div class="controls">
+            <input id="billDatePaid" ng-model="bill.date_paid" name="billDatePaid" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="entryAccount">Post to account</label>
+          <div class="controls">
+            <select data-ng-model="bill.post_account" data-ng-options="account.guid as account.name for account in accounts" class="input-xlarge"></select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="entryAccount">Transfer account</label>
+          <div class="controls">
+            <select data-ng-model="bill.transfer_account" data-ng-options="account.guid as account.name for account in transferAccounts" class="input-xlarge"></select>
+          </div>
+        </div>
+
+        <p>More bits here</p>
+
+      </fieldset>
+    </form>
+    
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" ng-click="payBill()">Save changes</button>
+  </div>
+</div>

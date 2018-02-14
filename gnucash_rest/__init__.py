@@ -549,10 +549,12 @@ def api_bill_entries(id):
             account_guid = str(request.form.get('account_guid', ''))
             quantity = str(request.form.get('quantity', ''))
             price = str(request.form.get('price', ''))
+            discount_type = int(request.form.get('discount_type', ''))
+            discount = str(request.form.get('discount', ''))
 
             try:
                 entry = add_bill_entry(session.book, id, date, description,
-                    account_guid, quantity, price)
+                    account_guid, quantity, price, discount_type, discount)
             except Error as error:
                 return Response(json.dumps({'errors': [{'type' : error.type,
                     'message': error.message, 'data': error.data}]}),
@@ -1836,7 +1838,8 @@ def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
 
     return gnucash_simple.billToDict(bill)
 
-def add_entry(book, invoice_id, date, description, account_guid, quantity, price, discount_type, discount):
+def add_entry(book, invoice_id, date, description, account_guid, quantity,
+    price, discount_type, discount):
 
     invoice = get_gnucash_invoice(book, invoice_id)
 
@@ -1881,7 +1884,7 @@ def add_entry(book, invoice_id, date, description, account_guid, quantity, price
     try:
         discount = Decimal(discount).quantize(Decimal('.01'))
     except ArithmeticError:
-        raise Error('InvalidDiscounr', 'This discount is not valid',
+        raise Error('InvalidDiscount', 'This discount is not valid',
             {'field': 'discount'})
 
     entry = Entry(book, invoice, date.date())
@@ -1898,8 +1901,8 @@ def add_entry(book, invoice_id, date, description, account_guid, quantity, price
 
     return gnucash_simple.entryToDict(entry)
 
-def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
-    price):
+def add_bill_entry(book, bill_id, date, description, account_guid, quantity, 
+    price, discount_type, discount):
 
     bill = get_gnucash_bill(book,bill_id)
 
@@ -1913,6 +1916,11 @@ def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
         raise Error('InvalidDateOpened',
             'The date opened must be provided in the form YYYY-MM-DD',
             {'field': 'date'})
+
+    # Only value based discounts are supported
+    if discount_type != GNC_AMT_TYPE_VALUE:
+        raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
+            {'field': 'discount_type'})
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(account_guid, guid)
@@ -1934,6 +1942,13 @@ def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
     except ArithmeticError:
         raise Error('InvalidPrice', 'This price is not valid',
             {'field': 'price'})
+
+    # Currently only value based discounts are supported
+    try:
+        discount = Decimal(discount).quantize(Decimal('.01'))
+    except ArithmeticError:
+        raise Error('InvalidDiscount', 'This discount is not valid',
+            {'field': 'discount'})
     
     entry = Entry(book, bill, date.date())
     entry.SetDateEntered(datetime.datetime.now())
@@ -1941,6 +1956,11 @@ def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
     entry.SetBillAccount(account)
     entry.SetQuantity(gnc_numeric_from_decimal(quantity))
     entry.SetBillPrice(gnc_numeric_from_decimal(price))
+    # Do we need to set this?
+    # entry.SetInvDiscountHow()
+    entry.SetInvDiscountType(discount_type)
+    # Currently only value based discounts are supported
+    entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
 
     return gnucash_simple.entryToDict(entry)
 
@@ -2016,6 +2036,7 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
     entry.SetInvPrice(gnc_numeric_from_decimal(price))
     # Do we need to set this?
     # entry.SetInvDiscountHow()
+
     entry.SetInvDiscountType(discount_type)
     # Currently only value based discounts are supported
     entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
