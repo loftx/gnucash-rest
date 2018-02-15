@@ -154,6 +154,17 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 		$scope.accounts = accounts;
 	});
 
+	// for posting / paying?
+	/*
+	Account.getAccountsForDropdown([11]).then(function(accounts) {
+		$scope.accounts = accounts;
+	});
+
+	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
+		$scope.transferAccounts = transferAccounts;
+	}); */
+
+
 	Bill.get($routeParams.billId).then(function(bill) {
 		$scope.bill = bill;
 	});
@@ -226,6 +237,28 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 
 	}
 
+	// copied from vendor.js
+	$scope.emptyPostBill = function(id) {
+
+		$scope.bill.id = id;
+		$scope.bill.date_posted = format_todays_date();
+		$scope.bill.date_due = format_todays_date();
+		$scope.bill.posted_accumulatesplits = true;
+
+		$('#billPostForm').modal('show');
+
+	}
+
+	// copied from vendor.js
+	$scope.emptyPayBill = function(id) {
+
+		$scope.bill.id = id;
+		$scope.bill.date_paid = format_todays_date();
+
+		$('#billPayForm').modal('show');
+
+	}
+
 	$scope.addEntry = function() {
 
 		var params = {
@@ -235,7 +268,7 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 			quantity: $scope.entry.quantity,
 			price: $scope.entry.bill_price,
 			discount_type: $scope.entry.discount_type,
-			discount: $scope.entry.discount
+			discount: (($scope.entry.discount == '') ? 0 : $scope.entry.discount) // allow discount to be left blank for easy entry
 		};
 
 		Entry.add('bill', $scope.bill.id, params).then(function(entry) {

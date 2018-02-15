@@ -44,6 +44,8 @@
   </form>
 
   <a role="button" class="btn" ng-click="populateBill(bill.id)" ng-show="!bill.posted">Edit bill</a>
+  <a role="button" class="btn" ng-click="emptyPostBill(bill.id)" ng-show="!bill.posted">Post bill</a>
+  <a role="button" class="btn" ng-click="emptyPayBill(bill.id)" ng-show="bill.posted && !bill.paid">Pay bill</a>
 
   <div id="billForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">
@@ -144,6 +146,8 @@
     <a role="button" style="margin-bottom: 25px;" class="btn" ng-if="bill.posted" ng-click="emptyEntry()">Add entry</a>
   </div>
 
-  <div ng-include src="'partials/bills/fragments/entryform.html'"></div>
-
 </div>
+
+<div ng-include src="'partials/bills/fragments/entryform.html'"></div>
+<div ng-include src="'partials/bills/fragments/postform.html'"></div>
+<div ng-include src="'partials/bills/fragments/payform.html'"></div>

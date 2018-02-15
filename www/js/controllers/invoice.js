@@ -223,7 +223,7 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 			quantity: $scope.entry.quantity,
 			price: $scope.entry.inv_price,
 			discount_type: $scope.entry.discount_type,
-			discount: $scope.entry.discount
+			discount: (($scope.entry.discount == '') ? 0 : $scope.entry.discount) // allow discount to be left blank for easy entry
 		};
 
 		Entry.add('invoice', $scope.invoice.id, params).then(function(entry) {
