@@ -155,7 +155,7 @@ function CustomerListCtrl($scope, Customer) {
 	}
 }
 
-function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice) {
+function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Dates) {
 
 	Customer.get($routeParams.customerId).then(function(customer) {
 		$scope.customer = customer;
@@ -349,8 +349,8 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice) {
 	$scope.emptyPostInvoice = function(id) {
 
 		$scope.invoice.id = id;
-		$scope.invoice.date_posted = format_todays_date();
-		$scope.invoice.date_due = format_todays_date();
+		$scope.invoice.date_posted = Dates.format_todays_date();
+		$scope.invoice.date_due = Dates.format_todays_date();
 		$scope.invoice.posted_accumulatesplits = true;
 
 		$('#invoicePostForm').modal('show');
@@ -360,8 +360,8 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice) {
 	$scope.emptyPayInvoice = function(id) {
 
 		$scope.invoice.id = id;
-		$scope.invoice.date_paid = format_todays_date();
-		//$scope.invoice.date_due = format_todays_date();
+		$scope.invoice.date_paid = Dates.format_todays_date();
+		//$scope.invoice.date_due = Dates.format_todays_date();
 		//$scope.invoice.posted_accumulatesplits = true;
 
 		$('#invoicePayForm').modal('show');
@@ -376,7 +376,7 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice) {
 
 		$scope.invoice.id = '';
 		$scope.invoice.customer_id = $scope.customer.id;
-		$scope.invoice.date_opened = format_todays_date();
+		$scope.invoice.date_opened = Dates.format_todays_date();
 		$scope.invoice.notes = '';
 
 		$('#invoiceForm').modal('show');

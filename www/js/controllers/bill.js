@@ -1,4 +1,4 @@
-function BillListCtrl($scope, Vendor, Bill) {
+function BillListCtrl($scope, Vendor, Bill, Dates) {
 
 	$scope.date_type = 'opened';
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
@@ -107,8 +107,8 @@ function BillListCtrl($scope, Vendor, Bill) {
 	$scope.emptyPostBill = function(id) {
 
 		$scope.bill.id = id;
-		$scope.bill.date_posted = format_todays_date();
-		$scope.bill.date_due = format_todays_date();
+		$scope.bill.date_posted = Dates.format_todays_date();
+		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
 
 		$('#billPostForm').modal('show');
@@ -119,7 +119,7 @@ function BillListCtrl($scope, Vendor, Bill) {
 	$scope.emptyPayBill = function(id) {
 
 		$scope.bill.id = id;
-		$scope.bill.date_paid = format_todays_date();
+		$scope.bill.date_paid = Dates.format_todays_date();
 
 		$('#billPayForm').modal('show');
 
@@ -133,7 +133,7 @@ function BillListCtrl($scope, Vendor, Bill) {
 		$scope.billNew = 1;
 
 		$scope.bill.id = '';
-		$scope.bill.date_opened = format_todays_date();
+		$scope.bill.date_opened = Dates.format_todays_date();
 		$scope.bill.notes = '';
 
 		$('#billForm').modal('show');
@@ -144,7 +144,7 @@ function BillListCtrl($scope, Vendor, Bill) {
 
 }
 
-function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
+function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, Entry, Dates) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -237,15 +237,39 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 
 	}
 
-	// copied from vendor.js
 	$scope.emptyPostBill = function(id) {
 
-		$scope.bill.id = id;
-		$scope.bill.date_posted = format_todays_date();
-		$scope.bill.date_due = format_todays_date();
+		//$scope.bill.id = id;
+		$scope.bill.date_posted = Dates.format_todays_date();
+		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
 
-		$('#billPostForm').modal('show');
+        var popup = $uibModal.open({
+            templateUrl: 'partials/bills/fragments/postform.html',
+            controller: 'modalPostBillCtrl',
+            size: 'sm',
+            resolve: {
+		        bill: function () {
+		          return $scope.bill;
+		        }
+      		}
+        });
+
+		popup.result.then(function(bill) {
+
+			console.log(bill);
+
+			$scope.bill = bill;
+
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == $scope.bill.id) {
+					$scope.bills[i] = $scope.bill;
+				}
+			}
+
+		}, function () {
+			console.log('DIsmissed');
+		});
 
 	}
 
@@ -253,7 +277,7 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 	$scope.emptyPayBill = function(id) {
 
 		$scope.bill.id = id;
-		$scope.bill.date_paid = format_todays_date();
+		$scope.bill.date_paid = Dates.format_todays_date();
 
 		$('#billPayForm').modal('show');
 
@@ -317,7 +341,7 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 		$scope.entryNew = 1;
 
 		$scope.entry.guid = '';
-		$scope.entry.date = format_todays_date(); // this should probably default to the bill date - not today's
+		$scope.entry.date = Dates.format_todays_date(); // this should probably default to the bill date - not today's
 		$scope.entry.description = '';
 		$scope.entry.bill_account.guid = '';
 		$scope.entry.quantity = '';
@@ -404,3 +428,60 @@ function BillDetailCtrl($scope, $routeParams, Bill, Vendor, Account, Entry) {
 	}
 
 }
+
+// this is bad due to the case...
+app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Account', 'Bill', 'Dates', function(bill, $scope, $uibModalInstance, Account, Bill, Dates) {
+
+	$scope.picker = {
+		billDatePosted: { opened: false },
+		billDateDue: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; }
+	};
+
+	Account.getBillAccountsForDropdown().then(function(accounts) {
+		$scope.accounts = accounts;
+	});
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	// could change to generic function
+	$scope.postBill = function() {
+
+		Bill.get(bill.id).then(function(bill) {
+			
+			var params = {
+				vendor_id: bill.owner.id,
+				currency: bill.currency,
+				date_opened: bill.date_opened,
+				notes: bill.notes,
+				posted: 1,
+				posted_account_guid: $scope.bill.posted_account,
+				posted_date: Dates.dateInput($scope.bill.date_posted),
+				due_date: Dates.dateInput($scope.bill.date_due),
+				posted_memo: $scope.bill.posted_memo,
+				posted_accumulatesplits: $scope.bill.posted_accumulatesplits, // this is True but should be 1
+				posted_autopay: 0
+			};
+
+			Bill.update(bill.id, params).then(function(bill) {
+
+				$('#billPostAlert').hide();
+				$uibModalInstance.close(bill);				
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#billPostAlert').show();
+					$scope.billError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
+
+	}
+
+}]);

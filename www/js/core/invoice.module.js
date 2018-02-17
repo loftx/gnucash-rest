@@ -1,7 +1,7 @@
 angular.module('core.invoice', []);
 
 angular.module('core.invoice').
-  factory('Invoice', function($q, $http, $timeout, Api, Money, Entry) {
+  factory('Invoice', function($q, $http, $timeout, Api, Dates, Money, Entry) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -186,9 +186,9 @@ angular.module('core.invoice').
       // this could be not exposed
       format: function(invoice) {
 
-        invoice.formatted_date_opened = dateFormat(invoice.date_opened);
-        invoice.formatted_date_due = dateFormat(invoice.date_due);
-        invoice.formatted_date_posted = dateFormat(invoice.date_posted);
+        invoice.formatted_date_opened = Dates.dateFormat(invoice.date_opened);
+        invoice.formatted_date_due = Dates.dateFormat(invoice.date_due);
+        invoice.formatted_date_posted = Dates.dateFormat(invoice.date_posted);
 
         for (var i in invoice.entries) {
           invoice.entries[i] = Entry.format(invoice.entries[i]);

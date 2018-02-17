@@ -1,59 +1,57 @@
-<div id="billPostForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel">Post bill</h3>
-  </div>
-  <div class="modal-body">
+<div class="modal-header">
+  <button type="button" class="close" ng-click="close()" aria-hidden="true">×</button>
+  <h3 id="myModalLabel">Post bill</h3>
+</div>
+<div class="modal-body">
 
   <div id="billPostAlert" class="alert  alert-error" style="display: none;">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     <strong>Error</strong> {{billError}}
   </div>
 
-    <form class="form-horizontal" style="margin: 0px;">
-      <fieldset>
-
-        <div class="control-group">
-          <label class="control-label" for="billDatePosted">Date posted</label>
-          <div class="controls">
-            <input id="billDatePosted" ng-model="bill.date_posted" name="billDatePosted" class="input-xlarge" type="text">
-          </div>
+  <form class="form-horizontal" style="margin: 0px;">
+    <fieldset>
+      
+      <div class="control-group">
+        <label class="control-label" for="billDatePosted">Date posted</label>
+        <div class="controls">
+          <input id="billDatePosted" ng-model="bill.date_posted" name="billDatePosted" class="input-xlarge" uib-datepicker-popup="yyyy-MM-dd" is-open="picker.billDatePosted.opened" ng-click="picker.open('billDatePosted')">
         </div>
+      </div>
 
-        <div class="control-group">
-          <label class="control-label" for="billDateDue">Date due</label>
-          <div class="controls">
-            <input id="billDateDue" ng-model="bill.date_due" name="billDateDue" class="input-xlarge" type="text">
-          </div>
+      <div class="control-group">
+        <label class="control-label" for="billDateDue">Date due</label>
+        <div class="controls">
+          <input id="billDateDue" ng-model="bill.date_due" name="billDateDue" class="input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" is-open="picker.billDateDue.opened" ng-click="picker.open('billDateDue')">
         </div>
+      </div>
 
-        <div class="control-group">
-          <label class="control-label" for="billAccount">Posted account</label>
-          <div class="controls">
-            <select data-ng-model="bill.posted_account" data-ng-options="account.guid as account.name for account in accounts" class="input-xlarge"></select>
-          </div>
+      <div class="control-group">
+        <label class="control-label" for="billAccount">Posted account</label>
+        <div class="controls">
+          <select data-ng-model="bill.posted_account" data-ng-options="account.guid as account.name for account in accounts" class="input-xlarge"></select>
         </div>
+      </div>
 
-        <div class="control-group">
-          <label class="control-label" for="billPostedMemo">Memo</label>
-          <div class="controls">
-            <textarea id="billPostedMemo" ng-model="bill.posted_memo" name="billPostedMemo" class="input-xlarge"></textarea>
-          </div>
+      <div class="control-group">
+        <label class="control-label" for="billPostedMemo">Memo</label>
+        <div class="controls">
+          <textarea id="billPostedMemo" ng-model="bill.posted_memo" name="billPostedMemo" class="input-xlarge"></textarea>
         </div>
+      </div>
 
-        <div class="control-group">
-          <label class="control-label" for="billAccumulatesSplits">Accumulates splits</label>
-          <div class="controls">
-            <input id="billAccumulatesSplits" ng-model="bill.posted_accumulatesplits" name="billAccumulatesSplits" class="input-xlarge" type="checkbox">
-          </div>
+      <div class="control-group">
+        <label class="control-label" for="billAccumulatesSplits">Accumulates splits</label>
+        <div class="controls">
+          <input id="billAccumulatesSplits" ng-model="bill.posted_accumulatesplits" name="billAccumulatesSplits" class="input-xlarge" type="checkbox">
         </div>
+      </div>
 
-      </fieldset>
-    </form>
-    
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" ng-click="postBill()">Save changes</button>
-  </div>
+    </fieldset>
+  </form>
+
+</div>
+<div class="modal-footer">
+  <button class="btn" ng-click="close()" aria-hidden="true">Close</button>
+  <button class="btn btn-primary" ng-click="postBill()">Save changes</button>
 </div>

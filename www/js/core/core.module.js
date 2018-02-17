@@ -105,3 +105,47 @@ angular.module('core').factory('Money', function($timeout, $location) {
 
 	return obj;
 });
+
+angular.module('core').factory('Dates', function($timeout, $location) {
+	var obj = {
+
+		dateFormat: function(str) {
+			if (str != null) {
+				var d = new Date(str.substring(0,4) + '-' + str.substring(5,7) + '-' + str.substring(8,10));
+				return obj.pad(d.getDate()) + '/' + obj.pad(d.getMonth() + 1) + '/' + d.getFullYear();
+			} else {
+				return '';
+			}
+		},
+
+		dateInput: function(date) {
+				return date.getFullYear() + '-' + obj.pad(date.getMonth() + 1) + '-' + obj.pad(date.getDate());
+		},
+
+		pad: function(number) {
+			if (number<=99) { number = ("00"+number).slice(-2); }
+			return number;
+		},
+
+		format_todays_date: function() {
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+
+			if(dd<10) {
+				dd='0'+dd;
+			} 
+
+			if(mm<10) {
+				mm='0'+mm;
+			} 
+
+			today = yyyy + '-' + mm + '-' + dd;
+			return today;
+		},
+
+	}
+
+	return obj;
+});

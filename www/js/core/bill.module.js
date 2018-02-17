@@ -1,7 +1,7 @@
 angular.module('core.bill', []);
 
 angular.module('core.bill').
-  factory('Bill', function($q, $http, $timeout, Api, Money, Entry) {
+  factory('Bill', function($q, $http, $timeout, Api, Dates, Money, Entry) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -145,9 +145,9 @@ angular.module('core.bill').
       },
 
       format: function(bill) {
-        bill.formatted_date_opened = dateFormat(bill.date_opened);
-        bill.formatted_date_due = dateFormat(bill.date_due);
-        bill.formatted_date_posted = dateFormat(bill.date_posted);
+        bill.formatted_date_opened = Dates.dateFormat(bill.date_opened);
+        bill.formatted_date_due = Dates.dateFormat(bill.date_due);
+        bill.formatted_date_posted = Dates.dateFormat(bill.date_posted);
 
         for (var i in bill.entries) {
           bill.entries[i] = Entry.format(bill.entries[i]);

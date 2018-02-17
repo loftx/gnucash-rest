@@ -1,4 +1,4 @@
-function VendorListCtrl($scope, Vendor) {
+function VendorListCtrl($scope, Vendor, Dates) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -95,7 +95,7 @@ function VendorListCtrl($scope, Vendor) {
 
 }
 
-function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account) {
+function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account, Dates) {
 
 	Vendor.get($routeParams.vendorId).then(function(vendor) {
 		$scope.vendor = vendor;
@@ -288,8 +288,8 @@ function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account) {
 	$scope.emptyPostBill = function(id) {
 
 		$scope.bill.id = id;
-		$scope.bill.date_posted = format_todays_date();
-		$scope.bill.date_due = format_todays_date();
+		$scope.bill.date_posted = Dates.format_todays_date();
+		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
 
 		$('#billPostForm').modal('show');
@@ -299,7 +299,7 @@ function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account) {
 	$scope.emptyPayBill = function(id) {
 
 		$scope.bill.id = id;
-		$scope.bill.date_paid = format_todays_date();
+		$scope.bill.date_paid = Dates.format_todays_date();
 
 		$('#billPayForm').modal('show');
 
@@ -313,7 +313,7 @@ function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account) {
 
 		$scope.bill.id = '';
 		$scope.bill.vendor_id = $scope.vendor.id;
-		$scope.bill.date_opened = format_todays_date();
+		$scope.bill.date_opened = Dates.format_todays_date();
 		$scope.bill.notes = '';
 
 		$('#billForm').modal('show');

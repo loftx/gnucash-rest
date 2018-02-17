@@ -1,7 +1,7 @@
 angular.module('core.entry', []);
 
 angular.module('core.entry').
-  factory('Entry', function($q, $http, $timeout, Api, Money) {
+  factory('Entry', function($q, $http, $timeout, Api, Dates, Money) {
     var obj = {
 
       get: function(entryGuid) {
@@ -92,7 +92,7 @@ angular.module('core.entry').
 
       // from invoices module (is there a seperate one for bills?)
       format: function(entry) {
-        entry.formatted_date = dateFormat(entry.date);
+        entry.formatted_date = Dates.dateFormat(entry.date);
 
         if (entry.inv_account.hasOwnProperty('guid')) {
           entry.total_ex_discount = entry.quantity * entry.inv_price;

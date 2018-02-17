@@ -1,4 +1,4 @@
-function InvoiceListCtrl($scope, Invoice, Customer) {
+function InvoiceListCtrl($scope, Invoice, Customer, Dates) {
 
 	$scope.invoices = [];
 
@@ -79,7 +79,7 @@ function InvoiceListCtrl($scope, Invoice, Customer) {
 		$scope.invoiceNew = 1;
 
 		$scope.invoice.id = '';
-		$scope.invoice.date_opened = format_todays_date();
+		$scope.invoice.date_opened = Dates.format_todays_date();
 		$scope.invoice.notes = '';
 
 		$('#invoiceForm').modal('show');
@@ -132,7 +132,7 @@ function InvoiceListCtrl($scope, Invoice, Customer) {
 
 }
 
-function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Entry, Money) {
+function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Entry, Money, Dates) {
 
 	Customer.query().then(function(customers) {
 		$scope.customers = customers;
@@ -272,7 +272,7 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 		$scope.entryNew = 1;
 
 		$scope.entry.guid = '';
-		$scope.entry.date = format_todays_date(); // this should probably default to the invoice date - not today's
+		$scope.entry.date = Dates.format_todays_date(); // this should probably default to the invoice date - not today's
 		$scope.entry.description = '';
 		$scope.entry.inv_account.guid = '';
 		$scope.entry.quantity = '';
