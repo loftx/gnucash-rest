@@ -1,4 +1,4 @@
-function BillListCtrl($scope, Vendor, Bill, Dates) {
+function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	$scope.date_type = 'opened';
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
@@ -103,7 +103,7 @@ function BillListCtrl($scope, Vendor, Bill, Dates) {
 		}
 	}
 
-	// copied from vendor.js
+	// copied from bill.js
 	$scope.emptyPostBill = function(id) {
 
 		$scope.bill.id = id;
@@ -111,7 +111,24 @@ function BillListCtrl($scope, Vendor, Bill, Dates) {
 		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
 
-		$('#billPostForm').modal('show');
+        var popup = $uibModal.open({
+            templateUrl: 'partials/bills/fragments/postform.html',
+            controller: 'modalPostBillCtrl',
+            size: 'sm',
+            resolve: {
+		        bill: function () {
+		          return $scope.bill;
+		        }
+      		}
+        });
+
+		popup.result.then(function(bill) {
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == $scope.bill.id) {
+					$scope.bills[i] = bill;
+				}
+			}
+		});
 
 	}
 
@@ -237,9 +254,8 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 	}
 
-	$scope.emptyPostBill = function(id) {
+	$scope.emptyPostBill = function() {
 
-		//$scope.bill.id = id;
 		$scope.bill.date_posted = Dates.format_todays_date();
 		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
@@ -256,19 +272,11 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
         });
 
 		popup.result.then(function(bill) {
-
-			console.log(bill);
-
-			$scope.bill = bill;
-
 			for (var i in $scope.bills) {
 				if ($scope.bills[i].id == $scope.bill.id) {
-					$scope.bills[i] = $scope.bill;
+					$scope.bills[i] = bill;
 				}
 			}
-
-		}, function () {
-			console.log('DIsmissed');
 		});
 
 	}
@@ -435,7 +443,8 @@ app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acc
 	$scope.picker = {
 		billDatePosted: { opened: false },
 		billDateDue: { opened: false },
-		open: function(field) { $scope.picker[field].opened = true; }
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
 
 	Account.getBillAccountsForDropdown().then(function(accounts) {

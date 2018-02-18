@@ -50,6 +50,7 @@
         <th>Posted</th>
         <th>Total</th>
         <th>Paid</th>
+        <th></th>
       </tr>
       <tr ng-repeat="bill in bills | filter:query | orderBy:orderProp">
         <td><a href="#/bills/{{bill.id}}">{{bill.id}}</a></td>
@@ -62,6 +63,18 @@
           <span ng-show="bill.paid">Yes</span>
           <span ng-show="!bill.paid">No</span>
         </td>
+        <td>
+        <span ng-switch on="bill.date_posted">
+            <span ng-switch-when="null">
+                <a ng-click="emptyPostBill(bill.id)">post</a>
+            </span>
+        </span>
+        <span ng-switch on="bill.paid">
+            <span ng-switch-when="false">
+                <a ng-click="emptyPayBill(bill.id)">pay</a>
+            </span>
+        </span>
+      </td>
       </tr>
     </table>
   </div>
@@ -70,7 +83,6 @@
 
   <!-- copied from vendors/details.html -->
   <div ng-include src="'partials/bills/fragments/form.html'"></div>
-  <div ng-include src="'partials/bills/fragments/postform.html'"></div>
   <div ng-include src="'partials/bills/fragments/payform.html'"></div>
 
 </div>

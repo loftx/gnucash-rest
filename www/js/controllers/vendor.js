@@ -95,7 +95,7 @@ function VendorListCtrl($scope, Vendor, Dates) {
 
 }
 
-function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account, Dates) {
+function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account, Dates) {
 
 	Vendor.get($routeParams.vendorId).then(function(vendor) {
 		$scope.vendor = vendor;
@@ -292,7 +292,24 @@ function VendorDetailCtrl($scope, $routeParams, Vendor, Bill, Account, Dates) {
 		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
 
-		$('#billPostForm').modal('show');
+        var popup = $uibModal.open({
+            templateUrl: 'partials/bills/fragments/postform.html',
+            controller: 'modalPostBillCtrl',
+            size: 'sm',
+            resolve: {
+		        bill: function () {
+		          return $scope.bill;
+		        }
+      		}
+        });
+
+		popup.result.then(function(bill) {
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == $scope.bill.id) {
+					$scope.bills[i] = bill;
+				}
+			}
+		});
 
 	}
 
