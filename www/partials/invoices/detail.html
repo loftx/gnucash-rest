@@ -88,9 +88,7 @@
     </tr>
   </table>
 
-  <div ng-show="!invoice.posted">
-    <a role="button" style="margin-bottom: 25px;" class="btn" ng-if="invoice.posted" ng-click="emptyEntry()">Add entry</a>
-  </div>
+  <a role="button" style="margin-bottom: 25px;" ng-show="!invoice.posted" class="btn" ng-click="emptyEntry()">Add entry</a>
 
 </div>
 

@@ -145,6 +145,12 @@ angular.module('core').factory('Dates', function($timeout, $location) {
 			return today;
 		},
 
+		todays_date: function() {
+			var d = new Date();
+			d.setHours(0,0,0,0);
+			return d;
+		},
+
 	}
 
 	return obj;

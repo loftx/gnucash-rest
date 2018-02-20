@@ -271,6 +271,10 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 
 		$scope.entryNew = 1;
 
+		$scope.discount_types = [{
+			key: 1, value: '£'
+		}];
+
 		$scope.entry.guid = '';
 		$scope.entry.date = Dates.format_todays_date(); // this should probably default to the invoice date - not today's
 		$scope.entry.description = '';

@@ -249,42 +249,6 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 
 	}
 
-	$scope.payBill = function(id) {
-			
-		var params = {
-			posted_account_guid: $scope.bill.post_account,
-			transfer_account_guid: $scope.bill.transfer_account,
-			payment_date: $scope.bill.date_paid,
-			num: '',
-			memo: '',
-			auto_pay: 0,
-		};
-
-		Bill.pay($scope.bill.id, params).then(function(bill) {
-			
-			$('#billPayForm').modal('hide');
-			$('#billPayAlert').hide();
-
-			$scope.bill = bill;
-
-			for (var i in $scope.bills) {
-				if ($scope.bills[i].id == $scope.bill.id) {
-					$scope.bills[i] = $scope.bill;
-				}
-			}
-
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#billPayAlert').show();
-				$scope.billError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-
-	}
-
 	$scope.emptyPostBill = function(id) {
 
 		$scope.bill.id = id;
@@ -313,14 +277,33 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 
 	}
 
-	$scope.emptyPayBill = function(id) {
 
-		$scope.bill.id = id;
-		$scope.bill.date_paid = Dates.format_todays_date();
+	$scope.emptyPayBill = function() {
 
-		$('#billPayForm').modal('show');
+		$scope.bill.date_paid = Dates.todays_date();
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/payform.html',
+			controller: 'modalPayBillCtrl',
+			size: 'sm',
+			resolve: {
+				bill: function () {
+				  return $scope.bill;
+				}
+			}
+		});
+
+		popup.result.then(function(bill) {
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == $scope.bill.id) {
+					$scope.bills[i] = bill;
+				}
+			}
+		});
 
 	}
+
+
 
 	$scope.emptyBill = function() {
 

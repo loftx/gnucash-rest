@@ -111,16 +111,16 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
 
-        var popup = $uibModal.open({
-            templateUrl: 'partials/bills/fragments/postform.html',
-            controller: 'modalPostBillCtrl',
-            size: 'sm',
-            resolve: {
-		        bill: function () {
-		          return $scope.bill;
-		        }
-      		}
-        });
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/postform.html',
+			controller: 'modalPostBillCtrl',
+			size: 'sm',
+			resolve: {
+				bill: function () {
+				  return $scope.bill;
+				}
+			}
+		});
 
 		popup.result.then(function(bill) {
 			for (var i in $scope.bills) {
@@ -132,13 +132,30 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	}
 
-	// copied from vendor.js
+	
 	$scope.emptyPayBill = function(id) {
 
 		$scope.bill.id = id;
-		$scope.bill.date_paid = Dates.format_todays_date();
+		$scope.bill.date_paid = Dates.todays_date();
 
-		$('#billPayForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/payform.html',
+			controller: 'modalPayBillCtrl',
+			size: 'sm',
+			resolve: {
+				bill: function () {
+				  return $scope.bill;
+				}
+			}
+		});
+
+		popup.result.then(function(bill) {
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == $scope.bill.id) {
+					$scope.bills[i] = bill;
+				}
+			}
+		});
 
 	}
 
@@ -170,17 +187,6 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 	Account.getBillAccountsForDropdown().then(function(accounts) {
 		$scope.accounts = accounts;
 	});
-
-	// for posting / paying?
-	/*
-	Account.getAccountsForDropdown([11]).then(function(accounts) {
-		$scope.accounts = accounts;
-	});
-
-	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
-		$scope.transferAccounts = transferAccounts;
-	}); */
-
 
 	Bill.get($routeParams.billId).then(function(bill) {
 		$scope.bill = bill;
@@ -260,34 +266,41 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		$scope.bill.date_due = Dates.format_todays_date();
 		$scope.bill.posted_accumulatesplits = true;
 
-        var popup = $uibModal.open({
-            templateUrl: 'partials/bills/fragments/postform.html',
-            controller: 'modalPostBillCtrl',
-            size: 'sm',
-            resolve: {
-		        bill: function () {
-		          return $scope.bill;
-		        }
-      		}
-        });
-
-		popup.result.then(function(bill) {
-			for (var i in $scope.bills) {
-				if ($scope.bills[i].id == $scope.bill.id) {
-					$scope.bills[i] = bill;
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/postform.html',
+			controller: 'modalPostBillCtrl',
+			size: 'sm',
+			resolve: {
+				bill: function () {
+				  return $scope.bill;
 				}
 			}
 		});
 
+		popup.result.then(function(bill) {
+			$scope.bill = bill;
+		});
+
 	}
 
-	// copied from vendor.js
-	$scope.emptyPayBill = function(id) {
+	$scope.emptyPayBill = function() {
 
-		$scope.bill.id = id;
-		$scope.bill.date_paid = Dates.format_todays_date();
+		$scope.bill.date_paid = Dates.todays_date();
 
-		$('#billPayForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/payform.html',
+			controller: 'modalPayBillCtrl',
+			size: 'sm',
+			resolve: {
+				bill: function () {
+				  return $scope.bill;
+				}
+			}
+		});
+
+		popup.result.then(function(bill) {
+			$scope.bill = bill;
+		});
 
 	}
 
@@ -347,6 +360,10 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		$scope.entryTitle = 'Add entry';
 
 		$scope.entryNew = 1;
+
+		$scope.discount_types = [{
+			key: 1, value: '£'
+		}];
 
 		$scope.entry.guid = '';
 		$scope.entry.date = Dates.format_todays_date(); // this should probably default to the bill date - not today's
@@ -493,4 +510,57 @@ app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acc
 
 	}
 
+}]);
+
+app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Account', 'Bill', 'Dates', function(bill, $scope, $uibModalInstance, Account, Bill, Dates) {
+
+	$scope.bill = bill;
+
+	$scope.picker = {
+		billDatePaid: { opened: false },
+		billDateDue: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+	
+	Account.getAccountsForDropdown([11]).then(function(accounts) {
+		$scope.accounts = accounts;
+	});
+
+	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
+		$scope.transferAccounts = transferAccounts;
+	}); 
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.payBill = function() {
+			
+		var params = {
+			posted_account_guid: bill.post_account,
+			transfer_account_guid: bill.transfer_account,
+			payment_date: Dates.dateInput(bill.date_paid),
+			num: '',
+			memo: '',
+			auto_pay: 0,
+		};
+
+		Bill.pay(bill.id, params).then(function(bill) {
+			
+			$('#billPostAlert').hide();
+			$uibModalInstance.close(bill);	
+
+		}, function(data) {
+			if(typeof data.errors != 'undefined') {
+				$('#billPayAlert').show();
+				$scope.billError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
+		});
+
+	}
+	
 }]);

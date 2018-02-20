@@ -51,9 +51,7 @@
         <div class="control-group">
           <label class="control-label" for="entryDiscountType">Discount type</label>
           <div class="controls">
-             <select data-ng-model="entry.discount_type" class="input-xlarge">
-              <option value="1">£</option>
-             </select>
+            <select data-ng-model="entry.discount_type" data-ng-options="discount_type.key as discount_type.value for discount_type in discount_types" class="input-xlarge"></select>
           </div>
         </div>
 

@@ -142,11 +142,8 @@
     </tr>
   </table>
 
-  <div ng-show="!bill.posted">
-    <a role="button" style="margin-bottom: 25px;" class="btn" ng-if="bill.posted" ng-click="emptyEntry()">Add entry</a>
-  </div>
+  <a role="button" style="margin-bottom: 25px;" class="btn" ng-show="!bill.posted" ng-click="emptyEntry()">Add entry</a>
 
 </div>
 
 <div ng-include src="'partials/bills/fragments/entryform.html'"></div>
-<div ng-include src="'partials/bills/fragments/payform.html'"></div>
