@@ -10,8 +10,9 @@ var app = angular.module('gnucash', [
 	'core.vendor',
 	'core.entry',
 	'core.transaction'
-]).
-config(['$routeProvider', function($routeProvider) {
+]);
+
+app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/accounts', {
 			templateUrl: 'partials/accounts/index.html',
@@ -61,4 +62,11 @@ config(['$routeProvider', function($routeProvider) {
 			controller: ReportIncomeStatementCtrl
 		}).
 		otherwise({redirectTo: '/accounts'});
+}]);
+
+// restrict ngAnimate as it's required for uibModal dialogs but interrupts loading animations (http://blog.fgribreau.com/2014/03/how-to-configure-ng-animate-to-work-on.html)
+app.config(['$animateProvider', function($animateProvider) {
+  // restrict animation to elements with the bi-animate css class with a regexp.
+  // note: "bi-*" is our css namespace at @Bringr.
+  $animateProvider.classNameFilter(/bi-animate/);
 }]);
