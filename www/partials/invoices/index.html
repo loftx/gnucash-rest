@@ -57,7 +57,7 @@
         <td>{{invoice.date_due}}</td>
         <td><a href="#/customers/{{invoice.owner.id}}">{{invoice.owner.name}}</a></td>
         <td>{{invoice.date_posted}}</td>
-        <td>{{invoice.total}}</td>
+        <td>{{invoice.formatted_total}}</td>
         <td>
           <span ng-show="invoice.paid">Yes</span>
           <span ng-show="!invoice.paid">No</span>

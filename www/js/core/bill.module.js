@@ -153,7 +153,7 @@ angular.module('core.bill').
           bill.entries[i] = Entry.format(bill.entries[i]);
         }
 
-        bill.formatted_total = Money.format_currency(8, bill.currency, -bill.total);
+        bill.formatted_total = Money.format_currency(8, bill.currency, bill.total);
 
         return bill;
       },

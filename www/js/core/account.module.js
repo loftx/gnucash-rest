@@ -210,25 +210,32 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
           split.charge = Money.format_currency(8, account.currency, split.amount);
           split.income = '';
         } else {
-          split.income = Money.format_currency(8, account.currency, split.amount);
+          split.income = Money.format_currency(8, account.currency, -split.amount);
           split.charge = '';
         }
 
-        split.formatted_balance = Money.format_currency(account.type_id, account.currency, split.balance);
-        split.formatted_amount = Money.format_currency(account.type_id, account.currency, split.amount);
-        
-        /*if (account.type_id == 8) {
+        if (account.type_id == 8) {
           split.balance = -(split.balance);
           split.amount = -(split.amount);
-        }*/
+        }
+
+        split.formatted_balance = Money.format_currency(account.type_id, account.currency, split.balance);
+        split.formatted_balance_gbp = Money.format_currency(account.type_id, account.currency, split.balance_gbp);
+        split.formatted_amount = Money.format_currency(account.type_id, account.currency, split.amount);
 
         return split;
       },
 
       // this could be not exposed
       formatAccount: function(account) {
-        account.balance_html = Money.format_currency(account.type_id, account.currency, account.balance);
-        account.balance_gbp_html = Money.format_currency(account.type_id, account.currency, account.balance_gbp);
+
+        if (account.type_id == 8) {
+          account.balance = -(account.balance);
+          account.balance_gbp = -(account.balance_gbp);
+        }
+
+        account.formatted_balance = Money.format_currency(account.type_id, account.currency, account.balance);
+        account.formatted_balance_gbp = Money.format_currency(account.type_id, account.currency, account.balance_gbp);
 
         return account;
       },

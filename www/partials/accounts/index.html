@@ -12,8 +12,8 @@
       <tr ng-repeat="account in accounts">
         <td style="padding-left: {{account.level*50}}px;"><a href="#/accounts/{{account.guid}}">{{account.name}}</a></td>
         <td>{{account.description}}</td>
-        <td ng-bind-html-unsafe="account.balance_html"></td>
-        <td ng-bind-html-unsafe="account.balance_gbp_html"></td>
+        <td ng-style="account.balance < 0 ? { color: 'red' } : {}">{{account.formatted_balance}}</td>
+        <td ng-style="account.balance_gbp < 0 ? { color: 'red' } : {}">{{account.formatted_balance_gbp}}</td>
       </tr>
     </table>
   </div>

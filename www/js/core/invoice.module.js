@@ -194,7 +194,7 @@ angular.module('core.invoice').
           invoice.entries[i] = Entry.format(invoice.entries[i]);
         }
 
-        invoice.formatted_total = Money.format_currency(8, invoice.currency, -invoice.total);
+        invoice.formatted_total = Money.format_currency(8, invoice.currency, invoice.total);
 
         return invoice;
       },

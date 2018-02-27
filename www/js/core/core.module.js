@@ -90,10 +90,6 @@ angular.module('core').factory('Money', function($timeout, $location) {
 		},
 
 		format_currency: function(type_id, currency, amount) {
-			if (type_id == 8) {
-				amount = -(amount);
-			}
-			
 			if (amount < 0) {
 				return '-' + obj.format_currency_format(currency) + obj.formatMoney(-amount, 2, '.', ',');
 			} else {

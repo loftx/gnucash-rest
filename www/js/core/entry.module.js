@@ -91,7 +91,7 @@ angular.module('core.entry').
       },
 
       // from invoices module (is there a seperate one for bills?)
-      format: function(entry) {
+      format: function(entry) { console.log(entry);
         entry.formatted_date = Dates.dateFormat(entry.date);
 
         if (entry.inv_account.hasOwnProperty('guid')) {
@@ -108,9 +108,9 @@ angular.module('core.entry').
           entry.total_inc_discount = entry.total_ex_discount - entry.discount;
 
           if (entry.inv_account.hasOwnProperty('guid')) {
-            entry.formatted_discount = Money.format_currency(8, entry.inv_account.currency, -entry.discount);
+            entry.formatted_discount = Money.format_currency(8, entry.inv_account.currency, entry.discount);
           } else if (entry.bill_account.hasOwnProperty('guid')) {
-            entry.formatted_discount = Money.format_currency(8, entry.bill_account.currency, -entry.discount);
+            entry.formatted_discount = Money.format_currency(8, entry.bill_account.currency, entry.discount);
           } 
         } else {
           // TODO: percentage discounts
@@ -121,12 +121,12 @@ angular.module('core.entry').
 
         if (entry.inv_account.hasOwnProperty('guid')) { 
           entry.formatted_discount_type = Money.format_discount_type(entry.discount_type, entry.inv_account.currency);
-          entry.formatted_inv_price = Money.format_currency(8, entry.inv_account.currency, -entry.inv_price);
-          entry.formatted_total_inc_discount = Money.format_currency(8, entry.inv_account.currency, -entry.total_inc_discount);
+          entry.formatted_inv_price = Money.format_currency(8, entry.inv_account.currency, entry.inv_price);
+          entry.formatted_total_inc_discount = Money.format_currency(8, entry.inv_account.currency, entry.total_inc_discount);
         } else if (entry.bill_account.hasOwnProperty('guid')) {
           entry.formatted_discount_type = Money.format_discount_type(entry.discount_type, entry.bill_account.currency);
-          entry.formatted_bill_price = Money.format_currency(8, entry.bill_account.currency, -entry.bill_price);
-          entry.formatted_total_inc_discount = Money.format_currency(8, entry.bill_account.currency, -entry.total_inc_discount);
+          entry.formatted_bill_price = Money.format_currency(8, entry.bill_account.currency, entry.bill_price);
+          entry.formatted_total_inc_discount = Money.format_currency(8, entry.bill_account.currency, entry.total_inc_discount);
         } 
         
         return entry;

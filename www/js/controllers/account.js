@@ -7,6 +7,12 @@ function AccountListCtrl($scope, Account) {
 
 function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 
+	$scope.picker = {
+		transactionDatePosted: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+
 	Account.get($routeParams.accountGuid).then(function(account) {
 		$scope.account = account;
 
