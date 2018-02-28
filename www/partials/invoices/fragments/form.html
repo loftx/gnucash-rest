@@ -17,7 +17,7 @@
           <div class="control-group">
             <label class="control-label" for="invoiceId">Invoice ID</label>
             <div class="controls">
-              <input id="invoiceId" ng-model="invoice.id" name="invoiceId" class="input-xlarge" type="text" disabled="disabled">
+              <input id="invoiceId" ng-model="invoice.id" name="invoiceId" class="input-xlarge" type="text" ng-disabled="invoice.id != 0">
             </div>
           </div>
 
@@ -31,7 +31,7 @@
           <div class="control-group">
             <label class="control-label" for="invoiceCompany">Company</label>
             <div class="controls">
-              <select data-ng-model="invoice.owner.id" data-ng-options="customer.id as customer.name for customer in customers" class="input-xlarge"></select>
+              <select data-ng-model="invoice.customer_id" data-ng-options="customer.id as customer.name for customer in customers" class="input-xlarge"></select>
             </div>
           </div>
 

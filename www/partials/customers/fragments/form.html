@@ -1,0 +1,76 @@
+<div id="customerForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">{{customerTitle}}</h3>
+  </div>
+  <div class="modal-body">
+
+  <div id="customerAlert" class="alert  alert-error" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>Error</strong> {{customerError}}
+  </div>
+
+    <form class="form-horizontal" style="margin: 0px;">
+      <fieldset>
+
+        <!-- Text input-->
+        <div class="control-group">
+          <label class="control-label" for="customerId">Customer number</label>
+          <div class="controls">
+            <input id="customerId" ng-model="customer.id" name="customerId" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="customerName">Company name</label>
+          <div class="controls">
+            <input id="customerName" ng-model="customer.name" name="customerName" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="customerContact">Name</label>
+          <div class="controls">
+            <input id="customerContact" ng-model="customer.address.name" name="customerContact" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Address</label>
+          <div class="controls">
+            <input id="customerAddressLine1" ng-model="customer.address.line_1" name="customerAddressLine1" class="input-xlarge" type="text">
+            <input id="customerAddressLine2" ng-model="customer.address.line_2" name="customerAddressLine2" class="input-xlarge" type="text">
+            <input id="customerAddressLine3" ng-model="customer.address.line_3" name="customerAddressLine3" class="input-xlarge" type="text">
+            <input id="customerAddressLine4" ng-model="customer.address.line_4" name="customerAddressLine4" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="customerPhone">Phone</label>
+          <div class="controls">
+            <input id="customerPhone" ng-model="customer.address.phone" name="customerPhone" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="customerFax">Fax</label>
+          <div class="controls">
+            <input id="customerFax" ng-model="customer.address.fax" name="customerFax" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="customerEmail">Email</label>
+          <div class="controls">
+            <input id="customerEmail" ng-model="customer.address.email" name="customerEmail" class="input-xlarge" type="text">
+          </div>
+        </div>
+      </fieldset>
+    </form>
+    
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" ng-click="saveCustomer()">Save changes</button>
+  </div>
+</div>

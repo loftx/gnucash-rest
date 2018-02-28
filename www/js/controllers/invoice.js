@@ -144,6 +144,8 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 
 	Invoice.get($routeParams.invoiceId).then(function(invoice) {
 		$scope.invoice = invoice;
+		// used to set customer on edit form
+		$scope.invoice.customer_id = $scope.invoice.owner.id;
 	});
 
 	$scope.entry = {};
