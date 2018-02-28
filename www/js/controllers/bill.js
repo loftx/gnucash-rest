@@ -190,6 +190,8 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 	Bill.get($routeParams.billId).then(function(bill) {
 		$scope.bill = bill;
+		// used to set vendor on edit form
+		$scope.bill.vendor_id = $scope.bill.owner.id;
 	});
 
 	$scope.entry = {};

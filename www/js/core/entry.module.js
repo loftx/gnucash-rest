@@ -91,7 +91,7 @@ angular.module('core.entry').
       },
 
       // from invoices module (is there a seperate one for bills?)
-      format: function(entry) { console.log(entry);
+      format: function(entry) {
         entry.formatted_date = Dates.dateFormat(entry.date);
 
         if (entry.inv_account.hasOwnProperty('guid')) {

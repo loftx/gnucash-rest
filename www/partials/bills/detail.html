@@ -47,60 +47,6 @@
   <a role="button" class="btn" ng-click="emptyPostBill(bill.id)" ng-show="!bill.posted">Post bill</a>
   <a role="button" class="btn" ng-click="emptyPayBill(bill.id)" ng-show="bill.posted && !bill.paid">Pay bill</a>
 
-  <div id="billForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h3 id="myModalLabel">{{billTitle}}</h3>
-    </div>
-    <div class="modal-body">
-
-    <div id="billAlert" class="alert  alert-error" style="display: none;">
-      <button type="button" class="close" data-dismiss="alert">&times;</button>
-      <strong>Error</strong> {{billError}}
-    </div>
-
-      <form class="form-horizontal" style="margin: 0px;">
-          <fieldset>
-
-            <!-- Text input-->
-            <div class="control-group">
-              <label class="control-label" for="billId">Bill ID</label>
-              <div class="controls">
-                <input id="billId" ng-model="bill.id" name="billId" class="input-xlarge" type="text" disabled="disabled">
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label" for="billDateOpened">Date opened</label>
-              <div class="controls">
-                <input id="billDateOpened" ng-model="bill.date_opened" name="billDateOpened" class="input-xlarge" type="text">
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label" for="billCompany">Company</label>
-              <div class="controls">
-                <select data-ng-model="bill.owner.id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="input-xlarge"></select>
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label" for="billNotes">Notes</label>
-              <div class="controls">
-                <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="input-xlarge"></textarea>
-              </div>
-            </div>
-
-          </fieldset>
-        </form>
-      
-    </div>
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-      <button class="btn btn-primary" ng-click="saveBill()">Save changes</button>
-    </div>
-  </div>
-
   <h2>Bill entries</h2>
 
   <table class="table">
@@ -146,4 +92,5 @@
 
 </div>
 
+<div ng-include src="'partials/bills/fragments/form.html'"></div>
 <div ng-include src="'partials/bills/fragments/entryform.html'"></div>
