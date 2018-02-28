@@ -1,3 +1,21 @@
+var ACCT_TYPE_INVALID = -1; 
+var ACCT_TYPE_NONE = -1;
+var ACCT_TYPE_BANK = 0;	
+var ACCT_TYPE_CASH = 1;	
+var ACCT_TYPE_CREDIT = 3;	
+var ACCT_TYPE_ASSET = 2;	
+var ACCT_TYPE_LIABILITY = 4;	
+var ACCT_TYPE_STOCK = 5;	
+var ACCT_TYPE_MUTUAL = 6;	
+var ACCT_TYPE_CURRENCY = 7;
+var ACCT_TYPE_INCOME = 8;	
+var ACCT_TYPE_EXPENSE = 9;
+var ACCT_TYPE_EQUITY = 10;
+var ACCT_TYPE_RECEIVABLE = 11;
+var ACCT_TYPE_PAYABLE = 12;  
+var ACCT_TYPE_ROOT = 13; 
+var ACCT_TYPE_TRADING = 14; 
+
 function AccountListCtrl($scope, Account) {
 	// could also handle some errors here?
 	Account.query().then(function(accounts) {

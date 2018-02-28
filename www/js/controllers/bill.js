@@ -459,6 +459,10 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 // this is bad due to the case...
 app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Account', 'Bill', 'Dates', function(bill, $scope, $uibModalInstance, Account, Bill, Dates) {
 
+	$scope.bill = {}
+	$scope.bill.date_posted = Dates.todays_date();
+	$scope.bill.date_due = Dates.todays_date();
+
 	$scope.picker = {
 		billDatePosted: { opened: false },
 		billDateDue: { opened: false },
