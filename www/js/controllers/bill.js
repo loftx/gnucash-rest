@@ -462,6 +462,7 @@ app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acc
 	$scope.bill = {}
 	$scope.bill.date_posted = Dates.todays_date();
 	$scope.bill.date_due = Dates.todays_date();
+	$scope.bill.posted_accumulatesplits = true;
 
 	$scope.picker = {
 		billDatePosted: { opened: false },
@@ -470,8 +471,10 @@ app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acc
 		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
 
-	Account.getBillAccountsForDropdown().then(function(accounts) {
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_PAYABLE]).then(function(accounts) {
 		$scope.accounts = accounts;
+		// fill in default posting account
+		$scope.bill.posted_account = accounts[0].guid;
 	});
 
 	$scope.close = function () {
@@ -529,11 +532,15 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
 	
-	Account.getAccountsForDropdown([11]).then(function(accounts) {
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_PAYABLE]).then(function(accounts) {
 		$scope.accounts = accounts;
+		// fill in default posting account
+		$scope.bill.post_account = accounts[0].guid;
 	});
 
-	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
+	// needs placeholders
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_BANK, ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
+
 		$scope.transferAccounts = transferAccounts;
 	}); 
 

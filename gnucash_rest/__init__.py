@@ -1496,31 +1496,63 @@ def pay_invoice(book, id, posted_account_guid, transfer_account_guid,
     payment_date, memo, num, auto_pay):
 
     invoice = get_gnucash_invoice(book, id)
+
+    if invoice is None:
+        raise Error('NoBill', 'An invoice with this ID does not exist',
+            {'field': 'id'})
+
+    try:
+        payment_date = datetime.datetime.strptime(payment_date, "%Y-%m-%d")
+    except ValueError:
+        raise Error('InvalidPaymentDate',
+            'The payment date must be provided in the form YYYY-MM-DD',
+            {'field': 'payment_date'})
     
-    account_guid2 = gnucash.gnucash_core.GUID() 
-    gnucash.gnucash_core.GUIDString(transfer_account_guid, account_guid2)
+    account_guid = gnucash.gnucash_core.GUID() 
+    gnucash.gnucash_core.GUIDString(transfer_account_guid, account_guid)
 
-    xfer_acc = account_guid2.AccountLookup(book)
+    transfer_account = account_guid.AccountLookup(book)
 
-    invoice.ApplyPayment(None, xfer_acc, invoice.GetTotal(), GncNumeric(0),
-        datetime.datetime.strptime(payment_date, '%Y-%m-%d'), memo, num)
+    if transfer_account is None:
+        raise Error('NoTransferAccount', 'No account exists with this GUID',
+            {'field': 'transfer_account_guid'})
+
+    invoice.ApplyPayment(None, transfer_account, invoice.GetTotal(), GncNumeric(0),
+        payment_date, memo, num)
 
     return gnucash_simple.invoiceToDict(invoice)    
 
 def pay_bill(book, id, posted_account_guid, transfer_account_guid, payment_date,
     memo, num, auto_pay):
 
+    # The posted_account_guid is not actually used in bill.ApplyPayment - why is it on the payment screen?
+
     bill = get_gnucash_bill(book, id)
+
+    if bill is None:
+        raise Error('NoBill', 'A bill with this ID does not exist',
+            {'field': 'id'})
+
+    try:
+        payment_date = datetime.datetime.strptime(payment_date, "%Y-%m-%d")
+    except ValueError:
+        raise Error('InvalidPaymentDate',
+            'The payment date must be provided in the form YYYY-MM-DD',
+            {'field': 'payment_date'})
 
     account_guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(transfer_account_guid, account_guid)
 
-    xfer_acc = account_guid.AccountLookup(book)
+    transfer_account = account_guid.AccountLookup(book)
+
+    if transfer_account is None:
+        raise Error('NoTransferAccount', 'No account exists with this GUID',
+            {'field': 'transfer_account_guid'})
 
     # We pay the negitive total as the bill as this seemed to cause issues
     # with the split not being set correctly and not being marked as paid
-    bill.ApplyPayment(None, xfer_acc, bill.GetTotal().neg(), GncNumeric(0),
-        datetime.datetime.strptime(payment_date, '%Y-%m-%d'), memo, num)
+    bill.ApplyPayment(None, transfer_account, bill.GetTotal().neg(), GncNumeric(0),
+        payment_date, memo, num)
 
     return gnucash_simple.billToDict(bill)
 
