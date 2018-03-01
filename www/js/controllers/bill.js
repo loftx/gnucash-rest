@@ -539,7 +539,7 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 	});
 
 	// needs placeholders
-	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_BANK, ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
+	Account.getAccountsOfTypesAndPlaceholdersForDropdown([ACCT_TYPE_BANK, ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
 
 		$scope.transferAccounts = transferAccounts;
 	}); 

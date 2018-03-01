@@ -189,6 +189,34 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
         return deferred.promise;
       },
 
+      // this is very similar to getAccountsForDropdown
+      getAccountsOfTypesAndPlaceholdersForDropdown: function(type_ids) {
+        var deferred = $q.defer();
+
+        $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
+          .success(function(data) {
+
+
+            var accounts = obj.getSubAccounts(data, 0);
+            var returnAccounts = [];
+
+            // limit accounts to income accounts and remove placeholder accounts 
+            for (var i in accounts) {
+              if (type_ids.indexOf(accounts[i].type_id) != -1) {
+                returnAccounts.push(accounts[i]);
+              }
+            }
+
+            deferred.resolve(returnAccounts);
+          })
+          .error(function(data, status) {
+            Api.handleErrors(data, status, 'accounts');
+          })
+        ;
+
+        return deferred.promise;
+      },
+
       // TODO: Sperate this out into Api
       generateQueryString: function(params) {
 
