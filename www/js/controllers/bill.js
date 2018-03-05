@@ -203,8 +203,6 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 	$scope.entry.bill_account.guid = '';
 	$scope.entry.quantity = '';
 	$scope.entry.bill_price = '';
-	$scope.entry.discount_type = '';
-	$scope.entry.discount = '';
 
 	$scope.$on('$viewContentLoaded', function() {
 		$('#entryDate').datepicker({
@@ -313,9 +311,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 			description: $scope.entry.description,
 			account_guid: $scope.entry.bill_account.guid,
 			quantity: $scope.entry.quantity,
-			price: $scope.entry.bill_price,
-			discount_type: $scope.entry.discount_type,
-			discount: (($scope.entry.discount == '') ? 0 : $scope.entry.discount) // allow discount to be left blank for easy entry
+			price: $scope.entry.bill_price
 		};
 
 		Entry.add('bill', $scope.bill.id, params).then(function(entry) {
@@ -333,8 +329,6 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 			$scope.entry.bill_account.guid = '';
 			$scope.entry.quantity = '';
 			$scope.entry.bill_price = '';
-			$scope.entry.discount_type = '';
-			$scope.entry.discount = '';
 
 		}, function(data) {
 			if(typeof data.errors != 'undefined') {
@@ -363,18 +357,12 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 		$scope.entryNew = 1;
 
-		$scope.discount_types = [{
-			key: 1, value: '£'
-		}];
-
 		$scope.entry.guid = '';
 		$scope.entry.date = Dates.format_todays_date(); // this should probably default to the bill date - not today's
 		$scope.entry.description = '';
 		$scope.entry.bill_account.guid = '';
 		$scope.entry.quantity = '';
 		$scope.entry.bill_price = '';
-		$scope.entry.discount_type = 1;
-		$scope.entry.discount = '';	
 
 		$('#entryForm').modal('show');
 
@@ -416,8 +404,6 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 			account_guid: $scope.entry.bill_account.guid,
 			quantity: $scope.entry.quantity,
 			price: $scope.entry.bill_price,
-			discount_type: $scope.entry.discount_type,
-			discount: $scope.entry.discount
 		};
 
 		Entry.update(guid, params).then(function(entry) {
@@ -439,8 +425,6 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 			$scope.entry.inv_account.guid = '';
 			$scope.entry.quantity = '';
 			$scope.entry.inv_price = '';
-			$scope.entry.discount_type = 1;
-			$scope.entry.discount = '';
 
 		}, function(data) {
 			if(typeof data.errors != 'undefined') {

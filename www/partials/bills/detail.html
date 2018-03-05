@@ -56,8 +56,6 @@
       <th>Income account</th>
       <th>Quantity</th>
       <th>Unit price</th>
-      <th>Discount type</th>
-      <th>Discount</th>
       <th>Subtotal</th>
       <th></th>
       <th></th>
@@ -68,15 +66,11 @@
       <td>{{entry.bill_account.name}}</td>
       <td>{{entry.quantity}}</td>
       <td>{{entry.formatted_bill_price}}</td>
-      <td>{{entry.formatted_discount_type}}</td>
-      <td>{{entry.formatted_discount}}</td>
       <td>{{entry.formatted_total_inc_discount}}</td>
       <td><a ng-click="populateEntry(entry.guid)" ng-show="!bill.posted">edit</a></td>
       <td><a ng-click="deleteEntry(entry.guid)" ng-show="!bill.posted">delete</a></td>
     </tr>
     <tr>
-      <td></td>
-      <td></td>
       <td></td>
       <td></td>
       <td></td>

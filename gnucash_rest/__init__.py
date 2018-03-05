@@ -410,7 +410,7 @@ def api_bills():
 
         if id == '':
             id = None
-        elif id != None:
+        elif id is not None:
             id = str(id)
 
         vendor_id = str(request.form.get('vendor_id', ''))
@@ -549,12 +549,10 @@ def api_bill_entries(id):
             account_guid = str(request.form.get('account_guid', ''))
             quantity = str(request.form.get('quantity', ''))
             price = str(request.form.get('price', ''))
-            discount_type = int(request.form.get('discount_type', ''))
-            discount = str(request.form.get('discount', ''))
 
             try:
                 entry = add_bill_entry(session.book, id, date, description,
-                    account_guid, quantity, price, discount_type, discount)
+                    account_guid, quantity, price)
             except Error as error:
                 return Response(json.dumps({'errors': [{'type' : error.type,
                     'message': error.message, 'data': error.data}]}),
@@ -620,7 +618,7 @@ def api_invoices():
 
         if id == '':
             id = None
-        elif id != None:
+        elif id is not None:
             id = str(id)
 
         customer_id = str(request.form.get('customer_id', ''))
@@ -804,8 +802,17 @@ def api_entry(guid):
             account_guid = str(request.form.get('account_guid', ''))
             quantity = str(request.form.get('quantity', ''))
             price = str(request.form.get('price', ''))
-            discount_type = int(request.form.get('discount_type', ''))
-            discount = str(request.form.get('discount', ''))
+
+            # Bills won't provide a discount_type or discount field
+            if 'discount_type' in request.form:
+                discount_type = int(request.form.get('discount_type', ''))
+            else:
+                discount_type = None
+
+            if 'discount' in request.form:    
+                discount = str(request.form.get('discount', ''))
+            else:
+                discount = None
 
             try:
                 entry = update_entry(session.book, guid, date, description,
@@ -846,7 +853,7 @@ def api_customers():
 
         if id == '':
             id = None
-        elif id != None:
+        elif id is not None:
             id = str(id)
 
         currency = str(request.form.get('currency', ''))
@@ -979,7 +986,7 @@ def api_vendors():
 
         if id == '':
             id = None
-        elif id != None:
+        elif id is not None:
             id = str(id)
 
         currency = str(request.form.get('currency', ''))
@@ -1211,14 +1218,14 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
 
     TRANS_DATE_POSTED = 'date-posted'
 
-    if date_posted_from != None:
+    if date_posted_from is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, QOF_DATE_MATCH_NORMAL, datetime.datetime.strptime(
                 date_posted_from, "%Y-%m-%d").date())
         param_list = [SPLIT_TRANS, TRANS_DATE_POSTED]
         query.add_term(param_list, pred_data, QOF_QUERY_AND)
 
-    if date_posted_to != None:
+    if date_posted_to is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, QOF_DATE_MATCH_NORMAL, datetime.datetime.strptime(
                 date_posted_to, "%Y-%m-%d").date())
@@ -1228,7 +1235,7 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
     SPLIT_ACCOUNT = 'account'
     QOF_PARAM_GUID = 'guid'
 
-    if guid != None:
+    if guid is not None:
         gnucash.gnucash_core.GUIDString(guid, account_guid)
         query.add_guid_match(
             [SPLIT_ACCOUNT, QOF_PARAM_GUID], account_guid, QOF_QUERY_AND)
@@ -1281,43 +1288,43 @@ def get_invoices(book, properties):
     QOF_PARAM_GUID = 'guid'
     INVOICE_OWNER = 'owner'
 
-    if properties['customer'] != None:
+    if properties['customer'] is not None:
         customer_guid = gnucash.gnucash_core.GUID() 
         gnucash.gnucash_core.GUIDString(properties['customer'], customer_guid)
         query.add_guid_match(
             [INVOICE_OWNER, QOF_PARAM_GUID], customer_guid, QOF_QUERY_AND)
 
-    if properties['date_due_from'] != None:
+    if properties['date_due_from'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
                 properties['date_due_from'], "%Y-%m-%d").date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_due_to'] != None:
+    if properties['date_due_to'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
                 properties['date_due_to'], "%Y-%m-%d").date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_opened_from'] != None:
+    if properties['date_opened_from'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
                 properties['date_opened_from'], "%Y-%m-%d").date())
         query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_opened_to'] != None:
+    if properties['date_opened_to'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
                 properties['date_opened_to'], "%Y-%m-%d").date())
         query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_posted_from'] != None:
+    if properties['date_posted_from'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
                 properties['date_posted_from'], "%Y-%m-%d").date())
         query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_posted_to'] != None:
+    if properties['date_posted_to'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
                 properties['date_posted_to'], "%Y-%m-%d").date())
@@ -1375,43 +1382,43 @@ def get_bills(book, properties):
     QOF_PARAM_GUID = 'guid'
     INVOICE_OWNER = 'owner'
 
-    if properties['customer'] != None:
+    if properties['customer'] is not None:
         customer_guid = gnucash.gnucash_core.GUID() 
         gnucash.gnucash_core.GUIDString(properties['customer'], customer_guid)
         query.add_guid_match(
             [INVOICE_OWNER, QOF_PARAM_GUID], customer_guid, QOF_QUERY_AND)
 
-    if properties['date_opened_from'] != None:
+    if properties['date_opened_from'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
                 properties['date_opened_from'], "%Y-%m-%d").date())
         query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_opened_to'] != None:
+    if properties['date_opened_to'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
                 properties['date_opened_to'], "%Y-%m-%d").date())
         query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_due_from'] != None:
+    if properties['date_due_from'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
                 properties['date_due_from'], "%Y-%m-%d").date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_due_to'] != None:
+    if properties['date_due_to'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
                 properties['date_due_to'], "%Y-%m-%d").date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_posted_from'] != None:
+    if properties['date_posted_from'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
                 properties['date_posted_from'], "%Y-%m-%d").date())
         query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_posted_to'] != None:
+    if properties['date_posted_to'] is not None:
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
                 properties['date_posted_to'], "%Y-%m-%d").date())
@@ -1934,7 +1941,7 @@ def add_entry(book, invoice_id, date, description, account_guid, quantity,
     return gnucash_simple.entryToDict(entry)
 
 def add_bill_entry(book, bill_id, date, description, account_guid, quantity, 
-    price, discount_type, discount):
+    price):
 
     bill = get_gnucash_bill(book,bill_id)
 
@@ -1948,11 +1955,6 @@ def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
         raise Error('InvalidDateOpened',
             'The date opened must be provided in the form YYYY-MM-DD',
             {'field': 'date'})
-
-    # Only value based discounts are supported
-    if discount_type != GNC_AMT_TYPE_VALUE:
-        raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
-            {'field': 'discount_type'})
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(account_guid, guid)
@@ -1974,13 +1976,6 @@ def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
     except ArithmeticError:
         raise Error('InvalidPrice', 'This price is not valid',
             {'field': 'price'})
-
-    # Currently only value based discounts are supported
-    try:
-        discount = Decimal(discount).quantize(Decimal('.01'))
-    except ArithmeticError:
-        raise Error('InvalidDiscount', 'This discount is not valid',
-            {'field': 'discount'})
     
     entry = Entry(book, bill, date.date())
     entry.SetDateEntered(datetime.datetime.now())
@@ -1988,12 +1983,7 @@ def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
     entry.SetBillAccount(account)
     entry.SetQuantity(gnc_numeric_from_decimal(quantity))
     entry.SetBillPrice(gnc_numeric_from_decimal(price))
-    # Do we need to set this?
-    # entry.SetInvDiscountHow()
-    entry.SetInvDiscountType(discount_type)
-    # Currently only value based discounts are supported
-    entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
-
+    
     return gnucash_simple.entryToDict(entry)
 
 def get_entry(book, entry_guid):
@@ -2027,10 +2017,12 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
             'The date opened must be provided in the form YYYY-MM-DD',
             {'field': 'date'})
 
-    # Only value based discounts are supported
-    if discount_type != GNC_AMT_TYPE_VALUE:
-        raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
-            {'field': 'discount_type'})
+    # Only check discount type for invoices
+    if entry.GetInvAccount() is not None:
+        # Only value based discounts are supported
+        if discount_type != GNC_AMT_TYPE_VALUE:
+            raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
+                {'field': 'discount_type'})
  
     gnucash.gnucash_core.GUIDString(account_guid, guid)
 
@@ -2052,26 +2044,36 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
         raise Error('InvalidPrice', 'This price is not valid',
             {'field': 'price'})
 
-    # Currently only value based discounts are supported
-    try:
-        discount = Decimal(discount).quantize(Decimal('.01'))
-    except ArithmeticError:
-        raise Error('InvalidDiscounr', 'This discount is not valid',
-            {'field': 'discount'})
+    # Only discount for invoices
+    if entry.GetInvAccount() is not None:
+        # Currently only value based discounts are supported
+        try:
+            discount = Decimal(discount).quantize(Decimal('.01'))
+        except ArithmeticError:
+            raise Error('InvalidDiscount', 'This discount is not valid',
+                {'field': 'discount'})
 
     entry.SetDate(date.date())
 
     entry.SetDateEntered(datetime.datetime.now())
     entry.SetDescription(description)
-    entry.SetInvAccount(account)
     entry.SetQuantity(gnc_numeric_from_decimal(quantity))
-    entry.SetInvPrice(gnc_numeric_from_decimal(price))
-    # Do we need to set this?
-    # entry.SetInvDiscountHow()
 
-    entry.SetInvDiscountType(discount_type)
-    # Currently only value based discounts are supported
-    entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
+    if entry.GetInvAccount() is not None:
+        entry.SetInvAccount(account)
+        entry.SetInvPrice(gnc_numeric_from_decimal(price))
+    else:
+        entry.SetBillAccount(account)
+        entry.SetBillPrice(gnc_numeric_from_decimal(price))
+
+    # Only set discount for invoices
+    if entry.GetInvAccount() is not None:
+        # Do we need to set this?
+        # entry.SetInvDiscountHow()
+
+        entry.SetInvDiscountType(discount_type)
+        # Currently only value based discounts are supported
+        entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
 
     entry.CommitEdit()
 
@@ -2087,12 +2089,12 @@ def delete_entry(book, entry_guid):
     invoice = entry.GetInvoice()
     bill = entry.GetBill()
 
-    if invoice != None and entry != None:
+    if invoice is not None and entry is not None:
         invoice.RemoveEntry(entry)
-    elif bill != None and entry != None:
+    elif bill is not None and entry is not None:
         bill.RemoveEntry(entry)
 
-    if entry != None:
+    if entry is not None:
         entry.Destroy()
 
 def delete_transaction(book, transaction_guid):
@@ -2102,7 +2104,7 @@ def delete_transaction(book, transaction_guid):
 
     transaction = guid.TransLookup(book)
 
-    if transaction != None :
+    if transaction is not None :
         transaction.Destroy()
 
 def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
@@ -2312,7 +2314,7 @@ def start_session(connection_string, is_new, ignore_lock):
         raise Error('InvalidIgnoreLock', 'ignore_lock must be true or false',
             {'field': 'ignore_lock'})
 
-    if session != None:
+    if session is not None:
         raise Error('SessionExists',
             'The session alredy exists',
             {})
