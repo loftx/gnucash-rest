@@ -193,15 +193,15 @@ def api_accounts():
 
         return Response(json.dumps(accounts), mimetype='application/json')
 
-        # return Response(json.dumps(accounts), mimetype='application/json',
-        #     headers={
-        #         'Access-Control-Allow-Origin': '*'
-        # })
-
     elif request.method == 'POST':
 
+        name = str(request.form.get('name', ''))
+        currency = str(request.form.get('currency', ''))
+        account_type_id = int(request.form.get('account_type_id', 0))
+        parent_account_guid = str(request.form.get('parent_account_guid', ''))
+
         try:
-            account = add_account(session.books)
+            account = add_account(session.book, name, currency, account_type_id, parent_account_guid)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
                 'message': error.message, 'data': error.data}]}), status=400,
@@ -272,9 +272,9 @@ def api_transactions():
         num = str(request.form.get('num', ''))
         date_posted = str(request.form.get('date_posted', ''))
 
-        splitvalue1 = int(request.form.get('splitvalue1', ''))
+        splitvalue1 = int(request.form.get('splitvalue1', 0))
         splitaccount1 = str(request.form.get('splitaccount1', ''))
-        splitvalue2 = int(request.form.get('splitvalue2', ''))
+        splitvalue2 = int(request.form.get('splitvalue2', 0))
         splitaccount2 = str(request.form.get('splitaccount2', ''))
 
         splits = [
@@ -322,10 +322,10 @@ def api_transaction(guid):
         date_posted = str(request.form.get('date_posted', ''))
 
         splitguid1 = str(request.form.get('splitguid1', ''))
-        splitvalue1 = int(request.form.get('splitvalue1', ''))
+        splitvalue1 = int(request.form.get('splitvalue1', 0))
         splitaccount1 = str(request.form.get('splitaccount1', ''))
         splitguid2 = str(request.form.get('splitguid2', ''))
-        splitvalue2 = int(request.form.get('splitvalue2', ''))
+        splitvalue2 = int(request.form.get('splitvalue2', 0))
         splitaccount2 = str(request.form.get('splitaccount2', ''))
 
         splits = [
@@ -759,7 +759,7 @@ def api_invoice_entries(id):
             account_guid = str(request.form.get('account_guid', ''))
             quantity = str(request.form.get('quantity', ''))
             price = str(request.form.get('price', ''))
-            discount_type = int(request.form.get('discount_type', ''))
+            discount_type = int(request.form.get('discount_type', 0))
             discount = str(request.form.get('discount', ''))
 
             try:
@@ -805,7 +805,7 @@ def api_entry(guid):
 
             # Bills won't provide a discount_type or discount field
             if 'discount_type' in request.form:
-                discount_type = int(request.form.get('discount_type', ''))
+                discount_type = int(request.form.get('discount_type', 0))
             else:
                 discount_type = None
 
@@ -2142,26 +2142,51 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 
     return gnucash_simple.billToDict(bill)
 
-def add_account(book, name, currency_mnumonic, account_guid):
+def add_account(book, name, currency_mnumonic, account_type_id, parent_account_guid):
 
     from gnucash.gnucash_core_c import \
-    ACCT_TYPE_ASSET, ACCT_TYPE_RECEIVABLE, ACCT_TYPE_INCOME, \
-    GNC_OWNER_CUSTOMER, ACCT_TYPE_LIABILITY
+    ACCT_TYPE_BANK, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT, ACCT_TYPE_ASSET, \
+    ACCT_TYPE_LIABILITY , ACCT_TYPE_STOCK , ACCT_TYPE_MUTUAL, \
+    ACCT_TYPE_INCOME, ACCT_TYPE_EXPENSE, ACCT_TYPE_EQUITY, \
+    ACCT_TYPE_RECEIVABLE, ACCT_TYPE_PAYABLE, ACCT_TYPE_TRADING 
 
-    root_account = book.get_root_account()
+    if name == '':
+        raise Error('NoAccountName', 'A name must be entered for this account',
+            {'field': 'name'})
 
     commod_table = book.get_table()
     currency = commod_table.lookup('CURRENCY', currency_mnumonic)
 
     if currency is None:
-        raise Error('InvalidCustomerCurrency',
-            'A valid currency must be supplied for this customer',
+        raise Error('InvalidAccountCurrency',
+            'A valid currency must be supplied for this account',
             {'field': 'currency'})
 
+    if account_type_id not in [ACCT_TYPE_BANK, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT, \
+    ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY , ACCT_TYPE_STOCK , ACCT_TYPE_MUTUAL, \
+    ACCT_TYPE_INCOME, ACCT_TYPE_EXPENSE, ACCT_TYPE_EQUITY, ACCT_TYPE_RECEIVABLE, \
+    ACCT_TYPE_PAYABLE, ACCT_TYPE_TRADING]:
+        raise Error('InvalidAccountTypeID',
+            'A valid account type ID must be supplied for this account',
+            {'field': 'account_type_id'})
+
+    if parent_account_guid == '':
+        parent_account = book.get_root_account()
+    else:
+        account_guid = gnucash.gnucash_core.GUID() 
+        gnucash.gnucash_core.GUIDString(split_values['account_guid'], parent_account_guid)
+
+        parent_account = account_guid.AccountLookup(book)
+
+    if parent_account is None:
+        raise Error('InvalidParentAccount',
+            'A valid account parent account must be supplied for this account',
+            {'field': 'parent_account_guid'})
+
     account = Account(book)
-    root_account.append_child(root_account)
+    parent_account.append_child(account)
     account.SetName(name)
-    account.SetType(ACCT_TYPE_ASSET)
+    account.SetType(account_type_id)
     account.SetCommodity(currency)
 
 def add_transaction(book, num, description, date_posted, currency_mnumonic, splits):
