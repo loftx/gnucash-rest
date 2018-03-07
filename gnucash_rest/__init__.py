@@ -114,7 +114,7 @@ def requires_auth(f):
 @app.before_first_request
 def _run_on_start():    
 
-    if app.connection_string != '':
+    if hasattr(app, 'connection_string') and app.connection_string != '':
         is_new = False
         ignore_lock = False
 
@@ -129,7 +129,7 @@ def _run_on_start():
 
 @app.after_request
 def after_request(response):
-    if app.cors_origin != '':
+    if hasattr(app, 'cors_origin') and app.cors_origin != '':
         header = response.headers
         header['Access-Control-Allow-Methods'] = 'GET,OPTIONS,POST,DELETE,PAY'
         header['Access-Control-Allow-Origin'] = app.cors_origin
@@ -138,7 +138,7 @@ def after_request(response):
     return response
 
 @app.route('/', methods=['GET'])
-@requires_auth
+#@requires_auth
 def api_root():
     return Response(json.dumps('Gnucash REST API'), status=201,
         mimetype='application/json')
@@ -2322,7 +2322,7 @@ def start_session(connection_string, is_new, ignore_lock):
     global session
 
     # If no parameters are supplied attempt to use the app.connection_string if one exists
-    if connection_string == '' and is_new == '' and  ignore_lock == '' and app.connection_string != '':
+    if connection_string == '' and is_new == '' and  ignore_lock == '' and hasattr(app, 'connection_string') and app.connection_string != '':
         is_new = False
         ignore_lock = False
         connection_string = app.connection_string
@@ -2331,11 +2331,19 @@ def start_session(connection_string, is_new, ignore_lock):
         raise Error('InvalidConnectionString', 'A connection string must be supplied',
             {'field': 'connection_string'})
 
-    if str(is_new).lower() not in ['true', '1', 't', 'y', 'yes'] and str(is_new).lower() not in ['false', '0', 'f', 'n', 'no']:
+    if str(is_new).lower() in ['true', '1', 't', 'y', 'yes']:
+        is_new = True
+    elif str(is_new).lower() in ['false', '0', 'f', 'n', 'no']:
+        is_new = False
+    else:
         raise Error('InvalidIsNew', 'is_new must be true or false',
             {'field': 'is_new'})
 
-    if str(ignore_lock).lower() not in ['true', '1', 't', 'y', 'yes'] and str(ignore_lock).lower() not in ['false', '0', 'f', 'n', 'no']:
+    if str(ignore_lock).lower() in ['true', '1', 't', 'y', 'yes']:
+        ignore_lock = True
+    elif str(ignore_lock).lower() in ['false', '0', 'f', 'n', 'no']:
+        ignore_lock = False
+    else:
         raise Error('InvalidIgnoreLock', 'ignore_lock must be true or false',
             {'field': 'ignore_lock'})
 
