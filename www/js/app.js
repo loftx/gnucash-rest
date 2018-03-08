@@ -3,6 +3,7 @@ var app = angular.module('gnucash', [
 	'ngAnimate',
 	'ui.bootstrap',
 	'core',
+	'core.session',
 	'core.account', // this could be more modular https://docs.angularjs.org/tutorial/step_13 e.g. app/phone-detail/phone-detail.module.js / app/phone-detail/phone-detail.component.js:
 	'core.invoice',
 	'core.bill',

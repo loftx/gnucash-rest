@@ -1,6 +1,6 @@
 angular.module('core', ['core.account']);
 
-angular.module('core').factory('Api', function($timeout, $location) {
+angular.module('core').factory('Api', function($timeout, $location, $uibModal) {
 	var obj = {
 
 		getUrl: function () {
@@ -26,11 +26,24 @@ angular.module('core').factory('Api', function($timeout, $location) {
 				});
 			} else if (status == 400 && typeof data != 'undefined') {
 				if (data.errors[0] != 'undefined') {
-					// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
-					// need to define timeout
-					$timeout(function(){
-						alert(data.errors[0].message);
-					});
+					if (data.errors[0].type == 'SessionDoesNotExist') {
+						var popup = $uibModal.open({
+							templateUrl: 'partials/session/fragments/form.html',
+							controller: 'modalStartSessionCtrl',
+							size: 'sm',
+							resolve: {
+								error: function () {
+								  return data.errors[0].message;
+								}
+							}
+						});
+					} else {
+						// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
+						// need to define timeout
+						$timeout(function(){
+							alert(data.errors[0].message);
+						});
+					}
 				} else {
 					console.log('status: ' + status);
 					console.log('data: ' + data);
