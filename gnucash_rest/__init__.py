@@ -90,40 +90,9 @@ session = None
 # start application
 app = Flask(__name__)
 
-def check_auth(username, password):
-    app.logger.error(username)
-    app.logger.error(password)
-    return username == 'admin' and password == 'secret'
-
-def authenticate():
-    """Sends a 401 response that enables basic auth"""
-    return Response(
-    'Could not verify your access level for that URL.\n'
-    'You have to login with proper credentials', 401,
-    {'WWW-Authenticate': 'Basic realm="Login Required"'})
-
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return authenticate()
-        return f(*args, **kwargs)
-    return decorated
-
 @app.before_first_request
-def _run_on_start():    
-
-    if hasattr(app, 'connection_string') and app.connection_string != '':
-        is_new = False
-        ignore_lock = False
-
-        try:
-            start_session(app.connection_string, is_new, ignore_lock);
-        except Error as error:
-            # We can't return a response here as this is run before the first request so no way to alert user to the error?
-            return
-
+def _run_on_start():
+    startup()
     # register method to close gnucash connection gracefully
     atexit.register(shutdown)
 
@@ -2412,6 +2381,18 @@ def get_session():
             {})
 
     return session
+
+def startup():
+
+    if hasattr(app, 'connection_string') and app.connection_string != '': 
+        is_new = False
+        ignore_lock = False
+
+        try:
+            return start_session(app.connection_string, is_new, ignore_lock)
+        except Error as error:
+            # We can't return a response here as this is run before the first request so no way to alert user to the error?
+            return error
 
 def shutdown():
     try:

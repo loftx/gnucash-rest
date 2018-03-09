@@ -1,5 +1,6 @@
 import unittest
 import json
+import gnucash
 import gnucash_rest
 import MySQLdb
 import warnings
@@ -28,6 +29,8 @@ class ApiTestCase(unittest.TestCase):
             response = self.app.get(url)
         elif method is 'post':
             response = self.app.post(url, data=data)
+        elif method is 'delete':
+            response = self.app.delete(url, data=data)
         else:
             raise ValueError('unknown method in assert_error_type')
 
@@ -42,6 +45,14 @@ class RootTestCase(ApiTestCase):
     def test_root(self):
         response = self.app.get('/')
         assert response.data == '"Gnucash REST API"'
+
+    def test_root_cors(self):
+        gnucash_rest.app.cors_origin = '*'
+
+        response = self.app.get('/')
+        assert response.headers['Access-Control-Allow-Origin'] == '*'
+
+        del gnucash_rest.app.cors_origin
 
 class SessionTestCase(ApiTestCase):
 
@@ -66,6 +77,42 @@ class SessionTestCase(ApiTestCase):
         )
         assert self.get_error_type('post', '/session', data) == 'InvalidIgnoreLock'
 
+    def test_session_auto_error(self):
+        gnucash_rest.app.connection_string = 'mysql://root:oxford@localhost/none'
+
+        # remove the database in case tests failed previously
+        self.teardown_database()
+
+        self.setup_database()
+
+        error = gnucash_rest.startup()
+        assert error.data['code'] == 'ERR_BACKEND_NO_SUCH_DB'
+
+        self.teardown_database()
+
+        del gnucash_rest.app.connection_string
+
+    def test_session_auto(self):
+        gnucash_rest.app.connection_string = 'mysql://root:oxford@localhost/test'
+
+        # remove the database in case tests failed previously
+        self.teardown_database()
+
+        self.setup_database()
+
+        database = gnucash_rest.startup()
+        assert isinstance(database, gnucash.gnucash_core.Session)
+
+        # Logs
+        # CRIT <gnc.backend.dbi> gnc_dbi_unlock: assertion 'dbi_conn_error( dcon, NULL ) == 0' failed
+
+        response = self.app.delete('/session')
+        assert response.data == '"Session ended"'
+
+        self.teardown_database()
+
+        del gnucash_rest.app.connection_string
+
     def test_session(self):
         data = dict(
             connection_string = 'mysql://root:oxford@localhost/test',
@@ -74,7 +121,7 @@ class SessionTestCase(ApiTestCase):
         )
 
         # Logs
-        # * 11:18:00  WARN <gnc.backend.dbi> [gnc_dbi_unlock()] No lock table in database, so not unlocking it.
+        # WARN <gnc.backend.dbi> [gnc_dbi_unlock()] No lock table in database, so not unlocking it.
 
         # remove the database in case tests failed previously
         self.teardown_database()
@@ -89,12 +136,21 @@ class SessionTestCase(ApiTestCase):
         assert response.data == '"Session ended"'
 
         self.teardown_database()
+
+    def test_session_end_error(self):
+        assert self.get_error_type('delete', '/session', dict()) == 'SessionDoesNotExist'
+
+    def test_no_method(self):
+        assert self.app.open('/session', method='NONE').status == '405 METHOD NOT ALLOWED'
         
 
 class AccountsTestCase(ApiTestCase):
 
     def test_accounts_no_session(self):
         assert self.get_error_type('get', '/accounts', dict()) == 'SessionDoesNotExist'
+
+    def test_no_method(self):
+        assert self.app.open('/accounts', method='NONE').status == '405 METHOD NOT ALLOWED'
 
 class AccountsSessionTestCase(ApiTestCase):
 
@@ -158,9 +214,6 @@ class AccountsSessionTestCase(ApiTestCase):
             name = 'Test',
             currency  = 'XYZ'
         )
-
-        #response = json.loads(self.app.post('/accounts', data=data).data)
-        #print response
 
         assert self.get_error_type('post', '/accounts', data) == 'InvalidAccountCurrency'
 
