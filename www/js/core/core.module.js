@@ -131,6 +131,10 @@ angular.module('core').factory('Dates', function($timeout, $location) {
 				return date.getFullYear() + '-' + obj.pad(date.getMonth() + 1) + '-' + obj.pad(date.getDate());
 		},
 
+		dateOutput: function(str) {
+			return new Date(str.substring(0,4) + '-' + str.substring(5,7) + '-' + str.substring(8,10));
+		},
+
 		pad: function(number) {
 			if (number<=99) { number = ("00"+number).slice(-2); }
 			return number;

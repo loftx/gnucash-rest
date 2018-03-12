@@ -5,7 +5,7 @@ function AccountListCtrl($scope, Account) {
 	});
 }
 
-function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
+function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, Dates) {
 
 	$scope.picker = {
 		transactionDatePosted: { opened: false },
@@ -25,21 +25,12 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 		$scope.accounts = accounts;
 	});
 
-	$('#transactionDatePosted').datepicker({
-		'dateFormat': 'yy-mm-dd',
-		'onSelect': function(dateText) {
-			if (window.angular && angular.element) {
-				angular.element(this).controller("ngModel").$setViewValue(dateText);
-			}
-		}
-	});
-
 	$scope.addTransaction = function() {
 
 		var params = {
 			currency: 'GBP',
 			num: $scope.transaction.num,
-			date_posted: $scope.transaction.date_posted,
+			date_posted: Dates.dateInput($scope.transaction.date_posted),
 			description: $scope.transaction.description,
 			//splitvalue1: $scope.transaction.splitValue1*100,
 			splitaccount1: $scope.transaction.splitAccount1,
@@ -57,7 +48,6 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 
 		Transaction.add(params).then(function(transaction) {
 			
-			//$scope.invoice.entries.push(data);
 			$('#transactionForm').modal('hide');
 			$('#transactionAlert').hide();
 
@@ -67,6 +57,7 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 			$scope.transaction.splitAccount1 = '';
 			$scope.transaction.splitValue1 = '';
 
+			// this should just add it rather than reload
 			$route.reload();
 
 		}, function(data) {
@@ -108,6 +99,8 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 
 			$scope.transaction = transaction;
 
+			$scope.transaction.date_posted = Dates.dateOutput($scope.transaction.date_posted);
+
 			if ($scope.transaction.splits.length == 2) {
 				if ($scope.transaction.splits[0].account.guid == $routeParams.accountGuid) {
 					$scope.transaction.splitGuid1 = $scope.transaction.splits[1].guid;
@@ -145,7 +138,7 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 		var params = {
 			currency: 'GBP',
 			num: $scope.transaction.num,
-			date_posted: $scope.transaction.date_posted,
+			date_posted: Dates.dateInput($scope.transaction.date_posted),
 			description: $scope.transaction.description,
 			splitguid1: $scope.transaction.splitGuid1,
 			splitvalue1: $scope.transaction.splitValue1*100,
@@ -171,8 +164,6 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 					// add transaction and other split to the split as it doesn't appear
 					for (var j = 0; j < transaction.splits.length; j++) {
 						if ($scope.splits[i].guid != transaction.splits[j].guid) {
-							console.log($scope.splits[i]);
-							console.log(transaction.splits[j]);
 							$scope.splits[i].other_split = transaction.splits[j];
 							
 							$scope.splits[i].transaction = transaction;
@@ -190,6 +181,9 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction) {
 			$scope.transaction.splitGuid2 = '';
 			$scope.transaction.splitValue1 = '';
 			$scope.account.guid = '';
+
+			// this should just update it rather than reload but the above updates don't work very well
+			$route.reload();
 
 
 		}, function(data) {
