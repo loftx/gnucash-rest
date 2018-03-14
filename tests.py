@@ -39,7 +39,7 @@ class ApiTestCase(unittest.TestCase):
             return json_response['errors'][0]['type']
         else:
             raise ValueError('Non 400 error code: ' + response.status)
- 
+
 class RootTestCase(ApiTestCase):
 
     def test_root(self):
@@ -149,6 +149,9 @@ class AccountsTestCase(ApiTestCase):
     def test_accounts_no_session(self):
         assert self.get_error_type('get', '/accounts', dict()) == 'SessionDoesNotExist'
 
+    def test_account_get_no_session(self):
+        assert self.get_error_type('get', '/accounts/none', dict()) == 'SessionDoesNotExist'
+
     def test_no_method(self):
         assert self.app.open('/accounts', method='NONE').status == '405 METHOD NOT ALLOWED'
 
@@ -245,6 +248,110 @@ class AccountsSessionTestCase(ApiTestCase):
 
         assert response['name'] == 'Test'
 
+    def test_get_account_none(self):
+        assert self.app.get('/accounts/none').status == '404 NOT FOUND'
+
+    def test_add_and_get_account(self):
+
+        # this is test_add_account
+        response = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        response = json.loads(self.app.get('/accounts/' + response['guid']).data)
+
+        assert response['name'] == 'Test'
+
+class TransactionsTestCase(ApiTestCase):
+
+    def test_transactions_no_session(self):
+        assert self.get_error_type('post', '/transactions', dict()) == 'SessionDoesNotExist'
+
+class TransactionsSessionTestCase(ApiTestCase):
+
+    def setUp(self):
+        self.app = gnucash_rest.app.test_client()
+        self.app.testing = True
+
+        # remove the database in case tests failed previously
+        self.teardown_database()
+
+        self.setup_database()
+
+        data = dict(
+            connection_string = 'mysql://root:oxford@localhost/test',
+            is_new = '1',
+            ignore_lock = '0'
+        )
+
+        response = self.app.post('/session', data=data)
+        assert response.data == '"Session started"'
+
+    def tearDown(self):
+
+        response = self.app.delete('/session')
+        assert response.data == '"Session ended"'
+
+        self.teardown_database()
+
+    def test_no_method(self):
+        assert self.app.get('/transactions').status == '405 METHOD NOT ALLOWED'
+
+    def test_add_transaction_no_data(self):
+        data = dict()
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidTransactionCurrency'
+
+    def test_add_transaction_invalid_currency(self):
+        data = dict(
+            currency = 'XYZ'
+        )
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidTransactionCurrency'
+
+    def test_add_transaction_no_date_posted(self):
+        data = dict(
+            currency = 'GBP'
+        )
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidDatePosted'
+
+    def test_add_transaction_invalid_date_posted(self):
+        data = dict(
+            currency = 'GBP',
+            posted_date = 'XXX'
+        )
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidDatePosted'
+
+    def test_add_transaction_no_split_account(self):
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01'
+        )
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
+
+    def test_add_transaction_invalid_split_account(self):
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = 'XXX'
+        )
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
+    
+    def test_add_transaction_single_invalid_split_account(self):
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+        )
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
 
 if __name__ == '__main__':
     unittest.main()
