@@ -352,6 +352,37 @@ class TransactionsSessionTestCase(ApiTestCase):
             splitaccount1 = splitaccount1['guid'],
         )
         assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
+    
+    def test_add_transaction_identical_split_account(self):
+        # Gnucash does allow a transaction to be across the same accounts so this test is correct!
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        splitaccount2 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test 2',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+            splitaccount2 = splitaccount2['guid'],
+        )
+
+        # Errors with 20:11:22  CRIT <gnc.backend.dbi> [mysql_error_fn()] DBI error: 1292: Incorrect datetime value: '19700101000000' for column 'reconcile_date' at row 1
+        # Due to https://bugzilla.gnome.org/show_bug.cgi?id=784623
+        # Worked around by adding the following to mysqld.cnf
+        # sql_mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
+        assert self.app.post('/transactions', data=data).status == '201 CREATED'
+
 
 if __name__ == '__main__':
     unittest.main()
