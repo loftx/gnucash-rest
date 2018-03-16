@@ -13,7 +13,6 @@
     <form class="form-horizontal" style="margin: 0px;">
       <fieldset>
 
-        <!-- Text input-->
         <div class="control-group">
           <label class="control-label" for="vendorId">Vendor number</label>
           <div class="controls">
@@ -25,6 +24,13 @@
           <label class="control-label" for="vendorName">Company name</label>
           <div class="controls">
             <input id="vendorName" ng-model="vendor.name" name="vendorName" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="vendorCurrency">Currency</label>
+          <div class="controls">
+            <select id="vendorCurrency" data-ng-model="vendor.currency" data-ng-options="currency.key as currency.value for currency in currencys" class="input-xlarge"></select>
           </div>
         </div>
 

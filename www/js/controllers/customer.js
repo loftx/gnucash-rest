@@ -1,4 +1,4 @@
-function CustomerListCtrl($scope, Customer) {
+function CustomerListCtrl($scope, Customer, Money) {
 	
 	Customer.query().then(function(customers) {
 		$scope.customers = customers;
@@ -19,11 +19,13 @@ function CustomerListCtrl($scope, Customer) {
 	$scope.customer.address.fax = '';
 	$scope.customer.address.email = '';
 
+	$scope.currencys = Money.currencys();
+
 	$scope.addCustomer = function() {
 
 		var params = {
 			id: '',
-			currency: 'GBP',
+			currency: $scope.customer.currency,
 			name: $scope.customer.name,
 			contact: $scope.customer.address.name,
 			address_line_1: $scope.customer.address.line_1,
@@ -225,11 +227,16 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 
 	$scope.addInvoice = function() {
 
+		for (var i = 0; i < $scope.customers.length; i++) {
+			if ($scope.customers[i].id == $scope.invoice.customer_id) {
+				$scope.invoice.customer_currency = $scope.customers[i].currency;
+			}
+		}
+
 		var params = {
 			id: '',
 			customer_id: $scope.invoice.customer_id,
-			// TODO: currency should be based on the customer selected
-			currency: 'GBP',
+			currency: $scope.invoice.customer_currency,
 			date_opened: $scope.invoice.date_opened,
 			notes: $scope.invoice.notes
 		};

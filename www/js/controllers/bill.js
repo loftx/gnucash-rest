@@ -63,11 +63,16 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 	// copied from vendor.js
 	$scope.addBill = function() {
 
+		for (var i = 0; i < $scope.vendors.length; i++) {
+			if ($scope.vendors[i].id == $scope.bill.vendor_id) {
+				$scope.bill.vendor_currency = $scope.vendors[i].currency;
+			}
+		}
+
 		var params = {
 			id: '',
 			vendor_id: $scope.bill.vendor_id,
-			// TODO: currency should be based on the customer selected
-			currency: 'GBP',
+			currency: $scope.bill.vendor_currency,
 			date_opened: $scope.bill.date_opened,
 			notes: $scope.bill.notes
 		};
@@ -81,7 +86,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 			$scope.bill.vendor_id = '';
 			$scope.bill.date_opened = '';
 			$scope.bill.notes = '';
-		}, function(reason) {
+		}, function(data) {
 			if(typeof data.errors != 'undefined') {
 				$('#billAlert').show();
 				$scope.billError = data.errors[0].message;
@@ -236,7 +241,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		var params = {
 			id: $scope.bill.id,
 			vendor_id: $scope.bill.owner.id,
-			currency: 'GBP',
+			currency: $scope.bill.currency,
 			date_opened: $scope.bill.date_opened,
 			notes: $scope.bill.notes
 		};

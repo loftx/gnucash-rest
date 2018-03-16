@@ -1,4 +1,4 @@
-function VendorListCtrl($scope, Vendor, Dates) {
+function VendorListCtrl($scope, Vendor, Money, Dates) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -19,11 +19,13 @@ function VendorListCtrl($scope, Vendor, Dates) {
 	$scope.vendor.address.fax = '';
 	$scope.vendor.address.email = '';
 
+	$scope.currencys = Money.currencys();
+
 	$scope.addVendor = function() {
 
 		var params = {
 			id: '',
-			currency: 'GBP',
+			currency: $scope.vendor.currency,
 			name: $scope.vendor.name,
 			contact: $scope.vendor.address.name,
 			address_line_1: $scope.vendor.address.line_1,
@@ -165,11 +167,16 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 
 	$scope.addBill = function() {
 
+		for (var i = 0; i < $scope.vendors.length; i++) {
+			if ($scope.vendors[i].id == $scope.bill.vendor_id) {
+				$scope.bill.vendor_currency = $scope.vendors[i].currency;
+			}
+		}
+
 		var params = {
 			id: '',
 			vendor_id: $scope.bill.vendor_id,
-			// TODO: currency should be based on the customer selected
-			currency: 'GBP',
+			currency: $scope.bill.vendor_currency,
 			date_opened: $scope.bill.date_opened,
 			notes: $scope.bill.notes
 		};

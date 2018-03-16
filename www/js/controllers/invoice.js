@@ -88,11 +88,16 @@ function InvoiceListCtrl($scope, Invoice, Customer, Dates) {
 
 	$scope.addInvoice = function() {
 
+		for (var i = 0; i < $scope.customers.length; i++) {
+			if ($scope.customers[i].id == $scope.invoice.customer_id) {
+				$scope.invoice.customer_currency = $scope.customers[i].currency;
+			}
+		}
+
 		var params = {
 			id: '',
 			customer_id: $scope.invoice.customer_id,
-			// TODO: currency should be based on the customer selected
-			currency: 'GBP',
+			currency: $scope.invoice.customer_currency,
 			date_opened: $scope.invoice.date_opened,
 			notes: $scope.invoice.notes
 		};
@@ -192,7 +197,7 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 		var params = {
 			id: $scope.invoice.id,
 			customer_id: $scope.invoice.owner.id,
-			currency: 'GBP',
+			currency: $scope.invoice.currency,
 			date_opened: $scope.invoice.date_opened,
 			notes: $scope.invoice.notes
 		};
