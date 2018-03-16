@@ -2193,6 +2193,11 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
                 'A valid account must be supplied for this split',
                 {'field': 'account'})
 
+        if account.GetCommodity().get_mnemonic() != currency_mnumonic:
+            raise Error('InvalidSplitAccountCurrency',
+                'The transaction currency must match the account currency for this split',
+                {'field': 'account'})
+
         split = Split(book)
         split.SetValue(GncNumeric(split_values['value'], 100))
         split.SetAccount(account)
@@ -2272,6 +2277,11 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
         if account is None:
             raise Error('InvalidSplitAccount',
                 'A valid account must be supplied for this split',
+                {'field': 'account'})
+
+        if account.GetCommodity().get_mnemonic() != currency_mnumonic:
+            raise Error('InvalidSplitAccountCurrency',
+                'The transaction currency must match the account currency for this split',
                 {'field': 'account'})
 
         split.SetValue(GncNumeric(split_values['value'], 100))

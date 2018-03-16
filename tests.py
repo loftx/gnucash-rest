@@ -352,6 +352,30 @@ class TransactionsSessionTestCase(ApiTestCase):
             splitaccount1 = splitaccount1['guid'],
         )
         assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
+
+    def test_add_transaction_invalid_account_currency(self):
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        splitaccount2 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test 2',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'EUR',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+            splitaccount2 = splitaccount2['guid'],
+        )
+
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccountCurrency'
     
     def test_add_transaction_identical_split_account(self):
         # Gnucash does allow a transaction to be across the same accounts so this test is correct!

@@ -28,7 +28,7 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 	$scope.addTransaction = function() {
 
 		var params = {
-			currency: 'GBP',
+			currency: $scope.account.currency,
 			num: $scope.transaction.num,
 			date_posted: Dates.dateInput($scope.transaction.date_posted),
 			description: $scope.transaction.description,
@@ -136,7 +136,7 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 	$scope.updateTransaction = function(guid) {
 
 		var params = {
-			currency: 'GBP',
+			currency: $scope.account.currency,
 			num: $scope.transaction.num,
 			date_posted: Dates.dateInput($scope.transaction.date_posted),
 			description: $scope.transaction.description,
