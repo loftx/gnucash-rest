@@ -183,11 +183,12 @@ A sample Apache configuration is as follows:
 
 ```
 <VirtualHost *:80>
+        DocumentRoot /path/to/gnucash_rest/www/
         WSGIScriptAlias /api /path/to/gnucash_rest.wsgi
         WSGIProcessGroup wsgi
         WSGIDaemonProcess wsgi user=wsgi group=wsgi display-name=%{GROUP}
 
-        <Directory /path/to/gnucash_rest/>
+        <Directory /path/to/gnucash_rest/www/>
                 Order allow,deny
                 Allow from all
         </Directory>
