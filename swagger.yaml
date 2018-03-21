@@ -41,6 +41,33 @@ paths:
         404:
           description: "Customer not found"
 definitions:
+  Account:
+    type: "object"
+    required:
+    - "name"
+    - "type_id"
+    - "currency"
+    properties:
+      balance:
+        type: "number"
+      description:
+        type: "string"
+      type_id:
+        type: "integer" # only certain types
+      balance_gbp:
+        type: "number"
+      currency:
+        type: "string"
+      subaccounts:
+        type: "array"
+        items:
+          $ref: "#/definitions/Account"
+      guid:
+        type: "string"
+      placeholder:
+        type: "boolean"
+      name:
+        type: "string"
   Customer:
     type: "object"
     required:
@@ -70,26 +97,106 @@ definitions:
       tax_included:
         type: "integer"  # might be an enum?
   Address:
-      type: "object"
-      required:
-      - "line_1"
-      properties:
-        fax:
-          type: "string"
-        name:
-          type: "string"
-        email:
-          type: "string"
-        photo:
-          type: "string"
-        line_1:
-          type: "string"
-        line_2:
-          type: "string"
-        line_3:
-          type: "string"
-        line_4:
-          type: "string"
+    type: "object"
+    required:
+    - "line_1"
+    properties:
+      fax:
+        type: "string"
+      name:
+        type: "string"
+      email:
+        type: "string"
+      photo:
+        type: "string"
+      line_1:
+        type: "string"
+      line_2:
+        type: "string"
+      line_3:
+        type: "string"
+      line_4:
+        type: "string"
+  Transaction:
+    type: "object"
+    properties:
+      void_time:
+        type: "string"
+      date_due:
+        type: "string"
+      has_reconciled_splits:
+        type: "booelan"
+      is_closing_txn:
+        type: "boolean"
+      imbalance_value:
+        type: "numeric"
+      notes:
+        type: "string"
+      description:
+        type: "string"
+      currency:
+        type: "string"
+      num:
+        type: "string"
+      is_balanced:
+        type: "true"
+      void_status:
+        type: "boolean"
+      date:
+        type: "integer"
+      date_entered:
+        type: "string"
+      guid:
+        type: "string"
+      date_posted:
+        type: "string"
+      count_splits:
+        type: "string"
+  Invoice:
+    type: "object"
+    required:
+    - "owner"
+    - "currency"
+    - "date_opened"
+    properties:
+      total_tax:
+        type: "number"
+      posted:
+        type: "boolean"
+      date_due:
+        type: "string" # can we set the formating here?
+      posted_txn:
+        $ref: "#/definitions/Transaction"
+      to_charge_amount:
+        type: "number"
+      notes:
+        type: "string"
+      entries:
+        type: "string" # need to update to this type
+      owner:
+        $ref: "#/definitions/Customer"
+      id:
+        type: "string"
+      currency:
+        type: "string" # probably an enum
+      paid:
+        type: "boolean"
+      date_opened:
+        type: "string"
+      active:
+        type: "boolean"
+      billing_id:
+        type: "string"
+      owner_type:
+        type: "integer" # enum?
+      total:
+        type: "number"
+      type:
+        type: "integer"
+      date_posted:
+        type: "string"
+      total_subtotal:
+        type: "number"
 externalDocs:
   description: "Full documentation and code on Github"
   url: "https://github.com/loftx/gnucash-rest"
