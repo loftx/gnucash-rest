@@ -16,6 +16,49 @@ tags:
 schemes:
 - "http"
 paths:
+  /session:
+    post:
+      tags: 
+      - "session"
+      summary: "Starts a session"
+      description: "Starts a new session with a XML file path or SQL connection string"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "connection_string"
+        in: "formData"
+        description: "XML file path or SQL connection string"
+        required: false
+        type: "string"
+      - name: "is_new"
+        in: "formData"
+        description: "Create new file/database tables"
+        required: false
+        type: "boolean"
+      - name: "ignore_lock"
+        in: "formData"
+        description: "Force opening of locked file/database"
+        required: false
+        type: "boolean"
+      responses:
+        201:
+          description: "Session started"
+        400:
+          description: "Error with input parameters"
+    delete:
+      tags: 
+      - "session"
+      summary: "Ends a session"
+      description: "Ends a session and closes the file/database"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Session ended"
+        500:
+          description: "Error ending session"
   /customers/{customerId}:
     get:
       tags:
@@ -83,9 +126,31 @@ definitions:
       notes:
         type: "string"
       tax_table_override:
-        type: "boolean" # does this work
+        type: "boolean"
       discount:
         type: "integer" # might be an enum?
+      address:
+        $ref: "#/definitions/Address"
+      active:
+        type: "boolean"
+      guid:
+        type: "string"
+      id:
+        type: "string"
+      tax_included:
+        type: "integer"  # might be an enum?
+  Vendor:
+    type: "object"
+    required:
+    - "name"
+    - "address"
+    properties:
+      name:
+        type: "string"
+      notes:
+        type: "string"
+      tax_table_override:
+        type: "boolean"
       address:
         $ref: "#/definitions/Address"
       active:
@@ -117,41 +182,6 @@ definitions:
         type: "string"
       line_4:
         type: "string"
-  Transaction:
-    type: "object"
-    properties:
-      void_time:
-        type: "string"
-      date_due:
-        type: "string"
-      has_reconciled_splits:
-        type: "booelan"
-      is_closing_txn:
-        type: "boolean"
-      imbalance_value:
-        type: "numeric"
-      notes:
-        type: "string"
-      description:
-        type: "string"
-      currency:
-        type: "string"
-      num:
-        type: "string"
-      is_balanced:
-        type: "true"
-      void_status:
-        type: "boolean"
-      date:
-        type: "integer"
-      date_entered:
-        type: "string"
-      guid:
-        type: "string"
-      date_posted:
-        type: "string"
-      count_splits:
-        type: "string"
   Invoice:
     type: "object"
     required:
@@ -172,7 +202,8 @@ definitions:
       notes:
         type: "string"
       entries:
-        type: "string" # need to update to this type
+        items:
+          $ref: "#/definitions/Account"
       owner:
         $ref: "#/definitions/Customer"
       id:
@@ -197,6 +228,134 @@ definitions:
         type: "string"
       total_subtotal:
         type: "number"
+  Bill:
+    type: "object"
+    required:
+    - "owner"
+    - "currency"
+    - "date_opened"
+    properties:
+      total_tax:
+        type: "number"
+      posted:
+        type: "boolean"
+      date_due:
+        type: "string" # can we set the formating here?
+      to_charge_amount:
+        type: "number"
+      notes:
+        type: "string"
+      entries:
+        items:
+          $ref: "#/definitions/Account"
+      owner:
+        $ref: "#/definitions/Customer"
+      id:
+        type: "string"
+      currency:
+        type: "string" # probably an enum
+      paid:
+        type: "boolean"
+      date_opened:
+        type: "string"
+      active:
+        type: "boolean"
+      billing_id:
+        type: "string"
+      owner_type:
+        type: "integer" # enum?
+      total:
+        type: "number"
+      type:
+        type: "integer"
+      date_posted:
+        type: "string"
+      total_subtotal:
+        type: "number"
+  Entry:
+    type: "object"
+    properties:
+      bill_payment:
+        type: "integer"
+      discount_how:
+        type: "integer" # enum?
+      bill_price:
+        type: "number"
+      is_open:
+        type: "boolean"
+      inv_account:
+        $ref: "#/definitions/Account"
+      guid:
+        type: "string"
+      inv_price:
+        type: "number"
+      bill_account:
+        $ref: "#/definitions/Account"
+      date_entered:
+        type: "string"
+      inv_taxable:
+        type: "boolean"
+      discount_type:
+        type: "integer" # enum?
+      billable:
+        type: "boolean"
+      bill_tax_table:
+        type: "string"
+      description:
+        type: "string"
+      bill_tax_included:
+        type: "string" # what is this?
+      discount:
+        type: "number"
+      date:
+        type: "string"
+      bill_taxable:
+        type: "boolean"
+      inv_tax_table_override: # what is this?
+        type: "string"
+      notes:
+        type: "string"
+      inv_tax_included:
+        type: "boolean"
+      action:
+        type: "string"
+      quantity:
+        type: "number"
+  Transaction:
+    type: "object"
+    properties:
+      void_time:
+        type: "string"
+      date_due:
+        type: "string"
+      has_reconciled_splits:
+        type: "boolean"
+      is_closing_txn:
+        type: "boolean"
+      imbalance_value:
+        type: "number"
+      notes:
+        type: "string"
+      description:
+        type: "string"
+      currency:
+        type: "string"
+      num:
+        type: "string"
+      is_balanced:
+        type: "boolean"
+      void_status:
+        type: "boolean"
+      date:
+        type: "integer"
+      date_entered:
+        type: "string"
+      guid:
+        type: "string"
+      date_posted:
+        type: "string"
+      count_splits:
+        type: "string"
 externalDocs:
   description: "Full documentation and code on Github"
   url: "https://github.com/loftx/gnucash-rest"
