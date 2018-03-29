@@ -136,11 +136,12 @@ def api_session():
         try:
             end_session()
         except Error as error:
+            # some of these errors may be status 500?
             return Response(json.dumps({'errors': [{'type' : error.type,
                 'message': error.message, 'data': error.data}]}), status=400,
                 mimetype='application/json')
         else:
-            return Response(json.dumps('Session ended'), status=201,
+            return Response(json.dumps('Session ended'), status=200,
                 mimetype='application/json')
 
     else:
