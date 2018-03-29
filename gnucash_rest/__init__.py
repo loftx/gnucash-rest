@@ -144,9 +144,6 @@ def api_session():
             return Response(json.dumps('Session ended'), status=200,
                 mimetype='application/json')
 
-    else:
-        abort(405)
-
 @app.route('/accounts', methods=['GET', 'POST'])
 def api_accounts():
 
@@ -179,9 +176,6 @@ def api_accounts():
         else:
             return Response(json.dumps(account), status=201,
                 mimetype='application/json')
-
-    else:
-        abort(405)
 
 @app.route('/accounts/<guid>', methods=['GET'])
 def api_account(guid):
@@ -262,9 +256,6 @@ def api_transactions():
             return Response(json.dumps(transaction), status=201,
                 mimetype='application/json')
 
-    else:
-        abort(405)
-
 @app.route('/transactions/<guid>', methods=['GET', 'POST', 'DELETE'])
 def api_transaction(guid):
 
@@ -322,9 +313,6 @@ def api_transaction(guid):
         delete_transaction(session.book, guid)
 
         return Response('', status=200, mimetype='application/json')
-
-    else:
-        abort(405)
 
 @app.route('/bills', methods=['GET', 'POST'])
 def api_bills():
@@ -398,9 +386,6 @@ def api_bills():
         else:
             return Response(json.dumps(bill), status=201,
                 mimetype='application/json')
-
-    else:
-        abort(405)
 
 @app.route('/bills/<id>', methods=['GET', 'POST', 'PAY'])
 def api_bill(id):
@@ -492,9 +477,6 @@ def api_bill(id):
             return Response(json.dumps(bill), status=200,
                 mimetype='application/json')
 
-    else:
-        abort(405)
-
 @app.route('/bills/<id>/entries', methods=['GET', 'POST'])
 def api_bill_entries(id):
 
@@ -530,9 +512,6 @@ def api_bill_entries(id):
             else:
                 return Response(json.dumps(entry), status=201,
                     mimetype='application/json')
-
-        else:
-            abort(405)
 
 @app.route('/invoices', methods=['GET', 'POST'])
 def api_invoices():
@@ -606,9 +585,6 @@ def api_invoices():
         else:
             return Response(json.dumps(invoice), status=201,
                 mimetype='application/json')
-
-    else:
-        abort(405)
 
 @app.route('/invoices/<id>', methods=['GET', 'POST', 'PAY'])
 def api_invoice(id):
@@ -699,9 +675,6 @@ def api_invoice(id):
             return Response(json.dumps(invoice), status=200,
                 mimetype='application/json')
 
-    else:
-        abort(405)
-
 @app.route('/invoices/<id>/entries', methods=['GET', 'POST'])
 def api_invoice_entries(id):
 
@@ -742,9 +715,6 @@ def api_invoice_entries(id):
             else:
                 return Response(json.dumps(entry), status=201,
                     mimetype='application/json')
-
-        else:
-            abort(405)
 
 @app.route('/entries/<guid>', methods=['GET', 'POST', 'DELETE'])
 def api_entry(guid):
@@ -801,9 +771,6 @@ def api_entry(guid):
 
             return Response('', status=201, mimetype='application/json')
 
-        else:
-            abort(405)
-
 @app.route('/customers', methods=['GET', 'POST'])
 def api_customers():
 
@@ -848,9 +815,6 @@ def api_customers():
         else:
             return Response(json.dumps(customer), status=201,
                 mimetype='application/json')
-
-    else:
-        abort(405)
 
 @app.route('/customers/<id>', methods=['GET', 'POST'])
 def api_customer(id):
@@ -901,9 +865,6 @@ def api_customer(id):
         else:
             return Response(json.dumps(customer), status=200,
                 mimetype='application/json')
-
-    else:
-        abort(405)
 
 @app.route('/customers/<id>/invoices', methods=['GET'])
 def api_customer_invoices(id):
@@ -982,9 +943,6 @@ def api_vendors():
             return Response(json.dumps(vendor), status=201,
                 mimetype='application/json')
 
-    else:
-        abort(405)
-
 @app.route('/vendors/<id>', methods=['GET', 'POST'])
 def api_vendor(id):
 
@@ -1003,8 +961,6 @@ def api_vendor(id):
             abort(404)
         else:
             return Response(json.dumps(vendor), mimetype='application/json')
-    else:
-        abort(405)
 
 @app.route('/vendors/<id>/bills', methods=['GET'])
 def api_vendor_bills(id):
