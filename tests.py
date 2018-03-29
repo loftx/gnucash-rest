@@ -155,6 +155,9 @@ class AccountsTestCase(ApiTestCase):
     def test_no_method(self):
         assert self.app.open('/accounts', method='NONE').status == '405 METHOD NOT ALLOWED'
 
+    def test_account_get_splits_no_session(self):
+        assert self.get_error_type('get', '/accounts/none/splits', dict()) == 'SessionDoesNotExist'
+
 class AccountsSessionTestCase(ApiTestCase):
 
     def setUp(self):
@@ -264,10 +267,26 @@ class AccountsSessionTestCase(ApiTestCase):
 
         assert response['name'] == 'Test'
 
+    def test_account_get_splits_no_account(self):
+        assert self.app.get('/accounts/none/splits').status == '404 NOT FOUND'
+    
+    def test_account_get_splits_empty(self):
+        # this is test_add_account
+        response = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        assert not json.loads(self.app.get('/accounts/' + response['guid'] + '/splits').data)
+
 class TransactionsTestCase(ApiTestCase):
 
     def test_transactions_no_session(self):
         assert self.get_error_type('post', '/transactions', dict()) == 'SessionDoesNotExist'
+
+    def test_transaction_no_session(self):
+        assert self.get_error_type('post', '/transactions/none', dict()) == 'SessionDoesNotExist'
 
 class TransactionsSessionTestCase(ApiTestCase):
 
@@ -407,6 +426,44 @@ class TransactionsSessionTestCase(ApiTestCase):
 
         assert self.app.post('/transactions', data=data).status == '201 CREATED'
 
+    def test_get_transaction_no_transaction(self):
+
+        assert self.app.get('/transactions/none', data=dict()).status == '404 NOT FOUND'
+
+    def test_get_transaction(self):
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        splitaccount2 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test 2',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+            splitaccount2 = splitaccount2['guid'],
+            description = 'Test transaction',
+            num = '0000001'
+        )
+
+        # Errors with 20:11:22  CRIT <gnc.backend.dbi> [mysql_error_fn()] DBI error: 1292: Incorrect datetime value: '19700101000000' for column 'reconcile_date' at row 1
+        # Due to https://bugzilla.gnome.org/show_bug.cgi?id=784623
+        # Worked around by adding the following to mysqld.cnf
+        # sql_mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
+        response = json.loads(self.app.post('/transactions', data=data).data)
+
+        transaction = json.loads(self.app.get('/transactions/' +  response['guid'], data=dict()).data)
+
+        assert transaction['description'] == 'Test transaction'
 
 if __name__ == '__main__':
     unittest.main()
