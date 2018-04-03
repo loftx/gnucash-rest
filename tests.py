@@ -315,6 +315,38 @@ class TransactionsSessionTestCase(ApiTestCase):
 
         self.teardown_database()
 
+    def createTransactionGuid(self):
+        # Gnucash does allow a transaction to be across the same accounts so this test is correct!
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        splitaccount2 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test 2',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+            splitaccount2 = splitaccount2['guid'],
+        )
+
+        # Errors with 20:11:22  CRIT <gnc.backend.dbi> [mysql_error_fn()] DBI error: 1292: Incorrect datetime value: '19700101000000' for column 'reconcile_date' at row 1
+        # Due to https://bugzilla.gnome.org/show_bug.cgi?id=784623
+        # Worked around by adding the following to mysqld.cnf
+        # sql_mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
+        transaction = json.loads(self.app.post('/transactions', data=data).data)
+
+        return transaction['guid']
+
     def test_no_method(self):
         assert self.app.get('/transactions').status == '405 METHOD NOT ALLOWED'
 
@@ -464,6 +496,35 @@ class TransactionsSessionTestCase(ApiTestCase):
         transaction = json.loads(self.app.get('/transactions/' +  response['guid'], data=dict()).data)
 
         assert transaction['description'] == 'Test transaction'
+
+    def test_update_transaction_invalid_guid(self):
+        assert self.get_error_type('post', '/transactions/' + '00000000000000000000000000000000', dict()) == 'InvalidTransactionGuid'
+
+    def test_update_transaction_no_data(self):
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=dict()) == 'InvalidTransactionCurrency'
+
+    def test_update_transaction_no_currency(self):
+        data = dict(
+            currency = 'XYZ'
+        )
+
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidTransactionCurrency'
+
+    def test_update_transaction_invalid_currency(self):
+        data = dict(
+            currency = 'GBP',
+            date_posted = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidDatePosted'
+
+    def test_update_transaction(self):
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01'
+        )
+
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
 
 if __name__ == '__main__':
     unittest.main()

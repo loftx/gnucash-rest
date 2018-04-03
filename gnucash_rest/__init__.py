@@ -2191,7 +2191,7 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
     transaction = guid.TransLookup(book)
 
     if transaction is None:
-        raise Error('NoCustomer',
+        raise Error('InvalidTransactionGuid',
             'A transaction with this GUID does not exist',
             {'field': 'guid'})
 
