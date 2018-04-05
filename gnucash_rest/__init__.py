@@ -2213,7 +2213,12 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
             'The date posted must be provided in the form YYYY-MM-DD',
             {'field': 'date_posted'})
 
+    split_guids = []
+
+    # Should we do all checks before calling split_guid.SplitLookup(book) as it's not clear when these will be comitted?
     for split_values in splits:
+
+        split_guids.append(split_values['guid']);
 
         split_guid = gnucash.gnucash_core.GUID() 
         gnucash.gnucash_core.GUIDString(split_values['guid'], split_guid)
@@ -2241,9 +2246,16 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
                 'The transaction currency must match the account currency for this split',
                 {'field': 'account'})
 
+        print split_values['value']
+
         split.SetValue(GncNumeric(split_values['value'], 100))
         split.SetAccount(account)
         split.SetParent(transaction)
+
+    if len(split_guids) != len(set(split_guids)):
+        raise Error('DuplicateSplitGuid',
+            'One of the splits provided shares a GUID with another split',
+            {'field': 'guid'})
 
     transaction.SetCurrency(currency)
     transaction.SetDescription(description)

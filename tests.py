@@ -315,7 +315,8 @@ class TransactionsSessionTestCase(ApiTestCase):
 
         self.teardown_database()
 
-    def createTransactionGuid(self):
+    def createTransaction(self):
+
         # Gnucash does allow a transaction to be across the same accounts so this test is correct!
 
         # this is test_accounts
@@ -343,8 +344,10 @@ class TransactionsSessionTestCase(ApiTestCase):
         # Worked around by adding the following to mysqld.cnf
         # sql_mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
-        transaction = json.loads(self.app.post('/transactions', data=data).data)
+        return json.loads(self.app.post('/transactions', data=data).data)
 
+    def createTransactionGuid(self):
+        transaction = self.createTransaction()
         return transaction['guid']
 
     def test_no_method(self):
@@ -484,7 +487,11 @@ class TransactionsSessionTestCase(ApiTestCase):
             splitaccount2 = splitaccount2['guid'],
             description = 'Test transaction',
             num = '0000001'
+            # splitvalue1
+            # splitvalue2
         )
+
+        # There are no splits here...
 
         # Errors with 20:11:22  CRIT <gnc.backend.dbi> [mysql_error_fn()] DBI error: 1292: Incorrect datetime value: '19700101000000' for column 'reconcile_date' at row 1
         # Due to https://bugzilla.gnome.org/show_bug.cgi?id=784623
@@ -518,13 +525,102 @@ class TransactionsSessionTestCase(ApiTestCase):
 
         assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidDatePosted'
 
-    def test_update_transaction(self):
+    def test_update_transaction_no_split_account(self):
         data = dict(
             currency = 'GBP',
             date_posted = '2018-01-01'
         )
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitAccount'
+
+    def test_update_transaction_invalid_split_account(self):
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = 'XXX'
+        )
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitAccount'
+
+    def test_update_transaction_single_invalid_split_account(self):
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+        )
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitAccount'
+
+    def test_update_transaction_no_split(self):
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        splitaccount2 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test 2',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+            splitaccount2 = splitaccount2['guid'],
+        )
 
         assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
 
+    def test_update_transaction_invalid_split(self):
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        splitaccount2 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test 2',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+            splitaccount2 = splitaccount2['guid'],
+            splitguid1 = '00000000000000000000000000000000',
+            splitguid2 = '00000000000000000000000000000001'
+
+        )
+
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
+
+    def test_update_transaction_duplicate_split_guid(self):
+
+        transaction = self.createTransaction()
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = transaction['splits'][0]['account']['guid'],
+            splitaccount2 = transaction['splits'][1]['account']['guid'],
+            splitguid1 = transaction['splits'][0]['guid'],
+            splitguid2 = transaction['splits'][0]['guid']
+
+        )
+
+        assert self.get_error_type('post', '/transactions/' + transaction['guid'], data=data) == 'DuplicateSplitGuid'
 if __name__ == '__main__':
     unittest.main()
