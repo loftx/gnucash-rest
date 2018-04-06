@@ -236,9 +236,9 @@ def api_transactions():
         num = str(request.form.get('num', ''))
         date_posted = str(request.form.get('date_posted', ''))
 
-        splitvalue1 = sint(request.form.get('splitvalue1', 0))
+        splitvalue1 = str(request.form.get('splitvalue1', ''))
         splitaccount1 = str(request.form.get('splitaccount1', ''))
-        splitvalue2 = sint(request.form.get('splitvalue2', 0))
+        splitvalue2 = str(request.form.get('splitvalue2', ''))
         splitaccount2 = str(request.form.get('splitaccount2', ''))
 
         splits = [
@@ -283,10 +283,10 @@ def api_transaction(guid):
         date_posted = str(request.form.get('date_posted', ''))
 
         splitguid1 = str(request.form.get('splitguid1', ''))
-        splitvalue1 = sint(request.form.get('splitvalue1', 0))
+        splitvalue1 = str(request.form.get('splitvalue1', ''))
         splitaccount1 = str(request.form.get('splitaccount1', ''))
         splitguid2 = str(request.form.get('splitguid2', ''))
-        splitvalue2 = sint(request.form.get('splitvalue2', 0))
+        splitvalue2 = str(request.form.get('splitvalue2', ''))
         splitaccount2 = str(request.form.get('splitaccount2', ''))
 
         splits = [
@@ -2155,8 +2155,25 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
                 'The transaction currency must match the account currency for this split',
                 {'field': 'account'})
 
+        # TODO - the API should probably allow numerator and denomiator rather than assue 100
+        value = split_values['value']
+
+        try: 
+            value = float(value)
+            value = value * 100
+            value = int(value)
+        except ValueError:
+            raise Error('InvalidSplitValue',
+            'A valid value must be supplied for this split',
+            {'field': 'value'})
+        except TypeError:
+            raise Error('InvalidSplitValue',
+            'A valid value must be supplied for this split',
+            {'field': 'value'})
+
+
         split = Split(book)
-        split.SetValue(GncNumeric(split_values['value'], 100))
+        split.SetValue(GncNumeric(value, 100))
         split.SetAccount(account)
         split.SetParent(transaction)
 
@@ -2205,7 +2222,6 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
             'A valid currency must be supplied for this transaction',
             {'field': 'currency'})
 
-
     try:
         date_posted = datetime.datetime.strptime(date_posted, "%Y-%m-%d")
     except ValueError:
@@ -2246,9 +2262,23 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
                 'The transaction currency must match the account currency for this split',
                 {'field': 'account'})
 
-        print split_values['value']
+        # TODO - the API should probably allow numerator and denomiator rather than assue 100
+        value = split_values['value']
 
-        split.SetValue(GncNumeric(split_values['value'], 100))
+        try: 
+            value = float(value)
+            value = value * 100
+            value = int(value)
+        except ValueError:
+            raise Error('InvalidSplitValue',
+            'A valid value must be supplied for this split',
+            {'field': 'value'})
+        except TypeError:
+            raise Error('InvalidSplitValue',
+            'A valid value must be supplied for this split',
+            {'field': 'value'})
+
+        split.SetValue(GncNumeric(value, 100))
         split.SetAccount(account)
         split.SetParent(transaction)
 
