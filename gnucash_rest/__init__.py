@@ -309,10 +309,13 @@ def api_transaction(guid):
                 mimetype='application/json')
 
     elif request.method == 'DELETE':
-
-        delete_transaction(session.book, guid)
-
-        return Response('', status=200, mimetype='application/json')
+        try:
+            delete_transaction(session.book, guid)
+        except Error as error:
+            return Response(json.dumps({'errors': [{'type' : error.type,
+                'message': error.message, 'data': error.data}]}), status=400, mimetype='application/json')
+        else:
+            return Response('', status=200, mimetype='application/json')    
 
 @app.route('/bills', methods=['GET', 'POST'])
 def api_bills():
@@ -2030,8 +2033,12 @@ def delete_transaction(book, transaction_guid):
 
     transaction = guid.TransLookup(book)
 
-    if transaction is not None :
-        transaction.Destroy()
+    # Might be nicer to raise a 404?
+    if transaction is None:
+        raise Error('NoTransaction', 'A transaction with this GUID does not exist',
+            {'field': 'id'})
+
+    transaction.Destroy()
 
 def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 

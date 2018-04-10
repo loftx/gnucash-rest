@@ -393,7 +393,7 @@ class TransactionsSessionTestCase(ApiTestCase):
         )
         assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
     
-    def test_add_transaction_single_invalid_split_account(self):
+    def test_add_transaction_single_no_split_value(self):
 
         # this is test_accounts
         splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
@@ -407,6 +407,25 @@ class TransactionsSessionTestCase(ApiTestCase):
             date_posted = '2018-01-01',
             splitaccount1 = splitaccount1['guid'],
         )
+
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitValue'
+
+    def test_add_transaction_single_invalid_split_account(self):
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )).data)
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = splitaccount1['guid'],
+            splitvalue1 = '1.5'
+        )
+
         assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
 
     def test_add_transaction_invalid_account_currency(self):
@@ -527,60 +546,45 @@ class TransactionsSessionTestCase(ApiTestCase):
 
         assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidDatePosted'
 
-    def test_update_transaction_no_split_account(self):
+    def test_update_transaction_no_split_guid(self):
         data = dict(
             currency = 'GBP',
             date_posted = '2018-01-01'
         )
-        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitAccount'
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
+
+    def test_update_transaction_invalid_split_guid(self):
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitguid1 = 'XXX'
+        )
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
+
+    def test_update_transaction_no_split_account(self):
+        transaction = self.createTransaction()
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitguid1 = transaction['splits'][0]['guid'],
+            splitguid2 = transaction['splits'][0]['guid']
+        )
+
+        assert self.get_error_type('post', '/transactions/' + transaction['guid'], data=data) == 'InvalidSplitAccount'
 
     def test_update_transaction_invalid_split_account(self):
+        transaction = self.createTransaction()
+
         data = dict(
             currency = 'GBP',
             date_posted = '2018-01-01',
+            splitguid1 = transaction['splits'][0]['guid'],
+            splitguid2 = transaction['splits'][0]['guid'],
             splitaccount1 = 'XXX'
         )
-        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitAccount'
 
-    def test_update_transaction_single_invalid_split_account(self):
-
-        # this is test_accounts
-        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
-            name = 'Test',
-            currency  = 'GBP',
-            account_type_id = '2'
-        )).data)
-
-        data = dict(
-            currency = 'GBP',
-            date_posted = '2018-01-01',
-            splitaccount1 = splitaccount1['guid'],
-        )
-        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitAccount'
-
-    def test_update_transaction_no_split(self):
-
-        # this is test_accounts
-        splitaccount1 = json.loads(self.app.post('/accounts', data=dict(
-            name = 'Test',
-            currency  = 'GBP',
-            account_type_id = '2'
-        )).data)
-
-        splitaccount2 = json.loads(self.app.post('/accounts', data=dict(
-            name = 'Test 2',
-            currency  = 'GBP',
-            account_type_id = '2'
-        )).data)
-
-        data = dict(
-            currency = 'GBP',
-            date_posted = '2018-01-01',
-            splitaccount1 = splitaccount1['guid'],
-            splitaccount2 = splitaccount2['guid'],
-        )
-
-        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
+        assert self.get_error_type('post', '/transactions/' + transaction['guid'], data=data) == 'InvalidSplitAccount'
 
     def test_update_transaction_invalid_split(self):
 
@@ -609,6 +613,21 @@ class TransactionsSessionTestCase(ApiTestCase):
 
         assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
 
+    def test_update_transaction_single_invalid_split_account(self):
+        transaction = self.createTransaction()
+
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitaccount1 = transaction['splits'][0]['account']['guid'],
+            splitguid1 = transaction['splits'][0]['guid'],
+            splitvalue1 = '1.5',
+            splitguid2 = transaction['splits'][0]['guid'],
+            splitvalue2 = '1.5'
+        )
+        
+        assert self.get_error_type('post', '/transactions/' + transaction['guid'], data=data) == 'InvalidSplitAccount'
+
     def test_update_transaction_duplicate_split_guid(self):
 
         transaction = self.createTransaction()
@@ -619,8 +638,9 @@ class TransactionsSessionTestCase(ApiTestCase):
             splitaccount1 = transaction['splits'][0]['account']['guid'],
             splitaccount2 = transaction['splits'][1]['account']['guid'],
             splitguid1 = transaction['splits'][0]['guid'],
-            splitguid2 = transaction['splits'][0]['guid']
-
+            splitvalue1 = '1.5',
+            splitguid2 = transaction['splits'][0]['guid'],
+            splitvalue2 = '1.5'
         )
 
         assert self.get_error_type('post', '/transactions/' + transaction['guid'], data=data) == 'DuplicateSplitGuid'
@@ -732,6 +752,16 @@ class TransactionsSessionTestCase(ApiTestCase):
         response = json.loads(self.app.post('/transactions/' + transaction['guid'], data=data).data)
 
         assert response['description'] == 'Updated test transaction'
+
+    def test_delete_transaction_invalid_guid(self):
+        assert self.get_error_type('delete', '/transactions/XXX', data=dict()) == 'NoTransaction'
+
+    def test_delete_transaction(self):
+        transaction = self.createTransaction()
+
+        self.app.delete('/transactions/' + transaction['guid'], data=dict())
+
+        assert self.app.get('/transactions/' + transaction['guid']).status == '404 NOT FOUND'
 
 if __name__ == '__main__':
     unittest.main()
