@@ -367,12 +367,10 @@ def api_bills():
 
     elif request.method == 'POST':
 
-        id = str(request.form.get('id', None))
+        id = str(request.form.get('id', ''))
 
         if id == '':
             id = None
-        elif id is not None:
-            id = str(id)
 
         vendor_id = str(request.form.get('vendor_id', ''))
         currency = str(request.form.get('currency', ''))
@@ -566,12 +564,10 @@ def api_invoices():
 
     elif request.method == 'POST':
 
-        id = str(request.form.get('id', None))
+        id = str(request.form.get('id', ''))
 
         if id == '':
             id = None
-        elif id is not None:
-            id = str(id)
 
         customer_id = str(request.form.get('customer_id', ''))
         currency = str(request.form.get('currency', ''))
@@ -789,12 +785,10 @@ def api_customers():
         return Response(json.dumps(customers), mimetype='application/json')
     elif request.method == 'POST':
 
-        id = str(request.form.get('id', None))
+        id = str(request.form.get('id', ''))
 
         if id == '':
             id = None
-        elif id is not None:
-            id = str(id)
 
         currency = str(request.form.get('currency', ''))
         name = str(request.form.get('name', ''))
@@ -840,7 +834,10 @@ def api_customer(id):
 
     elif request.method == 'POST':
 
-        id = str(request.form.get('id', None))
+        id = str(request.form.get('id', ''))
+
+        if id == '':
+            id = None
 
         name = str(request.form.get('name', ''))
         contact = str(request.form.get('contact', ''))
@@ -916,12 +913,10 @@ def api_vendors():
         return Response(json.dumps(vendors), mimetype='application/json')
     elif request.method == 'POST':
 
-        id = str(request.form.get('id', None))
+        id = str(request.form.get('id', ''))
 
         if id == '':
             id = None
-        elif id is not None:
-            id = str(id)
 
         currency = str(request.form.get('currency', ''))
         name = str(request.form.get('name', ''))

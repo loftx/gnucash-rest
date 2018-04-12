@@ -40,6 +40,33 @@ class ApiTestCase(unittest.TestCase):
         else:
             raise ValueError('Non 400 error code: ' + response.status)
 
+class ApiSessionTestCase(ApiTestCase):
+
+    def setUp(self):
+        self.app = gnucash_rest.app.test_client()
+        self.app.testing = True
+
+        # remove the database in case tests failed previously
+        self.teardown_database()
+
+        self.setup_database()
+
+        data = dict(
+            connection_string = 'mysql://root:oxford@localhost/test',
+            is_new = '1',
+            ignore_lock = '0'
+        )
+
+        response = self.app.post('/session', data=data)
+        assert response.data == '"Session started"'
+
+    def tearDown(self):
+
+        response = self.app.delete('/session')
+        assert response.data == '"Session ended"'
+
+        self.teardown_database()
+
 class RootTestCase(ApiTestCase):
 
     def test_root(self):
@@ -230,9 +257,6 @@ class AccountsSessionTestCase(ApiTestCase):
             currency  = 'GBP',
             account_type_id = 'X',
         )
-
-        #response = json.loads(self.app.post('/accounts', data=data).data)
-        #print response
 
         assert self.get_error_type('post', '/accounts', data) == 'InvalidAccountTypeID'
 
@@ -762,6 +786,53 @@ class TransactionsSessionTestCase(ApiTestCase):
         self.app.delete('/transactions/' + transaction['guid'], data=dict())
 
         assert self.app.get('/transactions/' + transaction['guid']).status == '404 NOT FOUND'
+
+class VendorsTestCase(ApiTestCase):
+
+    def test_vendors_no_session(self):
+        assert self.get_error_type('get', '/vendors', dict()) == 'SessionDoesNotExist'
+
+class VendorsSessionTestCase(ApiSessionTestCase):
+
+    def test_add_vendor_no_parameters(self):
+        assert self.app.get('/vendors').data == '[]'
+
+    def test_add_vendor_no_name(self):
+        assert self.get_error_type('post', '/vendors', dict()) == 'NoVendorName'
+
+    def test_add_vendor_no_address(self):
+        data = dict(
+            name = 'Test vendor'
+        )
+
+        assert self.get_error_type('post', '/vendors', data=data) == 'NoVendorAddress'
+
+    def test_add_vendor_no_currency(self):
+        data = dict(
+            name = 'Test vendor',
+            address_line_1 = 'Test address'
+        )
+
+        assert self.get_error_type('post', '/vendors', data=data) == 'InvalidVendorCurrency'
+
+    def test_add_vendor_invalid_currency(self):
+        data = dict(
+            name = 'Test vendor',
+            address_line_1 = 'Test address',
+            currency = 'XYZ'
+        )
+
+        assert self.get_error_type('post', '/vendors', data=data) == 'InvalidVendorCurrency'
+
+    def test_vendors_no_id(self):
+
+        data = dict(
+            name = 'Test vendor',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        assert self.app.post('/vendors', data=data).status == '201 CREATED'
 
 if __name__ == '__main__':
     unittest.main()
