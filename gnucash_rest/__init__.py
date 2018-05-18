@@ -35,6 +35,7 @@ import atexit
 from functools import wraps
 from flask import Flask, abort, request, Response, g
 import re
+import sys
 
 # to resolve bug in http://stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime
 import _strptime
@@ -1156,8 +1157,8 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
         param_list = [SPLIT_TRANS, TRANS_DATE_POSTED]
         query.add_term(param_list, pred_data, QOF_QUERY_AND)
     
-    SPLIT_ACCOUNT = 'account'
-    QOF_PARAM_GUID = 'guid'
+    SPLIT_ACCOUNT = b'account'
+    QOF_PARAM_GUID = b'guid'
 
     if guid is not None:
         gnucash.gnucash_core.GUIDString(guid, account_guid)
@@ -2183,7 +2184,11 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
     transaction.SetDescription(description)
     transaction.SetNum(num)
 
-    transaction.SetDatePostedTS(date_posted)
+    # This function changes at some point between Guncash/Python 2/3
+    if sys.version_info >= (3,0):
+        transaction.SetDatePostedSecs(date_posted)
+    else:
+        transaction.SetDatePostedTS(date_posted)
 
     transaction.CommitEdit()
 
@@ -2293,7 +2298,11 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
     transaction.SetDescription(description)
     transaction.SetNum(num)
 
-    transaction.SetDatePostedTS(date_posted)
+    # This function changes at some point between Guncash/Python 2/3
+    if sys.version_info >= (3,0):
+        transaction.SetDatePostedSecs(date_posted)
+    else:
+        transaction.SetDatePostedTS(date_posted)
 
     transaction.CommitEdit()
 

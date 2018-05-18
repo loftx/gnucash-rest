@@ -28,6 +28,7 @@ Boston, MA 02110-1301, USA gnu@gnu.org
 
 import gnucash
 from gnucash.gnucash_business import Entry, Split, Account
+import sys
 
 def addressToDict(address):
     if address is None:
@@ -111,13 +112,25 @@ def transactionToDict(transaction, entities):
         simple_transaction['imbalance_value'] = transaction.GetImbalanceValue(
             ).to_double()
         simple_transaction['is_balanced'] = transaction.IsBalanced()
-        simple_transaction['date'] = transaction.GetDate()
-        simple_transaction['date_posted'] = transaction.RetDatePostedTS(
-            ).strftime('%Y-%m-%d')
-        simple_transaction['date_entered'] = transaction.RetDateEnteredTS(
-            ).strftime('%Y-%m-%d')
-        simple_transaction['date_due'] = transaction.RetDateDueTS().strftime(
-            '%Y-%m-%d')
+
+        # This function changes at some point between Guncash/Python 2/3
+        if sys.version_info >= (3,0):
+            simple_transaction['date'] = transaction.GetDate().strftime('%Y-%m-%d')
+            simple_transaction['date_posted'] = transaction.RetDatePosted(
+                ).strftime('%Y-%m-%d')
+            simple_transaction['date_entered'] = transaction.RetDateEntered(
+                ).strftime('%Y-%m-%d')
+            simple_transaction['date_due'] = transaction.RetDateDue(
+                ).strftime('%Y-%m-%d') 
+        else:
+            simple_transaction['date'] = transaction.GetDate()
+            simple_transaction['date_posted'] = transaction.RetDatePostedTS(
+                ).strftime('%Y-%m-%d')
+            simple_transaction['date_entered'] = transaction.RetDateEnteredTS(
+                ).strftime('%Y-%m-%d')  
+            simple_transaction['date_due'] = transaction.RetDateDueTS(
+                ).strftime('%Y-%m-%d')  
+
         simple_transaction['void_status'] = transaction.GetVoidStatus()
         simple_transaction['void_time'] = transaction.GetVoidTime().strftime(
             '%Y-%m-%d')
