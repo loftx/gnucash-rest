@@ -859,6 +859,38 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
         assert self.app.post('/vendors', data=data).status == '201 CREATED'
 
+    def test_add_vendor(self):
+
+        data = dict(
+            id = '999999',
+            name = 'Test vendor',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        assert self.app.post('/vendors', data=data).status == '201 CREATED'
+
+    def test_get_vendor(self):
+
+        # currently failing in Python3 - not bringing back any vendors due to bug 796137 - query.search_for outputs critical qof.object errors and prevents queries being run
+
+        # Logs in Python 3
+        # WARN <qof.class> [qof_class_get_parameter()] no object of type 
+        # WARN <qof.class> [qof_class_get_parameter()] no object of type
+        # CRIT <qof.object> [qof_object_foreach()] No object of type
+
+        data = dict(
+            id = '999999',
+            name = 'Test vendor',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        self.app.post('/vendors', data=data)
+
+        print(json.loads(self.clean(self.app.get('/vendors', data=data).data))[0]['id'])
+
+
     def test_get_vendors(self):
 
         # Logs in Python 3
