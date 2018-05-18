@@ -121,6 +121,9 @@ class SessionTestCase(ApiTestCase):
 
         self.setup_database()
 
+        # Logs
+        # CRIT <gnc.backend.dbi> [GncDbiSqlConnection::begin_transaction()] BEGIN transaction failed()
+
         error = gnucash_rest.startup()
         assert error.data['code'] == 'ERR_BACKEND_NO_SUCH_DB'
 
@@ -311,7 +314,13 @@ class AccountsSessionTestCase(ApiTestCase):
             account_type_id = '2'
         )).data))
 
-        assert not json.loads(self.clean(self.app.get('/accounts/' + response['guid'] + '/splits').data))
+        # Logs in Python3 - this probably actually results in failing to return splits - though there's no test yet
+        # WARN <qof.class> [qof_class_get_parameter()] no object of type qof_class_get_parameter
+        # WARN <qof.class> [qof_class_get_parameter()] no object of type qof_class_get_parameter
+        # WARN <qof.class> [qof_class_get_parameter()] no object of type qof_class_get_parameter
+        # CRIT <qof.object> [qof_object_foreach()] No object of type qof_object_foreach
+
+        assert json.loads(self.clean(self.app.get('/accounts/' + response['guid'] + '/splits').data)) == []
 
 class TransactionsTestCase(ApiTestCase):
 
@@ -804,9 +813,6 @@ class VendorsTestCase(ApiTestCase):
 class VendorsSessionTestCase(ApiSessionTestCase):
 
     def test_add_vendor_no_parameters(self):
-        assert self.clean(self.app.get('/vendors').data) == '[]'
-
-    def test_add_vendor_no_name(self):
         assert self.get_error_type('post', '/vendors', dict()) == 'NoVendorName'
 
     def test_add_vendor_no_address(self):
@@ -842,6 +848,42 @@ class VendorsSessionTestCase(ApiSessionTestCase):
         )
 
         assert self.app.post('/vendors', data=data).status == '201 CREATED'
+
+    def test_vendors_empty_id(self):
+        data = dict(
+            id = '',
+            name = 'Test vendor',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        assert self.app.post('/vendors', data=data).status == '201 CREATED'
+
+    def test_get_vendors(self):
+
+        # Logs in Python 3
+        # WARN <qof.class> [qof_class_get_parameter()] no object of type 
+        # WARN <qof.class> [qof_class_get_parameter()] no object of type
+        # CRIT <qof.object> [qof_object_foreach()] No object of type
+
+        assert self.clean(self.app.get('/vendors').data) == '[]'
+
+class BillsTestCase(ApiTestCase):
+
+    def test_bills_no_session(self):
+        assert self.get_error_type('get', '/bills', dict()) == 'SessionDoesNotExist'
+
+class BillsSessionTestCase(ApiSessionTestCase):
+
+    def test_bills_no_parameters(self):
+        assert self.clean(self.app.get('/bills').data) == '[]'
+
+    # add_bill
+    #def test_bills(self):
+    #    print self.app.post('/bills').data
+
+    #def test_bills(self):
+    #    print self.app.get('/bills?is_paid=X').data
 
 if __name__ == '__main__':
     unittest.main()
