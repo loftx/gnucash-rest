@@ -237,14 +237,17 @@ def api_transactions():
         num = str(request.form.get('num', ''))
         date_posted = str(request.form.get('date_posted', ''))
 
-        splitvalue1 = str(request.form.get('splitvalue1', ''))
-        splitaccount1 = str(request.form.get('splitaccount1', ''))
-        splitvalue2 = str(request.form.get('splitvalue2', ''))
-        splitaccount2 = str(request.form.get('splitaccount2', ''))
+        splits = []
 
-        splits = [
-            {'value': splitvalue1, 'account_guid': splitaccount1},
-            {'value': splitvalue2, 'account_guid': splitaccount2}]
+        # loop over all fields, extract splitvalues assign matching splitaccount should one exist
+        for field in request.form:
+            if field[:10] == 'splitvalue':
+                splitvalue = str(request.form.get('splitvalue' + field[10:], ''))
+                if 'splitaccount' + field[10:] in request.form:
+                    splitaccount = str(request.form.get('splitaccount' + field[10:], ''))
+                else:
+                    splitaccount = ''
+                splits.append({'value': splitvalue, 'account_guid': splitaccount})
 
         try:
             transaction = add_transaction(session.book, num, description,
@@ -283,21 +286,21 @@ def api_transaction(guid):
         num = str(request.form.get('num', ''))
         date_posted = str(request.form.get('date_posted', ''))
 
-        splitguid1 = str(request.form.get('splitguid1', ''))
-        splitvalue1 = str(request.form.get('splitvalue1', ''))
-        splitaccount1 = str(request.form.get('splitaccount1', ''))
-        splitguid2 = str(request.form.get('splitguid2', ''))
-        splitvalue2 = str(request.form.get('splitvalue2', ''))
-        splitaccount2 = str(request.form.get('splitaccount2', ''))
+        splits = []
 
-        splits = [
-            {'guid': splitguid1,
-            'value': splitvalue1,
-            'account_guid': splitaccount1},
-            {'guid': splitguid2,
-            'value': splitvalue2,
-            'account_guid': splitaccount2}
-        ]
+        # loop over all fields, extract splitguids and assign matching splitvalues and splitaccount should they exist
+        for field in request.form:
+            if field[:9] == 'splitguid':
+                splitguid = str(request.form.get('splitguid' + field[9:], ''))
+                if 'splitvalue' + field[9:] in request.form:
+                    splitvalue = str(request.form.get('splitvalue' + field[9:], ''))
+                else:
+                    splitvalue = ''
+                if 'splitaccount' + field[9:] in request.form:
+                    splitaccount = str(request.form.get('splitaccount' + field[9:], ''))
+                else:
+                    splitaccount = ''
+                splits.append({'guid': splitguid, 'value': splitvalue, 'account_guid': splitaccount})
 
         try:
             transaction = edit_transaction(session.book, guid, num, description,
@@ -2141,6 +2144,10 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
             'The date posted must be provided in the form YYYY-MM-DD',
             {'field': 'date_posted'})
 
+    if len(splits) is 0:
+        raise Error('NoSplits',
+            'At least one split must be provided',
+            {'field': 'splits'})
 
     for split_values in splits:
         account_guid = gnucash.gnucash_core.GUID() 
@@ -2174,17 +2181,18 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
             'A valid value must be supplied for this split',
             {'field': 'value'})
 
-
         split = Split(book)
         split.SetValue(GncNumeric(value, 100))
         split.SetAccount(account)
         split.SetParent(transaction)
 
+    # TODO - check that splits match...
+
     transaction.SetCurrency(currency)
     transaction.SetDescription(description)
     transaction.SetNum(num)
 
-    # This function changes at some point between Guncash/Python 2/3
+    # This function changes at some point between Gnucash/Python 2/3
     if sys.version_info >= (3,0):
         transaction.SetDatePostedSecs(date_posted)
     else:
@@ -2235,6 +2243,11 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
         raise Error('InvalidDatePosted',
             'The date posted must be provided in the form YYYY-MM-DD',
             {'field': 'date_posted'})
+
+    if len(splits) is 0:
+        raise Error('NoSplits',
+            'At least one split must be provided',
+            {'field': 'splits'})
 
     split_guids = []
 

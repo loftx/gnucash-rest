@@ -425,15 +425,7 @@ class TransactionsSessionTestCase(ApiTestCase):
             currency = 'GBP',
             date_posted = '2018-01-01'
         )
-        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
-
-    def test_add_transaction_invalid_split_account(self):
-        data = dict(
-            currency = 'GBP',
-            date_posted = '2018-01-01',
-            splitaccount1 = 'XXX'
-        )
-        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
+        assert self.get_error_type('post', '/transactions', data) == 'NoSplits'
     
     def test_add_transaction_single_no_split_value(self):
 
@@ -449,10 +441,19 @@ class TransactionsSessionTestCase(ApiTestCase):
             date_posted = '2018-01-01',
             splitaccount1 = splitaccount1['guid'],
         )
+        assert self.get_error_type('post', '/transactions', data) == 'NoSplits'
 
-        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitValue'
+    def test_add_transaction_invalid_split_account(self):
+        data = dict(
+            currency = 'GBP',
+            date_posted = '2018-01-01',
+            splitvalue1 = '1.5',
+            splitaccount1 = 'XXX'
+        )
+        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
 
-    def test_add_transaction_single_invalid_split_account(self):
+    def test_add_transaction_single_split_account(self):
+        # TODO - should this test fail due to only a single split - when we required 2 it failed with InvalidSplitAccount
 
         # this is test_accounts
         splitaccount1 = json.loads(self.clean(self.app.post('/accounts', data=dict(
@@ -464,11 +465,11 @@ class TransactionsSessionTestCase(ApiTestCase):
         data = dict(
             currency = 'GBP',
             date_posted = '2018-01-01',
-            splitaccount1 = splitaccount1['guid'],
-            splitvalue1 = '1.5'
+            splitvalue1 = '1.5',
+            splitaccount1 = splitaccount1['guid']
         )
 
-        assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccount'
+        assert self.app.post('/transactions', data=data).status == '201 CREATED'
 
     def test_add_transaction_invalid_account_currency(self):
 
@@ -488,10 +489,11 @@ class TransactionsSessionTestCase(ApiTestCase):
         data = dict(
             currency = 'EUR',
             date_posted = '2018-01-01',
+            splitvalue1 = '1.5',
             splitaccount1 = splitaccount1['guid'],
+            splitvalue2 = '1.5',
             splitaccount2 = splitaccount2['guid'],
         )
-
         assert self.get_error_type('post', '/transactions', data) == 'InvalidSplitAccountCurrency'
     
     def test_add_transaction_identical_split_account(self):
@@ -593,7 +595,7 @@ class TransactionsSessionTestCase(ApiTestCase):
             currency = 'GBP',
             date_posted = '2018-01-01'
         )
-        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'InvalidSplitGuid'
+        assert self.get_error_type('post', '/transactions/' + self.createTransactionGuid(), data=data) == 'NoSplits'
 
     def test_update_transaction_invalid_split_guid(self):
         data = dict(
