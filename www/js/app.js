@@ -62,6 +62,10 @@ app.config(['$routeProvider', function($routeProvider) {
 			templateUrl: 'partials/reports/income-statement.html',
 			controller: ReportIncomeStatementCtrl
 		}).
+		when('/session/delete', {
+			templateUrl: 'partials/session/delete.html',
+			controller: SessionDeleteCtrl
+		}).
 		otherwise({redirectTo: '/accounts'});
 }]);
 

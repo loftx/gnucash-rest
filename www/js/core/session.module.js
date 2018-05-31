@@ -28,6 +28,28 @@ factory('Session', function($q, $http, $timeout, Api) {
         return deferred.promise;
       },
 
+      delete: function(params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+
+        $http({
+          method: 'DELETE',
+          url: Api.getUrl() + '/session',
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(deferred.resolve)
+        .error(deferred.reject);
+
+        return deferred.promise;
+      },
+
     }
 
     // could only expose certain functions

@@ -1,3 +1,22 @@
+function SessionDeleteCtrl($scope, $location, Session) {
+	
+	Session.delete().then(function(session) {
+
+		$location.path('/');
+
+	}, function(data) {
+		if(typeof data.errors != 'undefined') {
+			if (data.errors[0].type == 'GnuCashBackendException') {
+				$scope.error = data.errors[0].message + ': ' + data.errors[0].data.code;
+			} else {
+				$scope.error = data.errors[0].message;
+			}
+		} else {
+			console.log(data);	
+		}
+	});
+}
+
 // this is bad due to the case...
 app.controller('modalStartSessionCtrl', ['error', '$scope', '$route', '$uibModalInstance', 'Session', function(error, $scope, $route, $uibModalInstance, Session) {
 
