@@ -1,4 +1,4 @@
-function AccountListCtrl($scope, Account, Money) {
+function AccountListCtrl($scope, $route, Account, Money) {
 
 	$scope.account = {};
 	$scope.account.guid = '';
@@ -30,7 +30,6 @@ function AccountListCtrl($scope, Account, Money) {
 		};
 
 		Account.add(params).then(function(account) {
-			//$scope.accounts.push(account);
 			$('#accountForm').modal('hide');
 			$('#accountAlert').hide();
 
@@ -39,6 +38,10 @@ function AccountListCtrl($scope, Account, Money) {
 			$scope.account.currency = '';
 			$scope.account.type_id = '';
 			$scope.account.parent_guid = '';
+
+			// should add rather than reload
+			//$scope.accounts.push(account);
+			$route.reload();
 
 		}, function(data) {
 			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
