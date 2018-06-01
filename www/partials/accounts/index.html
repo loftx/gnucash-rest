@@ -1,7 +1,9 @@
 <div class="container">
   <h1>Accounts</h1>
   <div>
+
   	<div ng-show="!accounts" class="loader">Loading...</div>
+
     <table ng-show="accounts" class="table">
       <tr>
         <th>Name</th>
@@ -16,6 +18,11 @@
         <td ng-style="account.balance_gbp < 0 ? { color: 'red' } : {}">{{account.formatted_balance_gbp}}</td>
       </tr>
     </table>
+
+    <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyAccount()">Add account</a>
+
   </div>
 
 </div> <!-- /container -->
+
+<div ng-include src="'partials/accounts/fragments/form.html'"></div>

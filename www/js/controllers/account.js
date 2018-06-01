@@ -1,8 +1,81 @@
-function AccountListCtrl($scope, Account) {
+function AccountListCtrl($scope, Account, Money) {
+
+	$scope.account = {};
+	$scope.account.guid = '';
+	$scope.account.name = '';
+	$scope.account.currency = '';
+	$scope.account.type_id = '';
+	$scope.account.parent_guid = '';
+	
+
+	$scope.currencys = Money.currencys();
+	$scope.account_types = Account.types();
+
 	// could also handle some errors here?
 	Account.query().then(function(accounts) {
 		$scope.accounts = accounts;
 	});
+
+	Account.getAccountsForDropdown({ 'includeRoot': true }).then(function(accounts) {
+		$scope.dropdown_accounts = accounts;
+	});
+
+	$scope.addAccount = function() {
+
+		var params = {
+			name: $scope.account.name,
+			currency: $scope.account.currency,
+			account_type_id: $scope.account.type_id,
+			parent_account_guid: $scope.account.parent_guid
+		};
+
+		Account.add(params).then(function(account) {
+			//$scope.accounts.push(account);
+			$('#accountForm').modal('hide');
+			$('#accountAlert').hide();
+
+			$scope.account.guid = '';
+			$scope.account.name = '';
+			$scope.account.currency = '';
+			$scope.account.type_id = '';
+			$scope.account.parent_guid = '';
+
+		}, function(data) {
+			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+			if(typeof data.errors != 'undefined') {
+				$('#accountAlert').show();
+				$scope.accountError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
+		});
+
+	}
+
+	$scope.saveAccount = function() {
+		if ($scope.accountNew == 1) {
+			$scope.addAccount();
+		} else {
+			// TODO: updating account
+		}
+	}
+
+	$scope.emptyAccount = function() {
+
+		$scope.accountTitle = 'Add account';
+
+		$scope.accountNew = 1;
+
+		$scope.account.guid = '';
+		$scope.account.name = '';
+		$scope.account.currency = '';
+		$scope.account.type_id = '';
+		$scope.account.parent_guid = '';
+
+		$('#accountForm').modal('show');
+
+	}
 }
 
 function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, Dates) {

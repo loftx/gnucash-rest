@@ -1,0 +1,52 @@
+<div id="accountForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">{{accountTitle}}</h3>
+  </div>
+  <div class="modal-body">
+
+  <div id="accountAlert" class="alert  alert-error" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>Error</strong> {{accountError}}
+  </div>
+
+    <form class="form-horizontal" style="margin: 0px;">
+      <fieldset>
+
+        <div class="control-group">
+          <label class="control-label" for="accountName">Account name</label>
+          <div class="controls">
+            <input id="accountName" ng-model="account.name" name="accountName" class="input-xlarge" type="text">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="accountCurrency">Currency</label>
+          <div class="controls">
+            <select id="accountCurrency" data-ng-model="account.currency" data-ng-options="currency.key as currency.value for currency in currencys" class="input-xlarge"></select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="accountTypeID">Type</label>
+          <div class="controls">
+            <select id="accountTypeID" data-ng-model="account.type_id" data-ng-options="account_type.key as account_type.value for account_type in account_types" class="input-xlarge"></select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="accountParentGuid">Parent account</label>
+          <div class="controls">
+            <select id="accountParentGuid" data-ng-model="account.parent_guid" data-ng-options="account.guid as account.name for account in dropdown_accounts" class="input-xlarge"></select>
+          </div>
+        </div>
+
+      </fieldset>
+    </form>
+    
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" ng-click="saveAccount()">Save changes</button>
+  </div>
+</div>

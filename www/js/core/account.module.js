@@ -22,6 +22,24 @@ angular.module('core.account').
 factory('Account', function($q, $http, $timeout, Api, Money) {
     var obj = {
 
+      types: function() {
+        return [
+          {key: ACCT_TYPE_BANK, value: 'Bank'},
+          {key: ACCT_TYPE_CASH, value: 'Cash'},
+          {key: ACCT_TYPE_ASSET, value: 'Asset'},
+          {key: ACCT_TYPE_CREDIT, value: 'Credit Card'},
+          {key: ACCT_TYPE_LIABILITY, value: 'Liability'},
+          {key: ACCT_TYPE_STOCK, value: 'Stock'},
+          {key: ACCT_TYPE_MUTUAL, value: 'Mutual Fund'},
+          {key: ACCT_TYPE_INCOME, value: 'Income'},
+          {key: ACCT_TYPE_EXPENSE, value: 'Expense'},
+          {key: ACCT_TYPE_EQUITY, value: 'Equity'},
+          {key: ACCT_TYPE_RECEIVABLE, value: 'Accounts Receivable'},
+          {key: ACCT_TYPE_PAYABLE, value: 'Accounts Payable'},
+          {key: ACCT_TYPE_TRADING, value: 'Trading'},
+        ];
+      },
+
       // well use this to get the http bit, then post process it normally?
       query: function() {
         var deferred = $q.defer();
@@ -81,8 +99,16 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
       },
 
       // could this be combined with getAccounts - it really just runs getAccounts and runs some processing on it - can we chain though defers?
-      getAccountsForDropdown: function() {
+      getAccountsForDropdown: function(params) {
         var deferred = $q.defer();
+
+        if (params === undefined)  {
+          params = {};
+        }
+
+        if (!('includeRoot' in params)) {
+          params['includeRoot'] = false;
+        }
 
         $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
           .success(function(data) {
@@ -90,7 +116,12 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
             var accounts = obj.getSubAccounts(data, 0);
             var nonPlaceholderAccounts = [];
 
-            // limit accounts to income accounts and remove placeholder accounts 
+            if (data.type_id == ACCT_TYPE_ROOT && params['includeRoot'] == true) {
+              delete data['subaccounts'];
+              nonPlaceholderAccounts.push(data);
+            }
+
+            // limit remove placeholder accounts 
             for (var i in accounts) {
               if (!accounts[i].placeholder) {
                 nonPlaceholderAccounts.push(accounts[i]);
@@ -213,6 +244,32 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
             Api.handleErrors(data, status, 'accounts');
           })
         ;
+
+        return deferred.promise;
+      },
+
+      add: function(params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'POST',
+          url: Api.getUrl() + '/accounts',
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(account) {
+
+          deferred.resolve(account);
+        
+        }).error(deferred.reject);
 
         return deferred.promise;
       },
