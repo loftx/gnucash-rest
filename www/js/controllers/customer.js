@@ -171,11 +171,11 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 		$scope.customers = customers;
 	});
 
-	Account.getAccountsForDropdown([11]).then(function(accounts) {
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_RECEIVABLE]).then(function(accounts) {
 		$scope.accounts = accounts;
 	});
 
-	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_ASSET, ACCT_TYPE_CASH, ACCT_TYPE_BANK, ACCT_TYPE_LIABILITY, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
 		$scope.transferAccounts = transferAccounts;
 	});
 

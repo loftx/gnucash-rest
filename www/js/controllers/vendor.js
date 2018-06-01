@@ -111,11 +111,11 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 		$scope.vendors = vendors;
 	});
 
-	Account.getAccountsForDropdown([12]).then(function(accounts) {
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_PAYABLE]).then(function(accounts) {
 		$scope.accounts = accounts;
 	});
 
-	Account.getAccountsForDropdown([2, 1, 0, 4, 3]).then(function(transferAccounts) {
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_ASSET, ACCT_TYPE_CASH, ACCT_TYPE_BANK, ACCT_TYPE_LIABILITY, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
 		$scope.transferAccounts = transferAccounts;
 	});
 

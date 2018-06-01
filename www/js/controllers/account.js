@@ -97,7 +97,7 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 		});
 	});
 
-	Account.getAccountsForDropdown($routeParams.accountGuid).then(function(accounts) {
+	Account.getAccountsForDropdown().then(function(accounts) {
 		$scope.accounts = accounts;
 	});
 
