@@ -108,18 +108,16 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 			num: $scope.transaction.num,
 			date_posted: Dates.dateInput($scope.transaction.date_posted),
 			description: $scope.transaction.description,
-			//splitvalue1: $scope.transaction.splitValue1*100,
 			splitaccount1: $scope.transaction.splitAccount1,
-			//splitvalue2: -$scope.transaction.splitValue1*100,
 			splitaccount2: $scope.account.guid
 		};
 
 		if ($scope.account.type_id == 0) { // bank
-			params.splitvalue1 = -Math.round($scope.transaction.splitValue1*100);
-			params.splitvalue2 = Math.round($scope.transaction.splitValue1*100);
+			params.splitvalue1 = -Math.round($scope.transaction.splitValue1);
+			params.splitvalue2 = Math.round($scope.transaction.splitValue1);
 		} else {
-			params.splitvalue1 = Math.round($scope.transaction.splitValue1*100);
-			params.splitvalue2 = -Math.round($scope.transaction.splitValue1*100);
+			params.splitvalue1 = Math.round($scope.transaction.splitValue1);
+			params.splitvalue2 = -Math.round($scope.transaction.splitValue1);
 		}
 
 		Transaction.add(params).then(function(transaction) {
@@ -217,10 +215,10 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 			date_posted: Dates.dateInput($scope.transaction.date_posted),
 			description: $scope.transaction.description,
 			splitguid1: $scope.transaction.splitGuid1,
-			splitvalue1: $scope.transaction.splitValue1*100,
+			splitvalue1: $scope.transaction.splitValue1,
 			splitaccount1: $scope.transaction.splitAccount1,
 			splitguid2: $scope.transaction.splitGuid2,
-			splitvalue2: -$scope.transaction.splitValue1*100,
+			splitvalue2: -$scope.transaction.splitValue1,
 			splitaccount2: $scope.account.guid
 		};
 
