@@ -2,6 +2,7 @@ function SessionDeleteCtrl($scope, $location, Session) {
 	
 	Session.delete().then(function(session) {
 
+		// This will show the 'The session does not exist' error on the connect box, as it currently redirects to /accounts
 		$location.path('/');
 
 	}, function(data) {
@@ -18,10 +19,10 @@ function SessionDeleteCtrl($scope, $location, Session) {
 }
 
 // this is bad due to the case...
-app.controller('modalStartSessionCtrl', ['error', '$scope', '$route', '$uibModalInstance', 'Session', function(error, $scope, $route, $uibModalInstance, Session) {
+app.controller('modalStartSessionCtrl', ['error', '$scope', '$route', '$uibModalStack', '$uibModalInstance', 'Session', function(error, $scope, $route, $uibModalStack, $uibModalInstance, Session) {
 
 	$scope.error = error;
-	$scope.session = {}
+	$scope.session = {};
 
 	// could change to generic function
 	$scope.startSession = function() {
@@ -34,7 +35,8 @@ app.controller('modalStartSessionCtrl', ['error', '$scope', '$route', '$uibModal
 
 		Session.start(params).then(function(session) {
 
-			$uibModalInstance.close();				
+			//use $uibModalStack.dismissAll() rather than $uibModalInstance.close() as multiple calls currently pop up dialogs which stack;
+			$uibModalStack.dismissAll();
 			$route.reload();
 
 		}, function(data) {
