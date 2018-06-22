@@ -24,19 +24,84 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
 
       types: function() {
         return [
-          {key: ACCT_TYPE_BANK, value: 'Bank'},
-          {key: ACCT_TYPE_CASH, value: 'Cash'},
-          {key: ACCT_TYPE_ASSET, value: 'Asset'},
-          {key: ACCT_TYPE_CREDIT, value: 'Credit Card'},
-          {key: ACCT_TYPE_LIABILITY, value: 'Liability'},
-          {key: ACCT_TYPE_STOCK, value: 'Stock'},
-          {key: ACCT_TYPE_MUTUAL, value: 'Mutual Fund'},
-          {key: ACCT_TYPE_INCOME, value: 'Income'},
-          {key: ACCT_TYPE_EXPENSE, value: 'Expense'},
-          {key: ACCT_TYPE_EQUITY, value: 'Equity'},
-          {key: ACCT_TYPE_RECEIVABLE, value: 'Accounts Receivable'},
-          {key: ACCT_TYPE_PAYABLE, value: 'Accounts Payable'},
-          {key: ACCT_TYPE_TRADING, value: 'Trading'},
+          {
+            key: ACCT_TYPE_BANK,
+            value: 'Bank',
+            decrease_desc: 'Deposit',
+            increase_desc: 'Withdrawl'
+          },
+          {
+            key: ACCT_TYPE_CASH,
+            value: 'Cash',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_ASSET,
+            value: 'Asset',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_CREDIT,
+            value: 'Credit Card',
+            decrease_desc: 'Payment',
+            increase_desc: 'Charge'
+          },
+          {
+            key: ACCT_TYPE_LIABILITY,
+            value: 'Liability',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_STOCK,
+            value: 'Stock',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_MUTUAL,
+            value: 'Mutual Fund',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_INCOME,
+            value: 'Income',
+            decrease_desc: 'Charge',
+            increase_desc: 'Income'
+          },
+          {
+            key: ACCT_TYPE_EXPENSE,
+            value: 'Expense',
+            decrease_desc: 'Expense',
+            increase_desc: 'Rebate'
+          },
+          {
+            key: ACCT_TYPE_EQUITY,
+            value: 'Equity',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_RECEIVABLE,
+            value: 'Accounts Receivable',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_PAYABLE,
+            value: 'Accounts Payable',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
+          {
+            key: ACCT_TYPE_TRADING,
+            value: 'Trading',
+            decrease_desc: 'Decrease',
+            increase_desc: 'Increase'
+          },
         ];
       },
 

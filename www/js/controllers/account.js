@@ -83,6 +83,8 @@ function AccountListCtrl($scope, $route, Account, Money) {
 
 function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, Dates) {
 
+	$scope.account_types = Account.types();
+
 	$scope.picker = {
 		transactionDatePosted: { opened: false },
 		open: function(field) { $scope.picker[field].opened = true; },
@@ -91,6 +93,9 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 
 	Account.get($routeParams.accountGuid).then(function(account) {
 		$scope.account = account;
+
+		// wrap in function?
+		$scope.account_type = $scope.account_types.filter(function (account_types) { return account_types.key === $scope.account.type_id; })[0];
 
 		Account.getSplits(account, {}).then(function(splits) {
 			$scope.splits = splits;

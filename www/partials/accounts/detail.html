@@ -11,10 +11,8 @@
         <th>Num</th>
         <th>Description</th>
         <th>Transfer</th>
-        <th ng-show="account.type_id != 0">Charge</th>
-        <th ng-show="account.type_id != 0">Income</th>
-        <th ng-show="account.type_id == 0">Deposit</th>
-        <th ng-show="account.type_id == 0">Withdrawl</th>
+        <th>{{account_type.decrease_desc}}</th>
+        <th>{{account_type.increase_desc}}</th>
         <th>Balance</th>
         <th></th>
         <th></th>
