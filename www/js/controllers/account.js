@@ -117,12 +117,14 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 			splitaccount2: $scope.account.guid
 		};
 
-		if ($scope.account.type_id == 0) { // bank
-			params.splitvalue1 = -Math.round($scope.transaction.splitValue1);
-			params.splitvalue2 = Math.round($scope.transaction.splitValue1);
+		if (
+			$scope.account.type_id == ACCT_TYPE_EXPENSE
+		) {
+			params.splitvalue1 = -$scope.transaction.splitValue1;
+			params.splitvalue2 = $scope.transaction.splitValue1;
 		} else {
-			params.splitvalue1 = Math.round($scope.transaction.splitValue1);
-			params.splitvalue2 = -Math.round($scope.transaction.splitValue1);
+			params.splitvalue1 = $scope.transaction.splitValue1;
+			params.splitvalue2 = -$scope.transaction.splitValue1;
 		}
 
 		Transaction.add(params).then(function(transaction) {
