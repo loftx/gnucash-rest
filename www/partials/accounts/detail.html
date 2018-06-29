@@ -22,10 +22,8 @@
         <td>{{split.transaction.num}}</td>
         <td>{{split.transaction.description}}</td>
         <td>{{split.other_split.account.name}}</td>
-        <td ng-show="account.type_id != 0">{{split.charge}}</td>
-        <td ng-show="account.type_id != 0">{{split.income}}</td>
-        <td ng-show="account.type_id == 0">{{split.income}}</td>
-        <td ng-show="account.type_id == 0">{{split.charge}}</td>
+        <td>{{split.decrease}}</td>
+        <td>{{split.increase}}</td>
         <td>{{split.formatted_balance}}</td>
         <td><a ng-click="populateTransaction(split.transaction.guid)">edit</a></td>
         <td><a ng-click="deleteTransaction(split.transaction.guid)">delete</a></td>

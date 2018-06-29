@@ -33,8 +33,8 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
           {
             key: ACCT_TYPE_CASH,
             value: 'Cash',
-            decrease_desc: 'Decrease',
-            increase_desc: 'Increase'
+            decrease_desc: 'Receive',
+            increase_desc: 'Spend'
           },
           {
             key: ACCT_TYPE_ASSET,
@@ -87,14 +87,14 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
           {
             key: ACCT_TYPE_RECEIVABLE,
             value: 'Accounts Receivable',
-            decrease_desc: 'Decrease',
-            increase_desc: 'Increase'
+            decrease_desc: 'Invoice',
+            increase_desc: 'Payment'
           },
           {
             key: ACCT_TYPE_PAYABLE,
             value: 'Accounts Payable',
-            decrease_desc: 'Decrease',
-            increase_desc: 'Increase'
+            decrease_desc: 'Payment',
+            increase_desc: 'Bill'
           },
           {
             key: ACCT_TYPE_TRADING,
@@ -366,24 +366,45 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
 
       },
 
-      formatSplit: function(split, account) {
-        if (account.type_id == 0) {
+      formatSplit: function(split, account) { 
+
+        // remaining untested
+        // also need to do balances on front
+
+        // ACCT_TYPE_RECEIVABLE = 11;
+        // ACCT_TYPE_PAYABLE = 12;  
+        
+        // TODO: Handle the following account types: ACCT_TYPE_CURRENCY, ACCT_TYPE_MUTUAL,  ACCT_TYPE_STOCK, ACCT_TYPE_TRADING, ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY
+
+        //console.log(account.type_id);
+
+        if (
+          account.type_id == ACCT_TYPE_CASH ||
+          account.type_id == ACCT_TYPE_BANK ||
+          account.type_id == ACCT_TYPE_CREDIT ||
+          account.type_id == ACCT_TYPE_EXPENSE ||
+          account.type_id == ACCT_TYPE_INCOME ||
+          account.type_id == ACCT_TYPE_RECEIVABLE ||
+          account.type_id ==  ACCT_TYPE_PAYABLE ||
+          account.type_id == ACCT_TYPE_EQUITY
+        ) {
           if (split.amount > 0) {
-            split.income = Money.format_currency(account.type_id, account.currency, split.amount);
-            split.charge = '';
+            split.increase = '';
+            split.decrease = Money.format_currency(account.type_id, account.currency, split.amount);
           } else {
-            split.income = '';
-            split.charge = Money.format_currency(account.type_id, account.currency, -split.amount);
+            split.increase = Money.format_currency(account.type_id, account.currency, -split.amount);
+            split.decrease = '';
           }
-        } else if (account.type_id != 8) {
-          split.charge = Money.format_currency(8, account.currency, split.amount);
-          split.income = '';
         } else {
-          split.income = Money.format_currency(8, account.currency, -split.amount);
-          split.charge = '';
+          console.log('formatSplit not implemented for account type ' + account.type_id);
         }
 
-        if (account.type_id == 8) {
+        if (
+          account.type_id == ACCT_TYPE_CREDIT ||
+          account.type_id == ACCT_TYPE_INCOME ||
+          account.type_id == ACCT_TYPE_PAYABLE ||
+          account.type_id == ACCT_TYPE_EQUITY
+        ) {
           split.balance = -(split.balance);
           split.amount = -(split.amount);
         }
