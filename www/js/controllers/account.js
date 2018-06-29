@@ -180,22 +180,48 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 
 			$scope.transaction.date_posted = Dates.dateOutput($scope.transaction.date_posted);
 
+			// TODO: this is a mess as it only handles 2 splits, and will remove any others on updateTransaction - it also confuses the form with the splits, so the splits will be swapped when their resubmitted.
 			if ($scope.transaction.splits.length == 2) {
 				if ($scope.transaction.splits[0].account.guid == $routeParams.accountGuid) {
+
 					$scope.transaction.splitGuid1 = $scope.transaction.splits[1].guid;
 					$scope.transaction.splitAccount1 = $scope.transaction.splits[1].account.guid;
-					$scope.transaction.splitValue1 = $scope.transaction.splits[1].amount;
+					$scope.transaction.splitAccountType1 = $scope.transaction.splits[1].account.type_id;
 					$scope.transaction.splitGuid2 = $scope.transaction.splits[0].guid;
 					$scope.transaction.splitAccount2 = $scope.transaction.splits[0].account.guid;
-					$scope.transaction.splitValue2 = $scope.transaction.splits[0].amount;
+					$scope.transaction.splitAccountType2 = $scope.transaction.splits[0].account.type_id;
+
+					// reverse amount for certain account types
+					if (
+						$scope.transaction.splits[0].account.type_id == ACCT_TYPE_EXPENSE
+					) {
+						$scope.transaction.splitValue1 = $scope.transaction.splits[0].amount;
+						$scope.transaction.splitValue2 = $scope.transaction.splits[1].amount;
+					} else {
+						$scope.transaction.splitValue1 = $scope.transaction.splits[1].amount;
+						$scope.transaction.splitValue2 = $scope.transaction.splits[0].amount;
+					}
 				} else {
 					$scope.transaction.splitGuid1 = $scope.transaction.splits[0].guid;
 					$scope.transaction.splitAccount1 = $scope.transaction.splits[0].account.guid;
-					$scope.transaction.splitValue1 = $scope.transaction.splits[0].amount;
+					$scope.transaction.splitAccountType1 = $scope.transaction.splits[0].account.type_id;
 					$scope.transaction.splitGuid2 = $scope.transaction.splits[1].guid;
 					$scope.transaction.splitAccount2 = $scope.transaction.splits[1].account.guid;
-					$scope.transaction.splitValue2 = $scope.transaction.splits[1].amount;
+					$scope.transaction.splitAccountType2 = $scope.transaction.splits[1].account.type_id;
+
+					// reverse amount for certain account types
+					if (
+						$scope.transaction.splits[1].account.type_id == ACCT_TYPE_EXPENSE
+					) {
+						$scope.transaction.splitValue1 = $scope.transaction.splits[1].amount;
+						$scope.transaction.splitValue2 = $scope.transaction.splits[0].amount;
+					} else {
+						$scope.transaction.splitValue1 = $scope.transaction.splits[0].amount;
+						$scope.transaction.splitValue2 = $scope.transaction.splits[1].amount;
+					}
 				}
+			} else {
+				alert('TODO: fix editing of multisplit transactions.')
 			}
 
 			$('#transactionForm').modal('show');
@@ -220,12 +246,20 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 			date_posted: Dates.dateInput($scope.transaction.date_posted),
 			description: $scope.transaction.description,
 			splitguid1: $scope.transaction.splitGuid1,
-			splitvalue1: $scope.transaction.splitValue1,
 			splitaccount1: $scope.transaction.splitAccount1,
 			splitguid2: $scope.transaction.splitGuid2,
-			splitvalue2: -$scope.transaction.splitValue1,
 			splitaccount2: $scope.account.guid
 		};
+
+		if (
+			$scope.transaction.splitAccountType2 == ACCT_TYPE_EXPENSE
+		) {
+			params.splitvalue1 = -$scope.transaction.splitValue1;
+			params.splitvalue2 = $scope.transaction.splitValue1;
+		} else {
+			params.splitvalue1 = $scope.transaction.splitValue1;
+			params.splitvalue2 = -$scope.transaction.splitValue1;
+		}
 
 		Transaction.update(guid, params).then(function(transaction) {
 			
