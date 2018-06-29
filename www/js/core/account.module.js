@@ -368,37 +368,15 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
 
       formatSplit: function(split, account) { 
 
-        // remaining untested
-        // also need to do balances on front
-
-        // ACCT_TYPE_RECEIVABLE = 11;
-        // ACCT_TYPE_PAYABLE = 12;  
-        
-        // TODO: Handle the following account types: ACCT_TYPE_CURRENCY, ACCT_TYPE_MUTUAL,  ACCT_TYPE_STOCK, ACCT_TYPE_TRADING, ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY
-
-        //console.log(account.type_id);
-
-        if (
-          account.type_id == ACCT_TYPE_CASH ||
-          account.type_id == ACCT_TYPE_BANK ||
-          account.type_id == ACCT_TYPE_CREDIT ||
-          account.type_id == ACCT_TYPE_EXPENSE ||
-          account.type_id == ACCT_TYPE_INCOME ||
-          account.type_id == ACCT_TYPE_RECEIVABLE ||
-          account.type_id ==  ACCT_TYPE_PAYABLE ||
-          account.type_id == ACCT_TYPE_EQUITY
-        ) {
-          if (split.amount > 0) {
-            split.increase = '';
-            split.decrease = Money.format_currency(account.type_id, account.currency, split.amount);
-          } else {
-            split.increase = Money.format_currency(account.type_id, account.currency, -split.amount);
-            split.decrease = '';
-          }
+        if (split.amount > 0) {
+          split.increase = '';
+          split.decrease = Money.format_currency(account.type_id, account.currency, split.amount);
         } else {
-          console.log('formatSplit not implemented for account type ' + account.type_id);
+          split.increase = Money.format_currency(account.type_id, account.currency, -split.amount);
+          split.decrease = '';
         }
-
+        
+        // reverse balance column for certain account types
         if (
           account.type_id == ACCT_TYPE_CREDIT ||
           account.type_id == ACCT_TYPE_INCOME ||
@@ -419,7 +397,13 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
       // this could be not exposed
       formatAccount: function(account) {
 
-        if (account.type_id == 8) {
+        // reverse balance column for certain account types
+        if (
+          account.type_id == ACCT_TYPE_CREDIT ||
+          account.type_id == ACCT_TYPE_INCOME ||
+          account.type_id == ACCT_TYPE_PAYABLE ||
+          account.type_id == ACCT_TYPE_EQUITY
+        ) {
           account.balance = -(account.balance);
           account.balance_gbp = -(account.balance_gbp);
         }
