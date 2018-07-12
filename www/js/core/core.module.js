@@ -136,7 +136,7 @@ angular.module('core').factory('Dates', function($timeout, $location) {
 		},
 
 		dateInput: function(date) {
-				return date.getFullYear() + '-' + obj.pad(date.getMonth() + 1) + '-' + obj.pad(date.getDate());
+			return date.getFullYear() + '-' + obj.pad(date.getMonth() + 1) + '-' + obj.pad(date.getDate());
 		},
 
 		dateOutput: function(str) {

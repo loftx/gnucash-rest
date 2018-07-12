@@ -111,7 +111,7 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 		var params = {
 			currency: $scope.account.currency,
 			num: $scope.transaction.num,
-			date_posted: Dates.dateInput($scope.transaction.date_posted),
+			date_posted: ($scope.transaction.date_posted == '' ? '' : Dates.dateInput($scope.transaction.date_posted)),
 			description: $scope.transaction.description,
 			splitaccount1: $scope.transaction.splitAccount1,
 			splitaccount2: $scope.account.guid
