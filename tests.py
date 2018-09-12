@@ -122,7 +122,7 @@ class SessionTestCase(ApiTestCase):
         self.setup_database()
 
         # Logs
-        # CRIT <gnc.backend.dbi> [GncDbiSqlConnection::begin_transaction()] BEGIN transaction failed()
+        # CRIT <gnc.backend.dbi> [GncDbiBackend<Type>::session_begin()] Database 'none' does not exist
 
         error = gnucash_rest.startup()
         assert error.data['code'] == 'ERR_BACKEND_NO_SUCH_DB'
@@ -314,12 +314,6 @@ class AccountsSessionTestCase(ApiTestCase):
             account_type_id = '2'
         )).data))
 
-        # Logs in Python3 - this probably actually results in failing to return splits - though there's no test yet
-        # WARN <qof.class> [qof_class_get_parameter()] no object of type qof_class_get_parameter
-        # WARN <qof.class> [qof_class_get_parameter()] no object of type qof_class_get_parameter
-        # WARN <qof.class> [qof_class_get_parameter()] no object of type qof_class_get_parameter
-        # CRIT <qof.object> [qof_object_foreach()] No object of type qof_object_foreach
-
         assert json.loads(self.clean(self.app.get('/accounts/' + response['guid'] + '/splits').data)) == []
 
 class TransactionsTestCase(ApiTestCase):
@@ -382,11 +376,6 @@ class TransactionsSessionTestCase(ApiTestCase):
             splitvalue1 = '0',
             splitvalue2 = '0'
         )
-
-        # Errors with 20:11:22  CRIT <gnc.backend.dbi> [mysql_error_fn()] DBI error: 1292: Incorrect datetime value: '19700101000000' for column 'reconcile_date' at row 1
-        # Due to https://bugzilla.gnome.org/show_bug.cgi?id=784623
-        # Worked around by adding the following to mysqld.cnf
-        # sql_mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
         return json.loads(self.clean(self.app.post('/transactions', data=data).data))
 
@@ -849,6 +838,12 @@ class VendorsSessionTestCase(ApiSessionTestCase):
             currency = 'GBP'
         )
 
+        # Bug 795839 - CustomerNextID() / VendorNextID() output critical gnc.backend.dbi errors 
+        # CRIT <gnc.backend.dbi> [error_handler()] DBI error: 1062: Duplicate entry '57696fea5eb84f35a1cbf705d1a868e7' for key 'PRIMARY'
+        # CRIT <gnc.backend.dbi> [GncDbiSqlConnection::execute_nonselect_statement()] Error executing SQL INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <gnc.backend.sql> [GncSqlBackend::execute_nonselect_statement()] SQL error: INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <qof.engine> [commit_err()] Failed to commit: 17
+
         assert self.app.post('/vendors', data=data).status == '201 CREATED'
 
     def test_vendors_empty_id(self):
@@ -858,6 +853,12 @@ class VendorsSessionTestCase(ApiSessionTestCase):
             address_line_1 = 'Test address',
             currency = 'GBP'
         )
+
+        # Bug 795839 - CustomerNextID() / VendorNextID() output critical gnc.backend.dbi errors 
+        # CRIT <gnc.backend.dbi> [error_handler()] DBI error: 1062: Duplicate entry '57696fea5eb84f35a1cbf705d1a868e7' for key 'PRIMARY'
+        # CRIT <gnc.backend.dbi> [GncDbiSqlConnection::execute_nonselect_statement()] Error executing SQL INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <gnc.backend.sql> [GncSqlBackend::execute_nonselect_statement()] SQL error: INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <qof.engine> [commit_err()] Failed to commit: 17
 
         assert self.app.post('/vendors', data=data).status == '201 CREATED'
 
@@ -880,13 +881,6 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
     def test_get_vendor(self):
 
-        # currently failing in Python3 - not bringing back any vendors due to bug 796137 - query.search_for outputs critical qof.object errors and prevents queries being run
-
-        # Logs in Python 3
-        # WARN <qof.class> [qof_class_get_parameter()] no object of type 
-        # WARN <qof.class> [qof_class_get_parameter()] no object of type
-        # CRIT <qof.object> [qof_object_foreach()] No object of type
-
         data = dict(
             id = '999999',
             name = 'Test vendor',
@@ -899,11 +893,6 @@ class VendorsSessionTestCase(ApiSessionTestCase):
         assert json.loads(self.clean(self.app.get('/vendors', data=data).data))[0]['id'] == '999999'
 
     def test_get_vendors(self):
-
-        # Logs in Python 3
-        # WARN <qof.class> [qof_class_get_parameter()] no object of type 
-        # WARN <qof.class> [qof_class_get_parameter()] no object of type
-        # CRIT <qof.object> [qof_object_foreach()] No object of type
 
         assert self.clean(self.app.get('/vendors').data) == '[]'
 
