@@ -872,6 +872,12 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
         assert self.app.post('/vendors', data=data).status == '201 CREATED'
 
+    #def test_get_vendor_no_id(self):
+    #    assert self.app.get('/vendors/').status == '404 NOT FOUND'
+
+    def test_get_vendor_invalid_id(self):
+        assert self.app.get('/vendors/999999').status == '404 NOT FOUND'
+
     def test_get_vendor(self):
 
         # currently failing in Python3 - not bringing back any vendors due to bug 796137 - query.search_for outputs critical qof.object errors and prevents queries being run
@@ -890,8 +896,7 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
         self.app.post('/vendors', data=data)
 
-        print(json.loads(self.clean(self.app.get('/vendors', data=data).data))[0]['id'])
-
+        assert json.loads(self.clean(self.app.get('/vendors', data=data).data))[0]['id'] == '999999'
 
     def test_get_vendors(self):
 
