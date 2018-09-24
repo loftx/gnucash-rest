@@ -1160,8 +1160,8 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
         param_list = [SPLIT_TRANS, TRANS_DATE_POSTED]
         query.add_term(param_list, pred_data, QOF_QUERY_AND)
     
-    SPLIT_ACCOUNT = b'account'
-    QOF_PARAM_GUID = b'guid'
+    SPLIT_ACCOUNT = 'account'
+    QOF_PARAM_GUID = 'guid'
 
     if guid is not None:
         gnucash.gnucash_core.GUIDString(guid, account_guid)
