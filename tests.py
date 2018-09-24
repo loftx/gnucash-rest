@@ -801,6 +801,9 @@ class VendorsTestCase(ApiTestCase):
     def test_vendors_no_session(self):
         assert self.get_error_type('get', '/vendors', dict()) == 'SessionDoesNotExist'
 
+    def test_vendor_no_session(self):
+        assert self.get_error_type('get', '/vendors/XXX', dict()) == 'SessionDoesNotExist'
+
 class VendorsSessionTestCase(ApiSessionTestCase):
 
     def test_add_vendor_no_parameters(self):
@@ -873,9 +876,6 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
         assert self.app.post('/vendors', data=data).status == '201 CREATED'
 
-    #def test_get_vendor_no_id(self):
-    #    assert self.app.get('/vendors/').status == '404 NOT FOUND'
-
     def test_get_vendor_invalid_id(self):
         assert self.app.get('/vendors/999999').status == '404 NOT FOUND'
 
@@ -890,9 +890,22 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
         self.app.post('/vendors', data=data)
 
-        assert json.loads(self.clean(self.app.get('/vendors', data=data).data))[0]['id'] == '999999'
+        assert json.loads(self.clean(self.app.get('/vendors/999999', data=dict()).data))['id'] == '999999'
 
     def test_get_vendors(self):
+
+        data = dict(
+            id = '999999',
+            name = 'Test vendor',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        self.app.post('/vendors', data=data)
+
+        assert json.loads(self.clean(self.app.get('/vendors', data=data).data))[0]['id'] == '999999'
+
+    def test_get_empty_vendors(self):
 
         assert self.clean(self.app.get('/vendors').data) == '[]'
 
