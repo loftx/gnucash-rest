@@ -49,6 +49,17 @@ class ApiTestCase(unittest.TestCase):
         else:
             raise ValueError('Non 400 error code: ' + response.status)
 
+    def createVendor(self):
+
+        data = dict(
+            id = '999999',
+            name = 'Test vendor',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        return json.loads(self.clean(self.app.post('/vendors', data=data).data))
+
 class ApiSessionTestCase(ApiTestCase):
 
     def setUp(self):
@@ -804,6 +815,9 @@ class VendorsTestCase(ApiTestCase):
     def test_vendor_no_session(self):
         assert self.get_error_type('get', '/vendors/XXX', dict()) == 'SessionDoesNotExist'
 
+    def test_vendor_bills_no_session(self):
+        assert self.get_error_type('get', '/vendors/XXX/bills', dict()) == 'SessionDoesNotExist'
+
 class VendorsSessionTestCase(ApiSessionTestCase):
 
     def test_add_vendor_no_parameters(self):
@@ -881,29 +895,28 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
     def test_get_vendor(self):
 
-        data = dict(
-            id = '999999',
-            name = 'Test vendor',
-            address_line_1 = 'Test address',
-            currency = 'GBP'
-        )
-
-        self.app.post('/vendors', data=data)
+        self.createVendor()
 
         assert json.loads(self.clean(self.app.get('/vendors/999999', data=dict()).data))['id'] == '999999'
 
     def test_get_vendors(self):
 
-        data = dict(
-            id = '999999',
-            name = 'Test vendor',
-            address_line_1 = 'Test address',
-            currency = 'GBP'
-        )
+        self.createVendor()
 
-        self.app.post('/vendors', data=data)
+        assert json.loads(self.clean(self.app.get('/vendors', data=dict()).data))[0]['id'] == '999999'
 
-        assert json.loads(self.clean(self.app.get('/vendors', data=data).data))[0]['id'] == '999999'
+    def test_get_vendor_bills_invalid_id(self):
+        assert self.app.get('/vendors/999999/bills').status == '404 NOT FOUND'
+
+    # Need to add a vendor (and probably a bill to do further tests)
+
+    # No checks on vendor / bill options e.g active
+
+    def test_get_empty_vendor_bills(self):
+
+        self.createVendor()
+
+        assert self.clean(self.app.get('/vendors/999999/bills').data) == '[]'
 
     def test_get_empty_vendors(self):
 
