@@ -60,6 +60,17 @@ class ApiTestCase(unittest.TestCase):
 
         return json.loads(self.clean(self.app.post('/vendors', data=data).data))
 
+    def createCustomer(self):
+
+        data = dict(
+            id = '999999',
+            name = 'Test customer',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        return json.loads(self.clean(self.app.post('/customers', data=data).data))
+
 class ApiSessionTestCase(ApiTestCase):
 
     def setUp(self):
@@ -921,6 +932,123 @@ class VendorsSessionTestCase(ApiSessionTestCase):
     def test_get_empty_vendors(self):
 
         assert self.clean(self.app.get('/vendors').data) == '[]'
+
+# Copy of VendorsTestCase with names changed
+class CustomersTestCase(ApiTestCase):
+
+    def test_customers_no_session(self):
+        assert self.get_error_type('get', '/customers', dict()) == 'SessionDoesNotExist'
+
+    def test_customer_no_session(self):
+        assert self.get_error_type('get', '/customers/XXX', dict()) == 'SessionDoesNotExist'
+
+    def test_customer_bills_no_session(self):
+        assert self.get_error_type('get', '/customers/XXX/invoices', dict()) == 'SessionDoesNotExist'
+
+# Copy of VendorsSessionTestCase with names changed
+class CustomersSessionTestCase(ApiSessionTestCase):
+
+    def test_add_customer_no_parameters(self):
+        assert self.get_error_type('post', '/customers', dict()) == 'NoCustomerName'
+
+    def test_add_customer_no_address(self):
+        data = dict(
+            name = 'Test customer'
+        )
+
+        assert self.get_error_type('post', '/customers', data=data) == 'NoCustomerAddress'
+
+    def test_add_customer_no_currency(self):
+        data = dict(
+            name = 'Test customer',
+            address_line_1 = 'Test address'
+        )
+
+        assert self.get_error_type('post', '/customers', data=data) == 'InvalidCustomerCurrency'
+
+    def test_add_customer_invalid_currency(self):
+        data = dict(
+            name = 'Test customer',
+            address_line_1 = 'Test address',
+            currency = 'XYZ'
+        )
+
+        assert self.get_error_type('post', '/customers', data=data) == 'InvalidCustomerCurrency'
+
+    def test_customers_no_id(self):
+
+        data = dict(
+            name = 'Test customer',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        # Bug 795839 - CustomerNextID() / VendorNextID() output critical gnc.backend.dbi errors 
+        # CRIT <gnc.backend.dbi> [error_handler()] DBI error: 1062: Duplicate entry '57696fea5eb84f35a1cbf705d1a868e7' for key 'PRIMARY'
+        # CRIT <gnc.backend.dbi> [GncDbiSqlConnection::execute_nonselect_statement()] Error executing SQL INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <gnc.backend.sql> [GncSqlBackend::execute_nonselect_statement()] SQL error: INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <qof.engine> [commit_err()] Failed to commit: 17
+
+        assert self.app.post('/customers', data=data).status == '201 CREATED'
+
+    def test_customers_empty_id(self):
+        data = dict(
+            id = '',
+            name = 'Test customer',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        # Bug 795839 - CustomerNextID() / VendorNextID() output critical gnc.backend.dbi errors 
+        # CRIT <gnc.backend.dbi> [error_handler()] DBI error: 1062: Duplicate entry '57696fea5eb84f35a1cbf705d1a868e7' for key 'PRIMARY'
+        # CRIT <gnc.backend.dbi> [GncDbiSqlConnection::execute_nonselect_statement()] Error executing SQL INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <gnc.backend.sql> [GncSqlBackend::execute_nonselect_statement()] SQL error: INSERT INTO books(guid,root_account_guid,root_template_guid) VALUES('57696fea5eb84f35a1cbf705d1a868e7','7a752878a00349deb0ab83324a9fb6da','a709f4fb7a914301bfe366ce21da9fef')
+        # CRIT <qof.engine> [commit_err()] Failed to commit: 17
+
+        assert self.app.post('/customers', data=data).status == '201 CREATED'
+
+    def test_add_customer(self):
+
+        data = dict(
+            id = '999999',
+            name = 'Test customer',
+            address_line_1 = 'Test address',
+            currency = 'GBP'
+        )
+
+        assert self.app.post('/customers', data=data).status == '201 CREATED'
+
+    def test_get_customer_invalid_id(self):
+        assert self.app.get('/customers/999999').status == '404 NOT FOUND'
+
+    def test_get_customer(self):
+
+        self.createCustomer()
+
+        assert json.loads(self.clean(self.app.get('/customers/999999', data=dict()).data))['id'] == '999999'
+
+    def test_get_customers(self):
+
+        self.createCustomer()
+
+        assert json.loads(self.clean(self.app.get('/customers', data=dict()).data))[0]['id'] == '999999'
+
+    def test_get_customer_invoices_invalid_id(self):
+        assert self.app.get('/customers/999999/invoices').status == '404 NOT FOUND'
+
+    # Need to add a customer (and probably an invoice to do further tests)
+
+    # No checks on customer / invoice options e.g active
+
+    def test_get_empty_customer_invoices(self):
+
+        self.createCustomer()
+
+        assert self.clean(self.app.get('/customers/999999/invoices').data) == '[]'
+
+    def test_get_empty_customers(self):
+
+        assert self.clean(self.app.get('/customers').data) == '[]'
 
 class BillsTestCase(ApiTestCase):
 
