@@ -71,6 +71,16 @@ class ApiTestCase(unittest.TestCase):
 
         return json.loads(self.clean(self.app.post('/customers', data=data).data))
 
+    def createAccount(self):
+
+        data = dict(
+            name = 'Test',
+            currency  = 'GBP',
+            account_type_id = '2'
+        )
+
+        return json.loads(self.clean(self.app.post('/accounts', data=data).data))
+
 class ApiSessionTestCase(ApiTestCase):
 
     def setUp(self):
@@ -313,15 +323,9 @@ class AccountsSessionTestCase(ApiTestCase):
         assert self.app.get('/accounts/none').status == '404 NOT FOUND'
 
     def test_add_and_get_account(self):
+        account = self.createAccount()
 
-        # this is test_add_account
-        response = json.loads(self.clean(self.app.post('/accounts', data=dict(
-            name = 'Test',
-            currency  = 'GBP',
-            account_type_id = '2'
-        )).data))
-
-        response = json.loads(self.clean(self.app.get('/accounts/' + response['guid']).data))
+        response = json.loads(self.clean(self.app.get('/accounts/' + account['guid']).data))
 
         assert response['name'] == 'Test'
 
@@ -329,14 +333,28 @@ class AccountsSessionTestCase(ApiTestCase):
         assert self.app.get('/accounts/none/splits').status == '404 NOT FOUND'
     
     def test_account_get_splits_empty(self):
-        # this is test_add_account
-        response = json.loads(self.clean(self.app.post('/accounts', data=dict(
-            name = 'Test',
-            currency  = 'GBP',
-            account_type_id = '2'
-        )).data))
+        account = self.createAccount()
 
-        assert json.loads(self.clean(self.app.get('/accounts/' + response['guid'] + '/splits').data)) == []
+        assert json.loads(self.clean(self.app.get('/accounts/' + account['guid'] + '/splits').data)) == []
+
+    # Don't think these are working - lines aren't being tests
+
+    def test_account_get_splits_date_posted_from_empty(self):
+        assert self.get_error_type('get', '/accounts/' + self.createAccount()['guid'] + '/splits?date_posted_from=', dict()) == 'InvalidDatePostedFrom'
+
+    def test_account_get_splits_date_posted_from_invalid(self):
+        assert self.get_error_type('get', '/accounts/' + self.createAccount()['guid'] + '/splits?date_posted_from=XXX', dict()) == 'InvalidDatePostedFrom'
+    def test_account_get_splits_date_posted_from(self):
+        assert json.loads(self.clean(self.app.get('/accounts/' + self.createAccount()['guid'] + '/splits?date_posted_from=2010-01-01').data)) == []
+
+    def test_account_get_splits_date_posted_to_empty(self):
+        assert self.get_error_type('get', '/accounts/' + self.createAccount()['guid'] + '/splits?date_posted_to=', dict()) == 'InvalidDatePostedTo'
+
+    def test_account_get_splits_date_posted_to_invalid(self):
+        assert self.get_error_type('get', '/accounts/' + self.createAccount()['guid'] + '/splits?date_posted_to=XXX', dict()) == 'InvalidDatePostedTo'
+
+    def test_account_get_splits_date_posted_to(self):
+        assert json.loads(self.clean(self.app.get('/accounts/' + self.createAccount()['guid'] + '/splits?date_posted_to=2010-01-01').data)) == []
 
 class TransactionsTestCase(ApiTestCase):
 

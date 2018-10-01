@@ -214,11 +214,15 @@ def api_account_splits(guid):
     if account is None:
         abort(404)
 
-    splits = get_account_splits(session.book, guid, date_posted_from,
+    try:
+        splits = get_account_splits(session.book, guid, date_posted_from,
         date_posted_to)
-    
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}), status=400,
+            mimetype='application/json')
+ 
     return Response(json.dumps(splits), mimetype='application/json')
-
 
 @app.route('/transactions', methods=['POST'])
 def api_transactions():
@@ -1049,36 +1053,6 @@ def get_accounts(book):
 
     return accounts
 
-def get_accounts_flat(book):
-
-    accounts = gnucash_simple.accountToDict(book.get_root_account())
-
-    flat_accounts = get_sub_accounts(accounts)
-
-    for n, account in enumerate(flat_accounts):
-        account.pop('subaccounts')
-
-    filtered_flat_account = []
-
-    type_ids = [9]
-
-    for n, account in enumerate(flat_accounts):
-        if account['type_id'] in type_ids:
-            filtered_flat_account.append(account)
-
-    return filtered_flat_account
-
-def get_sub_accounts(account):
-
-    flat_accounts = []
-
-    if 'subaccounts' in account.keys():
-        for n, subaccount in enumerate(account['subaccounts']):
-            flat_accounts.append(subaccount)
-            flat_accounts = flat_accounts + get_sub_accounts(subaccount)
-
-    return flat_accounts
-
 def get_account(book, guid):
 
     account_guid = gnucash.gnucash_core.GUID() 
@@ -1096,41 +1070,6 @@ def get_account(book, guid):
     else:
         return account
 
-
-def get_transaction(book, guid):
-
-    transaction_guid = gnucash.gnucash_core.GUID() 
-    gnucash.gnucash_core.GUIDString(guid, transaction_guid)
-
-    transaction = transaction_guid.TransactionLookup(book)
-
-    if transaction is None:
-        return None
-
-    transaction = gnucash_simple.transactionToDict(transaction, ['splits'])
-
-    if transaction is None:
-        return None
-    else:
-        return transaction
-
-def get_transactions(book, account_guid, date_posted_from, date_posted_to):
-
-    query = gnucash.Query()
-
-    query.search_for('Trans')
-    query.set_book(book)
-
-    transactions = []
-
-    for transaction in query.run():
-        transactions.append(gnucash_simple.transactionToDict(
-            gnucash.gnucash_business.Transaction(instance=transaction)))
-
-    query.destroy()
-
-    return transactions
-
 def get_account_splits(book, guid, date_posted_from, date_posted_to):
 
     account_guid = gnucash.gnucash_core.GUID() 
@@ -1147,16 +1086,29 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
     TRANS_DATE_POSTED = 'date-posted'
 
     if date_posted_from is not None:
+        try:
+            date_posted_from = datetime.datetime.strptime(date_posted_from, "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDatePostedFrom',
+                'The date posted from must be provided in the form YYYY-MM-DD',
+                {'field': 'date_posted_from'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_GTE, QOF_DATE_MATCH_NORMAL, datetime.datetime.strptime(
-                date_posted_from, "%Y-%m-%d").date())
+            QOF_COMPARE_GTE, QOF_DATE_MATCH_NORMAL, date_posted_from.date())
         param_list = [SPLIT_TRANS, TRANS_DATE_POSTED]
         query.add_term(param_list, pred_data, QOF_QUERY_AND)
 
     if date_posted_to is not None:
+
+        try:
+            date_posted_to = datetime.datetime.strptime(date_posted_to, "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDatePostedTo',
+                'The date posted to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_posted_from'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_LTE, QOF_DATE_MATCH_NORMAL, datetime.datetime.strptime(
-                date_posted_to, "%Y-%m-%d").date())
+            QOF_COMPARE_LTE, QOF_DATE_MATCH_NORMAL, date_posted_to.date())
         param_list = [SPLIT_TRANS, TRANS_DATE_POSTED]
         query.add_term(param_list, pred_data, QOF_QUERY_AND)
     
