@@ -1059,24 +1059,144 @@ class CustomersSessionTestCase(ApiSessionTestCase):
     # No checks on customer / invoice options e.g active
 
     def test_get_empty_customer_invoices(self):
-
         self.createCustomer()
 
         assert self.clean(self.app.get('/customers/999999/invoices').data) == '[]'
 
     def test_get_empty_customers(self):
-
         assert self.clean(self.app.get('/customers').data) == '[]'
+
+class InvoicesTestCase(ApiTestCase):
+
+    def test_invoices_no_session(self):
+        assert self.get_error_type('get', '/invoices', dict()) == 'SessionDoesNotExist'
+
+class InvoicesSessionTestCase(ApiSessionTestCase):
+
+    def test_invoices_no_parameters(self):
+        assert self.clean(self.app.get('/invoices').data) == '[]'
+
+    def test_invoices_date_due_from_empty(self):
+        assert self.get_error_type('get', '/invoices?date_due_from=', dict()) == 'InvalidDateDueFrom'
+
+    def test_invoices_date_due_from_invalid(self):
+        assert self.get_error_type('get', '/invoices?date_due_from=XXX', dict()) == 'InvalidDateDueFrom'
+
+    def test_invoices_date_due_from(self):
+        assert self.clean(self.app.get('/invoices?date_due_from=2010-01-01').data) == '[]'
+
+    def test_invoices_date_due_to_empty(self):
+        assert self.get_error_type('get', '/invoices?date_due_to=', dict()) == 'InvalidDateDueTo'
+
+    def test_invoices_date_due_to_invalid(self):
+        assert self.get_error_type('get', '/invoices?date_due_to=XXX', dict()) == 'InvalidDateDueTo'
+
+    def test_invoices_date_due_to(self):
+        assert self.clean(self.app.get('/invoices?date_due_to=2010-01-01').data) == '[]'
+
+    def test_invoices_date_opened_from_empty(self):
+        assert self.get_error_type('get', '/invoices?date_opened_from=', dict()) == 'InvalidDateOpenedFrom'
+
+    def test_invoices_date_opened_from_invalid(self):
+        assert self.get_error_type('get', '/invoices?date_opened_from=XXX', dict()) == 'InvalidDateOpenedFrom'
+
+    def test_invoices_date_opened_from(self):
+        assert self.clean(self.app.get('/invoices?date_opened_from=2010-01-01').data) == '[]'
+
+    def test_invoices_date_opened_to_empty(self):
+        assert self.get_error_type('get', '/invoices?date_opened_to=', dict()) == 'InvalidDateOpenedTo'
+
+    def test_invoices_date_opened_to_invalid(self):
+        assert self.get_error_type('get', '/invoices?date_opened_to=XXX', dict()) == 'InvalidDateOpenedTo'
+
+    def test_invoices_date_opened_to(self):
+        assert self.clean(self.app.get('/invoices?date_opened_to=2010-01-01').data) == '[]'
+
+    def test_invoices_date_posted_from_empty(self):
+        assert self.get_error_type('get', '/invoices?date_posted_from=', dict()) == 'InvalidDatePostedFrom'
+
+    def test_invoices_date_posted_from_invalid(self):
+        assert self.get_error_type('get', '/invoices?date_posted_from=XXX', dict()) == 'InvalidDatePostedFrom'
+
+    def test_invoices_date_posted_from(self):
+        assert self.clean(self.app.get('/invoices?date_posted_from=2010-01-01').data) == '[]'
+
+    def test_invoices_date_posted_to_empty(self):
+        assert self.get_error_type('get', '/invoices?date_posted_to=', dict()) == 'InvalidDatePostedTo'
+
+    def test_invoices_date_posted_to_invalid(self):
+        assert self.get_error_type('get', '/invoices?date_posted_to=XXX', dict()) == 'InvalidDatePostedTo'
+
+    def test_invoices_date_posted_to(self):
+        assert self.clean(self.app.get('/invoices?date_posted_to=2010-01-01').data) == '[]'
 
 class BillsTestCase(ApiTestCase):
 
     def test_bills_no_session(self):
         assert self.get_error_type('get', '/bills', dict()) == 'SessionDoesNotExist'
 
+# This is identical to invoices....
 class BillsSessionTestCase(ApiSessionTestCase):
 
     def test_bills_no_parameters(self):
         assert self.clean(self.app.get('/bills').data) == '[]'
+
+    def test_bills_no_parameters(self):
+        assert self.clean(self.app.get('/bills').data) == '[]'
+
+    def test_bills_date_due_from_empty(self):
+        assert self.get_error_type('get', '/bills?date_due_from=', dict()) == 'InvalidDateDueFrom'
+
+    def test_bills_date_due_from_invalid(self):
+        assert self.get_error_type('get', '/bills?date_due_from=XXX', dict()) == 'InvalidDateDueFrom'
+
+    def test_bills_date_due_from(self):
+        assert self.clean(self.app.get('/bills?date_due_from=2010-01-01').data) == '[]'
+
+    def test_bills_date_due_to_empty(self):
+        assert self.get_error_type('get', '/bills?date_due_to=', dict()) == 'InvalidDateDueTo'
+
+    def test_bills_date_due_to_invalid(self):
+        assert self.get_error_type('get', '/bills?date_due_to=XXX', dict()) == 'InvalidDateDueTo'
+
+    def test_bills_date_due_to(self):
+        assert self.clean(self.app.get('/bills?date_due_to=2010-01-01').data) == '[]'
+
+    def test_bills_date_opened_from_empty(self):
+        assert self.get_error_type('get', '/bills?date_opened_from=', dict()) == 'InvalidDateOpenedFrom'
+
+    def test_bills_date_opened_from_invalid(self):
+        assert self.get_error_type('get', '/bills?date_opened_from=XXX', dict()) == 'InvalidDateOpenedFrom'
+
+    def test_bills_date_opened_from(self):
+        assert self.clean(self.app.get('/bills?date_opened_from=2010-01-01').data) == '[]'
+
+    def test_bills_date_opened_to_empty(self):
+        assert self.get_error_type('get', '/bills?date_opened_to=', dict()) == 'InvalidDateOpenedTo'
+
+    def test_bills_date_opened_to_invalid(self):
+        assert self.get_error_type('get', '/bills?date_opened_to=XXX', dict()) == 'InvalidDateOpenedTo'
+
+    def test_bills_date_opened_to(self):
+        assert self.clean(self.app.get('/bills?date_opened_to=2010-01-01').data) == '[]'
+
+    def test_bills_date_posted_from_empty(self):
+        assert self.get_error_type('get', '/bills?date_posted_from=', dict()) == 'InvalidDatePostedFrom'
+
+    def test_bills_date_posted_from_invalid(self):
+        assert self.get_error_type('get', '/bills?date_posted_from=XXX', dict()) == 'InvalidDatePostedFrom'
+
+    def test_bills_date_posted_from(self):
+        assert self.clean(self.app.get('/bills?date_posted_from=2010-01-01').data) == '[]'
+
+    def test_bills_date_posted_to_empty(self):
+        assert self.get_error_type('get', '/bills?date_posted_to=', dict()) == 'InvalidDatePostedTo'
+
+    def test_bills_date_posted_to_invalid(self):
+        assert self.get_error_type('get', '/bills?date_posted_to=XXX', dict()) == 'InvalidDatePostedTo'
+
+    def test_bills_date_posted_to(self):
+        assert self.clean(self.app.get('/bills?date_posted_to=2010-01-01').data) == '[]'
 
     # add_bill
     #def test_bills(self):

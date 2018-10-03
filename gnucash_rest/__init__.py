@@ -360,17 +360,23 @@ def api_bills():
         else:
             is_active = None
 
-        bills = get_bills(session.book, {
-            'is_paid': is_paid,
-            'is_active': is_active,
-            'date_opened_from': date_opened_from,
-            'date_opened_to': date_opened_to,
-            'date_due_from': date_due_from,
-            'date_due_to': date_due_to,
-            'date_posted_from': date_posted_from,
-            'date_posted_to': date_posted_to,
-        })
+        try:
+            bills = get_bills(session.book, {
+                'is_paid': is_paid,
+                'is_active': is_active,
+                'date_opened_from': date_opened_from,
+                'date_opened_to': date_opened_to,
+                'date_due_from': date_due_from,
+                'date_due_to': date_due_to,
+                'date_posted_from': date_posted_from,
+                'date_posted_to': date_posted_to,
+            })
 
+        except Error as error:
+            return Response(json.dumps({'errors': [{'type' : error.type,
+                'message': error.message, 'data': error.data}]}),
+                status=400, mimetype='application/json')
+        
         return Response(json.dumps(bills), mimetype='application/json')
 
     elif request.method == 'POST':
@@ -557,16 +563,21 @@ def api_invoices():
         else:
             is_active = None
 
-        invoices = get_invoices(session.book, {
-            'is_paid': is_paid,
-            'is_active': is_active,
-            'date_opened_from': date_opened_from,
-            'date_opened_to': date_opened_to,
-            'date_due_from': date_due_from,
-            'date_due_to': date_due_to,
-            'date_posted_from': date_posted_from,
-            'date_posted_to': date_posted_to,
-        })
+        try:
+            invoices = get_invoices(session.book, {
+                'is_paid': is_paid,
+                'is_active': is_active,
+                'date_opened_from': date_opened_from,
+                'date_opened_to': date_opened_to,
+                'date_due_from': date_due_from,
+                'date_due_to': date_due_to,
+                'date_posted_from': date_posted_from,
+                'date_posted_to': date_posted_to,
+            })
+        except Error as error:
+            return Response(json.dumps({'errors': [{'type' : error.type,
+                'message': error.message, 'data': error.data}]}),
+                status=400, mimetype='application/json')
 
         return Response(json.dumps(invoices), mimetype='application/json')
 
@@ -899,10 +910,15 @@ def api_customer_invoices(id):
     else:
         is_active = None
     
-    invoices = get_invoices(session.book, {
-        'customer': customer['guid'],
-        'is_active': is_active
-    })
+    try:
+        invoices = get_invoices(session.book, {
+            'customer': customer['guid'],
+            'is_active': is_active
+        })
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}),
+            status=400, mimetype='application/json')
     
     return Response(json.dumps(invoices), mimetype='application/json')
 
@@ -991,12 +1007,17 @@ def api_vendor_bills(id):
         is_active = 0
     else:
         is_active = None
-    
-    bills = get_bills(session.book, {
-        'customer': vendor['guid'],
-        'is_active': is_active
-    })
-        
+
+    try:
+        bills = get_bills(session.book, {
+            'customer': vendor['guid'],
+            'is_active': is_active
+        })
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type' : error.type,
+            'message': error.message, 'data': error.data}]}),
+            status=400, mimetype='application/json')
+         
     return Response(json.dumps(bills), mimetype='application/json')
 
 def get_customers(book):
@@ -1175,39 +1196,75 @@ def get_invoices(book, properties):
             [INVOICE_OWNER, QOF_PARAM_GUID], customer_guid, QOF_QUERY_AND)
 
     if properties['date_due_from'] is not None:
+        try:
+            properties['date_due_from'] = datetime.datetime.strptime(properties['date_due_from'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateDueFrom',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_due_from'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
-                properties['date_due_from'], "%Y-%m-%d").date())
+            QOF_COMPARE_GTE, 2, properties['date_due_from'].date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
     if properties['date_due_to'] is not None:
+        try:
+            properties['date_due_to'] = datetime.datetime.strptime(properties['date_due_to'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateDueTo',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_due_to'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
-                properties['date_due_to'], "%Y-%m-%d").date())
+            QOF_COMPARE_LTE, 2, properties['date_due_to'].date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
     if properties['date_opened_from'] is not None:
+        try:
+            properties['date_opened_from'] = datetime.datetime.strptime(properties['date_opened_from'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateOpenedFrom',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_opened_from'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
-                properties['date_opened_from'], "%Y-%m-%d").date())
+            QOF_COMPARE_GTE, 2, properties['date_opened_from'].date())
         query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
 
     if properties['date_opened_to'] is not None:
+        try:
+            properties['date_opened_to'] = datetime.datetime.strptime(properties['date_opened_to'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateOpenedTo',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_opened_to'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
-                properties['date_opened_to'], "%Y-%m-%d").date())
+            QOF_COMPARE_LTE, 2, properties['date_opened_to'].date())
         query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
 
     if properties['date_posted_from'] is not None:
+        try:
+            properties['date_posted_from'] = datetime.datetime.strptime(properties['date_posted_from'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDatePostedFrom',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_posted_from'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
-                properties['date_posted_from'], "%Y-%m-%d").date())
+            QOF_COMPARE_GTE, 2, properties['date_posted_from'].date())
         query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
 
     if properties['date_posted_to'] is not None:
+        try:
+            properties['date_posted_to'] = datetime.datetime.strptime(properties['date_posted_to'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDatePostedTo',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_posted_to'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
-                properties['date_posted_to'], "%Y-%m-%d").date())
+            QOF_COMPARE_LTE, 2, properties['date_posted_to'].date())
         query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
 
     # return only invoices
@@ -1268,40 +1325,78 @@ def get_bills(book, properties):
         query.add_guid_match(
             [INVOICE_OWNER, QOF_PARAM_GUID], customer_guid, QOF_QUERY_AND)
 
-    if properties['date_opened_from'] is not None:
-        pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
-                properties['date_opened_from'], "%Y-%m-%d").date())
-        query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
-
-    if properties['date_opened_to'] is not None:
-        pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
-                properties['date_opened_to'], "%Y-%m-%d").date())
-        query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
+    # These are identical to invoices...
 
     if properties['date_due_from'] is not None:
+        try:
+            properties['date_due_from'] = datetime.datetime.strptime(properties['date_due_from'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateDueFrom',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_due_from'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
-                properties['date_due_from'], "%Y-%m-%d").date())
+            QOF_COMPARE_GTE, 2, properties['date_due_from'].date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
     if properties['date_due_to'] is not None:
+        try:
+            properties['date_due_to'] = datetime.datetime.strptime(properties['date_due_to'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateDueTo',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_due_to'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
-                properties['date_due_to'], "%Y-%m-%d").date())
+            QOF_COMPARE_LTE, 2, properties['date_due_to'].date())
         query.add_term(['date_due'], pred_data, QOF_QUERY_AND)
 
-    if properties['date_posted_from'] is not None:
+    if properties['date_opened_from'] is not None:
+        try:
+            properties['date_opened_from'] = datetime.datetime.strptime(properties['date_opened_from'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateOpenedFrom',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_opened_from'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_GTE, 2, datetime.datetime.strptime(
-                properties['date_posted_from'], "%Y-%m-%d").date())
+            QOF_COMPARE_GTE, 2, properties['date_opened_from'].date())
+        query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
+
+    if properties['date_opened_to'] is not None:
+        try:
+            properties['date_opened_to'] = datetime.datetime.strptime(properties['date_opened_to'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDateOpenedTo',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_opened_to'})
+
+        pred_data = gnucash.gnucash_core.QueryDatePredicate(
+            QOF_COMPARE_LTE, 2, properties['date_opened_to'].date())
+        query.add_term(['date_opened'], pred_data, QOF_QUERY_AND)
+
+    if properties['date_posted_from'] is not None:
+        try:
+            properties['date_posted_from'] = datetime.datetime.strptime(properties['date_posted_from'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDatePostedFrom',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_posted_from'})
+
+        pred_data = gnucash.gnucash_core.QueryDatePredicate(
+            QOF_COMPARE_GTE, 2, properties['date_posted_from'].date())
         query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
 
     if properties['date_posted_to'] is not None:
+        try:
+            properties['date_posted_to'] = datetime.datetime.strptime(properties['date_posted_to'], "%Y-%m-%d")
+        except ValueError:
+            raise Error('InvalidDatePostedTo',
+                'The date due from to must be provided in the form YYYY-MM-DD',
+                {'field': 'date_posted_to'})
+
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
-            QOF_COMPARE_LTE, 2, datetime.datetime.strptime(
-                properties['date_posted_to'], "%Y-%m-%d").date())
+            QOF_COMPARE_LTE, 2, properties['date_posted_to'].date())
         query.add_term(['date_posted'], pred_data, QOF_QUERY_AND)
 
     # return only bills (2 = bills)
