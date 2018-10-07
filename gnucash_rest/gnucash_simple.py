@@ -161,6 +161,7 @@ def splitToDict(split, entities):
             ).to_double()
 
         return simple_split
+
 def invoiceToDict(invoice):
 
     if invoice is None:
@@ -171,12 +172,13 @@ def invoiceToDict(invoice):
         simple_invoice['type'] = invoice.GetType()
         simple_invoice['date_opened'] = invoice.GetDateOpened().strftime(
             '%Y-%m-%d')
-        if invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01':
+
+        if invoice.GetDatePosted() is None:
             simple_invoice['date_posted'] = None
         else:
             simple_invoice['date_posted'] = invoice.GetDatePosted().strftime(
                 '%Y-%m-%d')
-        if invoice.GetDateDue().strftime('%Y-%m-%d') == '1970-01-01':
+        if invoice.GetDateDue() is None:
             simple_invoice['date_due'] = None
         else:
             simple_invoice['date_due'] = invoice.GetDateDue().strftime(
@@ -214,12 +216,12 @@ def billToDict(bill):
         simple_bill['id'] = bill.GetID()
         simple_bill['type'] = bill.GetType()
         simple_bill['date_opened'] = bill.GetDateOpened().strftime('%Y-%m-%d')
-        if bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01':
+        if bill.GetDatePosted() is None:
             simple_bill['date_posted'] = None
         else:
             simple_bill['date_posted'] = bill.GetDatePosted().strftime(
                 '%Y-%m-%d')
-        if bill.GetDateDue().strftime('%Y-%m-%d') == '1970-01-01':
+        if bill.GetDateDue() is None:
             simple_bill['date_due'] = None
         else:
             simple_bill['date_due'] = bill.GetDateDue().strftime('%Y-%m-%d')

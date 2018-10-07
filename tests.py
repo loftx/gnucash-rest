@@ -1073,6 +1073,79 @@ class InvoicesTestCase(ApiTestCase):
 
 class InvoicesSessionTestCase(ApiSessionTestCase):
 
+    def test_add_invoice_no_parameters(self):
+        assert self.get_error_type('post', '/invoices', dict()) == 'NoCustomer'
+
+    def test_add_invoice_invalid_customer(self):
+        data = dict(
+            customer_id = 'XXXXXX',
+        )
+
+        assert self.get_error_type('post', '/invoices', data=data) == 'NoCustomer'
+
+    def test_add_invoice_no_date_opened(self):
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+        )
+
+        assert self.get_error_type('post', '/invoices', data=data) == 'InvalidDateOpened'
+
+    def test_add_invoice_empty_date_opened(self):
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '',
+        )
+
+        assert self.get_error_type('post', '/invoices', data=data) == 'InvalidDateOpened'
+
+    def test_add_invoice_invalid_date_opened(self):
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = 'XXX',
+        )
+
+        assert self.get_error_type('post', '/invoices', data=data) == 'InvalidDateOpened'
+
+    def test_add_invoice_no_currency(self):
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+        )
+
+        assert self.get_error_type('post', '/invoices', data=data) == 'InvalidInvoiceCurrency'
+
+    def test_add_invoice_invalid_currency(self):
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            currency = 'XYZ'
+        )
+
+        assert self.get_error_type('post', '/invoices', data=data) == 'InvalidInvoiceCurrency'
+
+    def test_add_invoice_non_matching_currency(self):
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            currency = 'USD' # self.createCustomer() will have GBP
+        )
+
+        assert self.get_error_type('post', '/invoices', data=data) == 'MismatchedInvoiceCurrency'
+
+        # (book, id, customer_id, currency_mnumonic, date_opened, notes)
+
+        # Next should be a working one???
+
+    def test_add_invoice(self):
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            currency = 'GBP'
+        )
+
+        json.loads(self.clean(self.app.post('/invoices', data=data).data))['id'] == '000001'
+
     def test_invoices_no_parameters(self):
         assert self.clean(self.app.get('/invoices').data) == '[]'
 
@@ -1129,6 +1202,8 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
 
     def test_invoices_date_posted_to(self):
         assert self.clean(self.app.get('/invoices?date_posted_to=2010-01-01').data) == '[]'
+
+    # Do get invoices next e.g /invoice.get
 
 class BillsTestCase(ApiTestCase):
 

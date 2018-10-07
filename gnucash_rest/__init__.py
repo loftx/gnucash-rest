@@ -1687,8 +1687,13 @@ def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
     currency = commod_table.lookup('CURRENCY', currency_mnumonic)
 
     if currency is None:
-        raise Error('InvalidCustomerCurrency',
-            'A valid currency must be supplied for this customer',
+        raise Error('InvalidInvoiceCurrency',
+            'A valid currency must be supplied for this invoice',
+            {'field': 'currency'})
+    elif currency.get_mnemonic() != customer.GetCurrency().get_mnemonic():
+        # Does Gnucash actually enforce this?
+        raise Error('MismatchedInvoiceCurrency',
+            'The currency of this invoice does not match the customer',
             {'field': 'currency'})
 
     invoice = Invoice(book, id, currency, customer, date_opened.date())
