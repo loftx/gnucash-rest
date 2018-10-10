@@ -71,6 +71,17 @@ class ApiTestCase(unittest.TestCase):
 
         return json.loads(self.clean(self.app.post('/customers', data=data).data))
 
+    def createInvoice(self):
+
+        data = dict(
+            id = '999999',
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            currency = 'GBP'
+        )
+
+        return json.loads(self.clean(self.app.post('/invoices', data=data).data))
+
     def createAccount(self):
 
         data = dict(
@@ -1071,6 +1082,9 @@ class InvoicesTestCase(ApiTestCase):
     def test_invoices_no_session(self):
         assert self.get_error_type('get', '/invoices', dict()) == 'SessionDoesNotExist'
 
+    def test_invoice_no_session(self):
+        assert self.get_error_type('get', '/invoices/XXXXXX', dict()) == 'SessionDoesNotExist'
+
 class InvoicesSessionTestCase(ApiSessionTestCase):
 
     def test_add_invoice_no_parameters(self):
@@ -1132,11 +1146,7 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
 
         assert self.get_error_type('post', '/invoices', data=data) == 'MismatchedInvoiceCurrency'
 
-        # (book, id, customer_id, currency_mnumonic, date_opened, notes)
-
-        # Next should be a working one???
-
-    def test_add_invoice(self):
+    def test_add_invoice_no_id(self):
 
         data = dict(
             customer_id = self.createCustomer()['id'],
@@ -1144,7 +1154,68 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
             currency = 'GBP'
         )
 
-        json.loads(self.clean(self.app.post('/invoices', data=data).data))['id'] == '000001'
+        assert json.loads(self.clean(self.app.post('/invoices', data=data).data))['id'] == '000001'
+
+    def test_add_invoice(self):
+        assert self.createInvoice()['id'] == '999999'
+
+    def test_get_invoice_invalid_id(self):
+        assert self.app.get('/invoices/999999').status == '404 NOT FOUND'
+
+    def test_get_invoice(self):
+        self.createInvoice()
+
+        assert json.loads(self.clean(self.app.get('/invoices/999999').data))['id'] == '999999'
+
+    def test_update_invoice_no_customer(self):
+        invoice = self.createInvoice()
+
+        assert self.get_error_type('post', '/invoices/999999', data=dict()) == 'NoCustomer'
+
+    def test_update_invoice_invalid_customer(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = '888888',
+        )
+        
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'NoCustomer'
+
+    def test_update_invoice_no_date_opened(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '',
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'InvalidDateOpened'
+
+    def test_update_invoice_invalid_date_opened(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = 'XXX',
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'InvalidDateOpened'
+
+    def test_update_invoice(self):
+        invoice = self.createInvoice()
+
+        # Why does it need these? Shouldn't one field be enough -it expects all fields rest will be blank
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+        )
+
+        #assert self.get_error_type('post', '/invoices/999999', data=data) == 'NoAccountName'
+
+        assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['id'] == '999999'
+
+        # Do get invoices next e.g /invoice.get
 
     def test_invoices_no_parameters(self):
         assert self.clean(self.app.get('/invoices').data) == '[]'
@@ -1202,8 +1273,6 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
 
     def test_invoices_date_posted_to(self):
         assert self.clean(self.app.get('/invoices?date_posted_to=2010-01-01').data) == '[]'
-
-    # Do get invoices next e.g /invoice.get
 
 class BillsTestCase(ApiTestCase):
 

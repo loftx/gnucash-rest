@@ -425,9 +425,9 @@ def api_bill(id):
 
         vendor_id = str(request.form.get('vendor_id', ''))
         currency = str(request.form.get('currency', ''))
-        date_opened = request.form.get('date_opened', None)
+        date_opened = request.form.get('date_opened', '')
         notes = str(request.form.get('notes', ''))
-        posted = request.form.get('posted', None)
+        posted = request.form.get('posted', '')
         posted_account_guid = str(request.form.get('posted_account_guid', ''))
         posted_date = request.form.get('posted_date', '')
         due_date = request.form.get('due_date', '')
@@ -627,9 +627,9 @@ def api_invoice(id):
 
         customer_id = str(request.form.get('customer_id', ''))
         currency = str(request.form.get('currency', ''))
-        date_opened = request.form.get('date_opened', None)
+        date_opened = request.form.get('date_opened', '')
         notes = str(request.form.get('notes', ''))
-        posted = request.form.get('posted', None)
+        posted = request.form.get('posted', '')
         posted_account_guid = str(request.form.get('posted_account_guid', ''))
         posted_date = request.form.get('posted_date', '')
         due_date = request.form.get('due_date', '')
@@ -1413,7 +1413,7 @@ def get_bills(book, properties):
 
     return bills
 
-def get_gnucash_invoice(book ,id):
+def get_gnucash_invoice(book, id):
 
     # we don't use book.InvoicelLookupByID(id) as this is identical to
     # book.BillLookupByID(id) so can return the same object if they share IDs
@@ -1773,8 +1773,7 @@ def update_invoice(book, id, customer_id, currency_mnumonic, date_opened,
     invoice.SetNotes(notes)
 
     # post if currently unposted and posted=1
-    if (invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01'
-        and posted == 1):
+    if (invoice.GetDatePosted() is None and posted == 1):
         invoice.PostToAccount(posted_account, posted_date, due_date,
             posted_memo, posted_accumulatesplits, posted_autopay)
 
@@ -1851,7 +1850,7 @@ def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
     bill.SetNotes(notes)
 
     # post if currently unposted and posted=1
-    if bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01' and posted == 1:
+    if bill.GetDatePosted() is None and posted == 1:
         bill.PostToAccount(posted_account, posted_date, due_date, posted_memo,
             posted_accumulatesplits, posted_autopay)
 
