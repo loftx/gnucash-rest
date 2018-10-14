@@ -82,6 +82,17 @@ class ApiTestCase(unittest.TestCase):
 
         return json.loads(self.clean(self.app.post('/invoices', data=data).data))
 
+    def createBill(self):
+
+        data = dict(
+            id = '999999',
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            currency = 'GBP'
+        )
+
+        return json.loads(self.clean(self.app.post('/bills', data=data).data))
+
     def createAccount(self):
 
         data = dict(
@@ -1304,11 +1315,7 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
             date_opened = '2010-01-01',
         )
 
-        #assert self.get_error_type('post', '/invoices/999999', data=data) == 'NoAccountName'
-
         assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['id'] == '999999'
-
-        # Do get invoices next e.g /invoice.get
 
     def test_invoices_no_parameters(self):
         assert self.clean(self.app.get('/invoices').data) == '[]'
@@ -1375,6 +1382,223 @@ class BillsTestCase(ApiTestCase):
 # This is identical to invoices....
 class BillsSessionTestCase(ApiSessionTestCase):
 
+    def test_add_bill_no_parameters(self):
+        assert self.get_error_type('post', '/bills', dict()) == 'NoVendor'
+
+    def test_add_bill_invalid_vendor(self):
+        data = dict(
+            vendor_id = 'XXXXXX',
+        )
+
+        assert self.get_error_type('post', '/bills', data=data) == 'NoVendor'
+
+    def test_add_bill_no_date_opened(self):
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+        )
+
+        assert self.get_error_type('post', '/bills', data=data) == 'InvalidDateOpened'
+
+    def test_add_bill_empty_date_opened(self):
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '',
+        )
+
+        assert self.get_error_type('post', '/bills', data=data) == 'InvalidDateOpened'
+
+    def test_add_bill_invalid_date_opened(self):
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = 'XXX',
+        )
+
+        assert self.get_error_type('post', '/bills', data=data) == 'InvalidDateOpened'
+
+    def test_add_bill_no_currency(self):
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+        )
+
+        assert self.get_error_type('post', '/bills', data=data) == 'InvalidBillCurrency'
+
+    def test_add_bill_invalid_currency(self):
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            currency = 'XYZ'
+        )
+
+        assert self.get_error_type('post', '/bills', data=data) == 'InvalidBillCurrency'
+
+    def test_add_bill_non_matching_currency(self):
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            currency = 'USD' # self.createVendor() will have GBP
+        )
+
+        assert self.get_error_type('post', '/bills', data=data) == 'MismatchedBillCurrency'
+
+    def test_add_bill_no_id(self):
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            currency = 'GBP'
+        )
+
+        assert json.loads(self.clean(self.app.post('/bills', data=data).data))['id'] == '000001'
+
+    def test_add_bill(self):
+        assert self.createBill()['id'] == '999999'
+
+    def test_get_bill_invalid_id(self):
+        assert self.app.get('/bills/999999').status == '404 NOT FOUND'
+
+    def test_get_bill(self):
+        self.createBill()
+
+        assert json.loads(self.clean(self.app.get('/bills/999999').data))['id'] == '999999'
+
+    def test_update_bill_no_vendor(self):
+        bill = self.createBill()
+
+        assert self.get_error_type('post', '/bills/999999', data=dict()) == 'NoVendor'
+
+    def test_update_bill_invalid_vendor(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = '888888',
+        )
+        
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'NoVendor'
+
+    def test_update_bill_no_date_opened(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '',
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'InvalidDateOpened'
+
+    def test_update_bill_invalid_date_opened(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = 'XXX',
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'InvalidDateOpened'
+
+    def test_post_bill_no_date_posted(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1'
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'NoDatePosted'
+
+    def test_post_bill_invalid_date_posted(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'InvalidDatePosted'
+
+
+    def test_post_bill_no_date_due(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01'
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'NoDateDue'
+
+    def test_post_bill_invalid_date_due(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'InvalidDateDue'
+
+    def test_post_bill_no_posted_account(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01'
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'NoPostedAccountGuid'
+
+    def test_post_bill_invalid_posted_account(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01',
+            posted_account_guid = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/bills/999999', data=data) == 'NoAccount'
+
+    def test_post_bill(self):
+        bill = self.createBill()
+        account = self.createAccount()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01',
+            posted_account_guid = account['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post('/bills/999999', data=data).data))['posted'] == True
+
+    def test_update_bill(self):
+        bill = self.createBill()
+
+        # Why does it need these? Shouldn't one field be enough -it expects all fields rest will be blank
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+        )
+
+        assert json.loads(self.clean(self.app.post('/bills/999999', data=data).data))['id'] == '999999'
+
     def test_bills_no_parameters(self):
         assert self.clean(self.app.get('/bills').data) == '[]'
 
@@ -1434,13 +1658,6 @@ class BillsSessionTestCase(ApiSessionTestCase):
 
     def test_bills_date_posted_to(self):
         assert self.clean(self.app.get('/bills?date_posted_to=2010-01-01').data) == '[]'
-
-    # add_bill
-    #def test_bills(self):
-    #    print self.app.post('/bills').data
-
-    #def test_bills(self):
-    #    print self.app.get('/bills?is_paid=X').data
 
 if __name__ == '__main__':
     unittest.main()

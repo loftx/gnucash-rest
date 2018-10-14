@@ -1862,14 +1862,14 @@ def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
 
     if due_date == '':
         if posted == 1:
-            raise Error('NoDatePosted',
+            raise Error('NoDateDue',
                 'The due date must be supplied when posted=1',
-                {'field': 'date_posted'})
+                {'field': 'date_sue'})
     else:
         try:
             due_date = datetime.datetime.strptime(due_date, "%Y-%m-%d")
         except ValueError:
-            raise Error('InvalidDatePosted',
+            raise Error('InvalidDateDue',
                 'The due date must be provided in the form YYYY-MM-DD',
                 {'field': 'due_date'})
 
@@ -2148,7 +2148,7 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
     except ValueError:
-        raise Error('InvalidVendorDateOpened',
+        raise Error('InvalidDateOpened',
             'The date opened must be provided in the form YYYY-MM-DD',
             {'field': 'date_opened'})
 
@@ -2159,8 +2159,13 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
     currency = commod_table.lookup('CURRENCY', currency_mnumonic)
 
     if currency is None:
-        raise Error('InvalidVendorCurrency',
-            'A valid currency must be supplied for this vendor',
+        raise Error('InvalidBillCurrency',
+            'A valid currency must be supplied for this bill',
+            {'field': 'currency'})
+    elif currency.get_mnemonic() != vendor.GetCurrency().get_mnemonic():
+        # Does Gnucash actually enforce this?
+        raise Error('MismatchedBillCurrency',
+            'The currency of this bill does not match the vendor',
             {'field': 'currency'})
 
     bill = Bill(book, id, currency, vendor, date_opened.date())
