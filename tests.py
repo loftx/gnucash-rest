@@ -948,6 +948,12 @@ class VendorsSessionTestCase(ApiSessionTestCase):
 
         assert self.clean(self.app.get('/vendors/999999/bills').data) == '[]'
 
+    def test_get_invalid_date_vendor_bills(self):
+
+        self.createVendor()
+
+        assert self.get_error_type('get', '/vendors/999999/bills?date_due_from=XXX', dict()) == 'InvalidDateDueFrom'
+
     def test_get_empty_vendors(self):
 
         assert self.clean(self.app.get('/vendors').data) == '[]'
@@ -1063,6 +1069,12 @@ class CustomersSessionTestCase(ApiSessionTestCase):
         self.createCustomer()
 
         assert self.clean(self.app.get('/customers/999999/invoices').data) == '[]'
+
+    def test_get_invalid_date_customer_invoices(self):
+
+        self.createCustomer()
+
+        assert self.get_error_type('get', '/customers/999999/invoices?date_due_from=XXX', dict()) == 'InvalidDateDueFrom'
 
     def test_get_empty_customers(self):
         assert self.clean(self.app.get('/customers').data) == '[]'
@@ -1190,6 +1202,97 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
         )
 
         assert self.get_error_type('post', '/invoices/999999', data=data) == 'InvalidDateOpened'
+
+    def test_post_invoice_no_date_posted(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1'
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'NoDatePosted'
+
+    def test_post_invoice_invalid_date_posted(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'InvalidDatePosted'
+
+
+    def test_post_invoice_no_date_due(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01'
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'NoDateDue'
+
+    def test_post_invoice_invalid_date_due(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'InvalidDateDue'
+
+    def test_post_invoice_no_posted_account(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01'
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'NoPostedAccountGuid'
+
+    def test_post_invoice_invalid_posted_account(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01',
+            posted_account_guid = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/999999', data=data) == 'NoAccount'
+
+    def test_post_invoice(self):
+        invoice = self.createInvoice()
+        account = self.createAccount()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01',
+            posted_account_guid = account['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['posted'] == True
 
     def test_update_invoice(self):
         invoice = self.createInvoice()

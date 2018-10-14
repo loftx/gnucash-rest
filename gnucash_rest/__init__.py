@@ -901,7 +901,21 @@ def api_customer_invoices(id):
         abort(404)
 
 
+    is_paid = request.args.get('is_paid', None)
     is_active = request.args.get('is_active', None)
+    date_due_from = request.args.get('date_due_from', None)
+    date_due_to = request.args.get('date_due_to', None)
+    date_opened_from = request.args.get('date_opened_from', None)
+    date_opened_to = request.args.get('date_opened_to', None)
+    date_posted_from = request.args.get('date_posted_from', None)
+    date_posted_to = request.args.get('date_posted_to', None)
+
+    if is_paid == '1':
+        is_paid = 1
+    elif is_paid == '0':
+        is_paid = 0
+    else:
+        is_paid = None
 
     if is_active == '1':
         is_active = 1
@@ -913,7 +927,14 @@ def api_customer_invoices(id):
     try:
         invoices = get_invoices(session.book, {
             'customer': customer['guid'],
-            'is_active': is_active
+            'is_paid': is_paid,
+            'is_active': is_active,
+            'date_opened_from': date_opened_from,
+            'date_opened_to': date_opened_to,
+            'date_due_from': date_due_from,
+            'date_due_to': date_due_to,
+            'date_posted_from': date_posted_from,
+            'date_posted_to': date_posted_to,
         })
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
@@ -987,6 +1008,8 @@ def api_vendor(id):
 @app.route('/vendors/<id>/bills', methods=['GET'])
 def api_vendor_bills(id):
 
+    # This is almost a copy of /bills
+
     try:
         session = get_session()
     except Error as error:
@@ -999,7 +1022,21 @@ def api_vendor_bills(id):
     if vendor is None:
         abort(404)
 
+    is_paid = request.args.get('is_paid', None)
     is_active = request.args.get('is_active', None)
+    date_opened_to = request.args.get('date_opened_to', None)
+    date_opened_from = request.args.get('date_opened_from', None)
+    date_due_to = request.args.get('date_due_to', None)
+    date_due_from = request.args.get('date_due_from', None)
+    date_posted_to = request.args.get('date_posted_to', None)
+    date_posted_from = request.args.get('date_posted_from', None)
+
+    if is_paid == '1':
+        is_paid = 1
+    elif is_paid == '0':
+        is_paid = 0
+    else:
+        is_paid = None
 
     if is_active == '1':
         is_active = 1
@@ -1011,7 +1048,14 @@ def api_vendor_bills(id):
     try:
         bills = get_bills(session.book, {
             'customer': vendor['guid'],
-            'is_active': is_active
+            'is_paid': is_paid,
+            'is_active': is_active,
+            'date_opened_from': date_opened_from,
+            'date_opened_to': date_opened_to,
+            'date_due_from': date_due_from,
+            'date_due_to': date_due_to,
+            'date_posted_from': date_posted_from,
+            'date_posted_to': date_posted_to,
         })
     except Error as error:
         return Response(json.dumps({'errors': [{'type' : error.type,
@@ -1741,14 +1785,14 @@ def update_invoice(book, id, customer_id, currency_mnumonic, date_opened,
 
     if due_date == '':
         if posted == 1:
-            raise Error('NoDatePosted',
+            raise Error('NoDateDue',
                 'The due date must be supplied when posted=1',
-                {'field': 'date_posted'})
+                {'field': 'due_date'})
     else:
         try:
             due_date = datetime.datetime.strptime(due_date, "%Y-%m-%d")
         except ValueError:
-            raise Error('InvalidDatePosted',
+            raise Error('InvalidDateDue',
                 'The due date must be provided in the form YYYY-MM-DD',
                 {'field': 'due_date'})
 
