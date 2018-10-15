@@ -1524,7 +1524,7 @@ def pay_invoice(book, id, posted_account_guid, transfer_account_guid,
     invoice = get_gnucash_invoice(book, id)
 
     if invoice is None:
-        raise Error('NoBill', 'An invoice with this ID does not exist',
+        raise Error('NoInvoice', 'An invoice with this ID does not exist',
             {'field': 'id'})
 
     try:

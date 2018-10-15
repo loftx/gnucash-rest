@@ -17,6 +17,8 @@ class ApiTestCase(unittest.TestCase):
         cursor = database.cursor()
         sql = 'CREATE DATABASE test'
         cursor.execute(sql)
+        cursor.close()
+        database.close()
 
     def teardown_database(self):
         warnings.filterwarnings('ignore', category = MySQLdb.Warning)
@@ -24,6 +26,8 @@ class ApiTestCase(unittest.TestCase):
         cursor = database.cursor()
         sql = 'DROP DATABASE IF EXISTS test'
         cursor.execute(sql)
+        cursor.close()
+        database.close()
 
     # probably not the most pythonic way to do this
     def clean(self, data):
@@ -40,6 +44,8 @@ class ApiTestCase(unittest.TestCase):
             response = self.app.post(url, data=data)
         elif method is 'delete':
             response = self.app.delete(url, data=data)
+        elif method is 'pay':
+            response = self.app.open(url, data=data, method='pay')
         else:
             raise ValueError('unknown method in assert_error_type')
 
@@ -1237,7 +1243,6 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
 
         assert self.get_error_type('post', '/invoices/999999', data=data) == 'InvalidDatePosted'
 
-
     def test_post_invoice_no_date_due(self):
         invoice = self.createInvoice()
 
@@ -1316,6 +1321,63 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
         )
 
         assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['id'] == '999999'
+
+    def test_pay_invoice_no_invoice(self):
+        assert self.get_error_type('pay', '/invoices/999999', data=dict()) == 'NoInvoice'
+
+    def test_pay_invoice_no_payment_date(self):
+        invoice = self.createInvoice()
+
+        assert self.get_error_type('pay', '/invoices/999999', data=dict()) == 'InvalidPaymentDate'
+
+    def test_pay_invoice_invalid_payment_date(self):
+        invoice = self.createInvoice()
+
+        data=dict(
+            payment_date = 'XXX'
+        )
+
+        assert self.get_error_type('pay', '/invoices/999999', data=data) == 'InvalidPaymentDate'
+
+    def test_pay_invoice_no_transfer_account(self):
+        invoice = self.createInvoice()
+
+        data=dict(
+            payment_date = '2010-01-01'
+        )
+
+        assert self.get_error_type('pay', '/invoices/999999', data=data) == 'NoTransferAccount'
+
+    def test_pay_invoice_invalid_transfer_account(self):
+        invoice = self.createInvoice()
+
+        data=dict(
+            payment_date = '2010-01-01',
+            transfer_account_guid = 'XXX'
+        )
+
+        assert self.get_error_type('pay', '/invoices/999999', data=data) == 'NoTransferAccount'
+
+    def test_pay_invoice(self):
+        invoice = self.createInvoice()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01',
+            posted_account_guid = self.createAccount()['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['posted'] == True
+
+        data = dict(
+            payment_date = '2010-01-01',
+            transfer_account_guid = self.createAccount()['guid']
+        )
+
+        assert json.loads(self.clean(self.app.open('/invoices/999999', data=data, method='pay').data))['paid'] == True
 
     def test_invoices_no_parameters(self):
         assert self.clean(self.app.get('/invoices').data) == '[]'
@@ -1598,6 +1660,63 @@ class BillsSessionTestCase(ApiSessionTestCase):
         )
 
         assert json.loads(self.clean(self.app.post('/bills/999999', data=data).data))['id'] == '999999'
+
+    def test_pay_bill_no_bill(self):
+        assert self.get_error_type('pay', '/bills/999999', data=dict()) == 'NoBill'
+
+    def test_pay_bill_no_payment_date(self):
+        bill = self.createBill()
+
+        assert self.get_error_type('pay', '/bills/999999', data=dict()) == 'InvalidPaymentDate'
+
+    def test_pay_bill_invalid_payment_date(self):
+        bill = self.createBill()
+
+        data=dict(
+            payment_date = 'XXX'
+        )
+
+        assert self.get_error_type('pay', '/bills/999999', data=data) == 'InvalidPaymentDate'
+
+    def test_pay_bill_no_transfer_account(self):
+        bill = self.createBill()
+
+        data=dict(
+            payment_date = '2010-01-01'
+        )
+
+        assert self.get_error_type('pay', '/bills/999999', data=data) == 'NoTransferAccount'
+
+    def test_pay_bill_invalid_transfer_account(self):
+        bill = self.createBill()
+
+        data=dict(
+            payment_date = '2010-01-01',
+            transfer_account_guid = 'XXX'
+        )
+
+        assert self.get_error_type('pay', '/bills/999999', data=data) == 'NoTransferAccount'
+
+    def test_pay_bill(self):
+        bill = self.createBill()
+
+        data = dict(
+            vendor_id = self.createVendor()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01',
+            posted_account_guid = self.createAccount()['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post('/bills/999999', data=data).data))['posted'] == True
+
+        data = dict(
+            payment_date = '2010-01-01',
+            transfer_account_guid = self.createAccount()['guid']
+        )
+
+        assert json.loads(self.clean(self.app.open('/bills/999999', data=data, method='pay').data))['paid'] == True
 
     def test_bills_no_parameters(self):
         assert self.clean(self.app.get('/bills').data) == '[]'
