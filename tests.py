@@ -1778,5 +1778,235 @@ class BillsSessionTestCase(ApiSessionTestCase):
     def test_bills_date_posted_to(self):
         assert self.clean(self.app.get('/bills?date_posted_to=2010-01-01').data) == '[]'
 
+class EntriesTestCase(ApiTestCase):
+
+    def test_entries_no_session(self):
+        assert self.get_error_type('get', '/invoices/XXXXXX/entries', dict()) == 'SessionDoesNotExist'
+
+class EntriesSessionTestCase(ApiSessionTestCase):
+
+    def test_entries_no_invoice(self):
+        assert self.app.get('/invoices/XXXXXX/entries').status == '404 NOT FOUND'
+
+    def test_entries(self):
+        assert json.loads(self.clean(self.app.get('/invoices/' + self.createInvoice()['id'] + '/entries').data)) == []
+
+    def test_add_entry_no_date_opened(self):
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=dict()) == 'InvalidDateOpened'
+
+    def test_add_entry_invalid_date_opened(self):
+        data=dict(
+            date = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidDateOpened'
+
+    def test_add_entry_no_discount_type(self):
+        data=dict(
+            date = '2010-01-01'
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'UnsupportedDiscountType'
+
+    def test_add_entry_no_account(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1'
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'NoAccount'
+
+    def test_add_entry_invalid_account(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'NoAccount'
+
+    def test_add_entry_invalid_quantity(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid']
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidQuantity'
+
+    def test_add_entry_no_quantity(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = ''
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidQuantity'
+
+    def test_add_entry_invalid_quantity(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidQuantity'
+
+    def test_add_entry_no_price(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = '1',
+            price = ''
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidPrice'
+
+    def test_add_entry_invalid_price(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = '1',
+            price = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidPrice'
+
+    def test_add_entry_no_discount(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = '1',
+            price = '1.00',
+            discount = ''
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidDiscount'
+
+    def test_add_entry_invalid_discount(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = '1',
+            price = '1.00',
+            discount = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/invoices/' + self.createInvoice()['id'] + '/entries', data=data) == 'InvalidDiscount'
+
+
+    def test_add_entry(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = 1,
+            price = '1.00',
+            discount = '0'
+        )
+
+        assert json.loads(self.clean(self.app.post('/invoices/' + self.createInvoice()['id'] + '/entries', data=data).data))['inv_price'] == 1.0
+
+class BillEntriesTestCase(ApiTestCase):
+
+    def test_bill_entries_no_session(self):
+        assert self.get_error_type('get', '/bills/XXXXXX/entries', dict()) == 'SessionDoesNotExist'
+
+class BillEntriesSessionTestCase(ApiSessionTestCase):
+
+    def test_bill_entries_no_bill(self):
+        assert self.app.get('/bills/XXXXXX/entries').status == '404 NOT FOUND'
+
+    def test_bill_entries(self):
+        assert json.loads(self.clean(self.app.get('/bills/' + self.createBill()['id'] + '/entries').data)) == []
+
+    def test_add_bill_entry_no_date_opened(self):
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=dict()) == 'InvalidDateOpened'
+
+    def test_add_bill_entry_invalid_date_opened(self):
+        data=dict(
+            date = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'InvalidDateOpened'
+
+    def test_add_bill_entry_no_account(self):
+        data=dict(
+            date = '2010-01-01',
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'NoAccount'
+
+    def test_add_bill_entry_invalid_account(self):
+        data=dict(
+            date = '2010-01-01',
+            account_guid = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'NoAccount'
+
+    def test_add_bill_entry_invalid_quantity(self):
+        data=dict(
+            date = '2010-01-01',
+            account_guid = self.createAccount()['guid']
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'InvalidQuantity'
+
+    def test_add_bill_entry_no_quantity(self):
+        data=dict(
+            date = '2010-01-01',
+            account_guid = self.createAccount()['guid'],
+            quantity = ''
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'InvalidQuantity'
+
+    def test_add_bill_entry_invalid_quantity(self):
+        data=dict(
+            date = '2010-01-01',
+            account_guid = self.createAccount()['guid'],
+            quantity = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'InvalidQuantity'
+
+    def test_add_bill_entry_no_price(self):
+        data=dict(
+            date = '2010-01-01',
+            account_guid = self.createAccount()['guid'],
+            quantity = '1',
+            price = ''
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'InvalidPrice'
+
+    def test_add_bill_entry_invalid_price(self):
+        data=dict(
+            date = '2010-01-01',
+            account_guid = self.createAccount()['guid'],
+            quantity = '1',
+            price = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/bills/' + self.createBill()['id'] + '/entries', data=data) == 'InvalidPrice'
+
+    def test_add_bill_entry(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = 1,
+            price = '1.00',
+        )
+
+        assert json.loads(self.clean(self.app.post('/bills/' + self.createBill()['id'] + '/entries', data=data).data))['bill_price'] == 1.0
+
 if __name__ == '__main__':
     unittest.main()
