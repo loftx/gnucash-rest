@@ -88,6 +88,18 @@ class ApiTestCase(unittest.TestCase):
 
         return json.loads(self.clean(self.app.post('/invoices', data=data).data))
 
+    def createEntry(self):
+        data=dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = 1,
+            price = '1.00',
+            discount = '0'
+        )
+
+        return json.loads(self.clean(self.app.post('/invoices/' + self.createInvoice()['id'] + '/entries', data=data).data))
+
     def createBill(self):
 
         data = dict(
@@ -1069,6 +1081,38 @@ class CustomersSessionTestCase(ApiSessionTestCase):
 
         assert json.loads(self.clean(self.app.get('/customers/999999', data=dict()).data))['id'] == '999999'
 
+    def test_update_customer_invalid_id(self):
+        assert self.app.post('/customers/999999', data=dict()).status == '404 NOT FOUND'
+
+    def test_update_customer_no_id(self):
+        self.createCustomer()
+
+        # Should we need an ID when it's in the URL...
+
+        assert self.get_error_type('post', '/customers/999999', data=dict()) == 'NoCustomerName'
+
+    def test_update_customer_no_address(self):
+        self.createCustomer()
+
+        data = dict(
+            id = '999999',
+            name = 'Test company'
+        )
+
+        assert self.get_error_type('post', '/customers/999999', data=data) == 'NoCustomerAddress'
+
+    def test_update_customer(self):
+
+        self.createCustomer()
+
+        data = dict(
+            id = '999999',
+            name = 'Updated company',
+            address_line_1 = 'Test address'
+        )
+
+        assert json.loads(self.clean(self.app.post('/customers/999999', data=data).data))['name'] == 'Updated company'
+
     def test_get_customers(self):
 
         self.createCustomer()
@@ -1778,12 +1822,12 @@ class BillsSessionTestCase(ApiSessionTestCase):
     def test_bills_date_posted_to(self):
         assert self.clean(self.app.get('/bills?date_posted_to=2010-01-01').data) == '[]'
 
-class EntriesTestCase(ApiTestCase):
+class InvoiceEntriesTestCase(ApiTestCase):
 
     def test_entries_no_session(self):
         assert self.get_error_type('get', '/invoices/XXXXXX/entries', dict()) == 'SessionDoesNotExist'
 
-class EntriesSessionTestCase(ApiSessionTestCase):
+class InvoiceEntriesSessionTestCase(ApiSessionTestCase):
 
     def test_entries_no_invoice(self):
         assert self.app.get('/invoices/XXXXXX/entries').status == '404 NOT FOUND'
@@ -2007,6 +2051,67 @@ class BillEntriesSessionTestCase(ApiSessionTestCase):
         )
 
         assert json.loads(self.clean(self.app.post('/bills/' + self.createBill()['id'] + '/entries', data=data).data))['bill_price'] == 1.0
+
+class EntriesTestCase(ApiTestCase):
+
+    def test_entry_no_session(self):
+        assert self.get_error_type('get', '/entries/00000000000000000000000000000000', dict()) == 'SessionDoesNotExist'
+
+class EntriesSessionTestCase(ApiSessionTestCase):
+
+    def test_entry_no_entry(self):
+        assert self.app.get('/entries/00000000000000000000000000000000').status == '404 NOT FOUND'
+
+    def test_entry(self):
+        entry = self.createEntry()
+
+        assert json.loads(self.clean(self.app.get('/entries/' + entry['guid']).data))['guid'] == entry['guid']
+
+    def test_update_entry_no_date(self):
+        assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=dict()) == 'InvalidDateOpened'
+
+    def test_update_entry_no_discount_type(self):
+        data = dict(
+            date = '2010-01-01'
+        )
+
+        assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'UnsupportedDiscountType'
+
+    def test_update_entry_no_account(self):
+        data = dict(
+            date = '2010-01-01',
+            discount_type = 1
+        )
+
+        assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'NoAccount'
+
+    def test_update_entry_invalid_account(self):
+        data = dict(
+            date = '2010-01-01',
+            discount_type = 1,
+            account_guid = 'XXX'
+        )
+
+        assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'NoAccount'
+
+    def test_update_entry_invalid_quantity(self):
+        data = dict(
+            date = '2010-01-01',
+            discount_type = 1,
+            account_guid = self.createAccount()['guid'],
+        )
+
+        assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'InvalidQuantity'
+
+    def test_update_entry_invalid_price(self):
+        data = dict(
+            date = '2010-01-01',
+            discount_type = 1,
+            account_guid = self.createAccount()['guid'],
+            quantity = 1
+        )
+
+        assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'InvalidPrice'
 
 if __name__ == '__main__':
     unittest.main()

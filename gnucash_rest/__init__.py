@@ -853,10 +853,10 @@ def api_customer(id):
 
     elif request.method == 'POST':
 
-        id = str(request.form.get('id', ''))
-
         if id == '':
-            id = None
+            id = str(request.form.get('id', ''))
+            if id == '':
+                id = None
 
         name = str(request.form.get('name', ''))
         contact = str(request.form.get('contact', ''))
