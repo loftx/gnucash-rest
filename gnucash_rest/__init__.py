@@ -787,7 +787,7 @@ def api_entry(guid):
 
             delete_entry(session.book, guid)
 
-            return Response('', status=201, mimetype='application/json')
+            return Response('', status=200, mimetype='application/json')
 
 @app.route('/customers', methods=['GET', 'POST'])
 def api_customers():
@@ -2070,6 +2070,12 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
     # Only discount for invoices
     if entry.GetInvAccount() is not None:
         # Currently only value based discounts are supported
+
+        # As bills may pass the discount though as None check this and raise an error for invoices
+        if discount is None:
+            raise Error('InvalidDiscount', 'This discount is not valid',
+                {'field': 'discount'})
+
         try:
             discount = Decimal(discount).quantize(Decimal('.01'))
         except ArithmeticError:
@@ -2097,8 +2103,6 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
         entry.SetInvDiscountType(discount_type)
         # Currently only value based discounts are supported
         entry.SetInvDiscount(gnc_numeric_from_decimal(discount))
-
-    entry.CommitEdit()
 
     return gnucash_simple.entryToDict(entry)
 

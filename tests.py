@@ -19,6 +19,8 @@ class ApiTestCase(unittest.TestCase):
         cursor.execute(sql)
         cursor.close()
         database.close()
+        cursor = None
+        database = None
 
     def teardown_database(self):
         warnings.filterwarnings('ignore', category = MySQLdb.Warning)
@@ -28,6 +30,8 @@ class ApiTestCase(unittest.TestCase):
         cursor.execute(sql)
         cursor.close()
         database.close()
+        cursor = None
+        database = None
 
     # probably not the most pythonic way to do this
     def clean(self, data):
@@ -2080,7 +2084,7 @@ class EntriesSessionTestCase(ApiSessionTestCase):
     def test_update_entry_no_account(self):
         data = dict(
             date = '2010-01-01',
-            discount_type = 1
+            discount_type = '1'
         )
 
         assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'NoAccount'
@@ -2088,8 +2092,7 @@ class EntriesSessionTestCase(ApiSessionTestCase):
     def test_update_entry_invalid_account(self):
         data = dict(
             date = '2010-01-01',
-            discount_type = 1,
-            account_guid = 'XXX'
+            discount_type = '1'
         )
 
         assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'NoAccount'
@@ -2097,7 +2100,7 @@ class EntriesSessionTestCase(ApiSessionTestCase):
     def test_update_entry_invalid_quantity(self):
         data = dict(
             date = '2010-01-01',
-            discount_type = 1,
+            discount_type = '1',
             account_guid = self.createAccount()['guid'],
         )
 
@@ -2106,12 +2109,46 @@ class EntriesSessionTestCase(ApiSessionTestCase):
     def test_update_entry_invalid_price(self):
         data = dict(
             date = '2010-01-01',
-            discount_type = 1,
+            discount_type = '1',
             account_guid = self.createAccount()['guid'],
             quantity = 1
         )
 
         assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'InvalidPrice'
+
+    def test_update_entry_invalid_discount(self):
+        data = dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = 1,
+            price = '1.00'
+        )
+
+        assert self.get_error_type('post', '/entries/' + self.createEntry()['guid'], data=data) == 'InvalidDiscount'
+
+    def test_update_entry(self):
+
+        data = dict(
+            date = '2010-01-01',
+            discount_type = '1',
+            account_guid = self.createAccount()['guid'],
+            quantity = 1,
+            price = '2.00',
+            discount = '0'
+        )
+        
+        assert json.loads(self.clean(self.app.post('/entries/' + self.createEntry()['guid'], data=data).data))['inv_price'] == 2.0
+
+    def test_delete_entry(self):
+
+        # * 11:33:42  CRIT <qof.engine> [qof_commit_edit()] unbalanced call - resetting (was -1)
+        # In entry.Destroy()
+
+        assert self.app.delete('/entries/' + self.createEntry()['guid'], data=dict()).status == '200 OK'
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
