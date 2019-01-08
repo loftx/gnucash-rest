@@ -83,7 +83,8 @@ from gnucash import \
    
 from gnucash.gnucash_core_c import \
     GNC_INVOICE_CUST_INVOICE, \
-    GNC_INVOICE_VEND_INVOICE
+    GNC_INVOICE_VEND_INVOICE, \
+    INVOICE_IS_POSTED
 
 # define globals
 session = None
@@ -540,6 +541,7 @@ def api_invoices():
 
     if request.method == 'GET':
         
+        is_posted = request.args.get('is_posted', None)
         is_paid = request.args.get('is_paid', None)
         is_active = request.args.get('is_active', None)
         date_due_from = request.args.get('date_due_from', None)
@@ -548,6 +550,13 @@ def api_invoices():
         date_opened_to = request.args.get('date_opened_to', None)
         date_posted_from = request.args.get('date_posted_from', None)
         date_posted_to = request.args.get('date_posted_to', None)
+
+        if is_posted == '1':
+            is_posted = 1
+        elif is_posted == '0':
+            is_posted = 0
+        else:
+            is_posted = None
 
         if is_paid == '1':
             is_paid = 1
@@ -565,6 +574,7 @@ def api_invoices():
 
         try:
             invoices = get_invoices(session.book, {
+                'is_posted': is_posted,
                 'is_paid': is_paid,
                 'is_active': is_active,
                 'date_opened_from': date_opened_from,
@@ -1201,6 +1211,7 @@ def get_invoices(book, properties):
 
     defaults = [
         'customer',
+        'is_posted',
         'is_paid',
         'is_active',
         'date_opened_from',
@@ -1218,6 +1229,11 @@ def get_invoices(book, properties):
     query = gnucash.Query()
     query.search_for('gncInvoice')
     query.set_book(book)
+
+    if properties['is_posted'] == 0:
+        query.add_boolean_match([INVOICE_IS_POSTED], False, QOF_QUERY_AND)
+    elif properties['is_posted'] == 1:
+        query.add_boolean_match([INVOICE_IS_POSTED], True, QOF_QUERY_AND)
 
     if properties['is_paid'] == 0:
         query.add_boolean_match([INVOICE_IS_PAID], False, QOF_QUERY_AND)
