@@ -8,30 +8,47 @@ import sys
 
 class ApiTestCase(unittest.TestCase):
 
+    backend = 'file'
+
+    def getConnectionString(self):
+        if (self.backend == 'mysql'):
+            return 'mysql://root:oxford@localhost/test'
+        else:
+            return 'xml:///tmp/simple_book.gnucash'
+
+    def getSessionSettings(self):
+        return dict(
+            connection_string = self.getConnectionString(),
+            is_new = '1',
+            ignore_lock = '0'
+        )
+
     def setUp(self):
         self.app = gnucash_rest.app.test_client()
         self.app.testing = True
 
     def setup_database(self):
-        database = MySQLdb.connect(host='localhost', user='root', passwd='oxford')
-        cursor = database.cursor()
-        sql = 'CREATE DATABASE test'
-        cursor.execute(sql)
-        cursor.close()
-        database.close()
-        cursor = None
-        database = None
+        if (self.backend == 'mysql'):
+            database = MySQLdb.connect(host='localhost', user='root', passwd='oxford')
+            cursor = database.cursor()
+            sql = 'CREATE DATABASE test'
+            cursor.execute(sql)
+            cursor.close()
+            database.close()
+            cursor = None
+            database = None
 
     def teardown_database(self):
-        warnings.filterwarnings('ignore', category = MySQLdb.Warning)
-        database = MySQLdb.connect(host='localhost', user='root', passwd='oxford')
-        cursor = database.cursor()
-        sql = 'DROP DATABASE IF EXISTS test'
-        cursor.execute(sql)
-        cursor.close()
-        database.close()
-        cursor = None
-        database = None
+        if (self.backend == 'mysql'):
+            warnings.filterwarnings('ignore', category = MySQLdb.Warning)
+            database = MySQLdb.connect(host='localhost', user='root', passwd='oxford')
+            cursor = database.cursor()
+            sql = 'DROP DATABASE IF EXISTS test'
+            cursor.execute(sql)
+            cursor.close()
+            database.close()
+            cursor = None
+            database = None
 
     # probably not the most pythonic way to do this
     def clean(self, data):
@@ -136,13 +153,7 @@ class ApiSessionTestCase(ApiTestCase):
 
         self.setup_database()
 
-        data = dict(
-            connection_string = 'mysql://root:oxford@localhost/test',
-            is_new = '1',
-            ignore_lock = '0'
-        )
-
-        response = self.app.post('/session', data=data)
+        response = self.app.post('/session', data=self.getSessionSettings())
         assert self.clean(response.data) == '"Session started"'
 
     def tearDown(self):
@@ -178,63 +189,66 @@ class SessionTestCase(ApiTestCase):
 
     def test_session_connection_string(self):
         data = dict(
-            connection_string = 'mysql://root:oxford@localhost/test'
+            connection_string = self.getConnectionString()
         )
         assert self.get_error_type('post', '/session', data) == 'InvalidIsNew'
 
     def test_session_isnew(self):
         data = dict(
-            connection_string = 'mysql://root:oxford@localhost/test',
+            connection_string = self.getConnectionString(),
             is_new='1'
         )
         assert self.get_error_type('post', '/session', data) == 'InvalidIgnoreLock'
 
     def test_session_auto_error(self):
-        gnucash_rest.app.connection_string = 'mysql://root:oxford@localhost/none'
+        if (self.backend == 'mysql'):
+            gnucash_rest.app.connection_string = 'mysql://root:oxford@localhost/none'
+        else:
+            gnucash_rest.app.connection_string = 'xml:///tmp/simple_book.gnucash'
 
         # remove the database in case tests failed previously
         self.teardown_database()
 
         self.setup_database()
 
-        # Logs
-        # CRIT <gnc.backend.dbi> [GncDbiBackend<Type>::session_begin()] Database 'none' does not exist
-
-        error = gnucash_rest.startup()
-        assert error.data['code'] == 'ERR_BACKEND_NO_SUCH_DB'
+        if (self.backend == 'mysql'):
+            # Logs
+            # CRIT <gnc.backend.dbi> [GncDbiBackend<Type>::session_begin()] Database 'none' does not exist
+            assert gnucash_rest.startup().data['code'] == 'ERR_BACKEND_NO_SUCH_DB'
+        else:
+            # Logs
+            # WARN <gnc.backend> [GncXmlBackend::check_path()] Couldn't find /tmp/simple_book.gnucash
+            assert gnucash_rest.startup().data['code'] == 'ERR_FILEIO_FILE_NOT_FOUND'
 
         self.teardown_database()
 
         del gnucash_rest.app.connection_string
 
     def test_session_auto(self):
-        gnucash_rest.app.connection_string = 'mysql://root:oxford@localhost/test'
+        # for this to work with files we need a file available
+        if (self.backend == 'mysql'):
+            gnucash_rest.app.connection_string = self.getConnectionString()
 
-        # remove the database in case tests failed previously
-        self.teardown_database()
+            # remove the database in case tests failed previously
+            self.teardown_database()
 
-        self.setup_database()
+            self.setup_database()
 
-        database = gnucash_rest.startup()
-        assert isinstance(database, gnucash.gnucash_core.Session)
+            database = gnucash_rest.startup()
+            print(database)
+            assert isinstance(database, gnucash.gnucash_core.Session)
 
-        # Logs
-        # CRIT <gnc.backend.dbi> gnc_dbi_unlock: assertion 'dbi_conn_error( dcon, NULL ) == 0' failed
+            # Logs
+            # CRIT <gnc.backend.dbi> gnc_dbi_unlock: assertion 'dbi_conn_error( dcon, NULL ) == 0' failed
 
-        response = self.app.delete('/session')
-        assert self.clean(response.data) == '"Session ended"'
+            response = self.app.delete('/session')
+            assert self.clean(response.data) == '"Session ended"'
 
-        self.teardown_database()
+            self.teardown_database()
 
-        del gnucash_rest.app.connection_string
+            del gnucash_rest.app.connection_string
 
     def test_session(self):
-        data = dict(
-            connection_string = 'mysql://root:oxford@localhost/test',
-            is_new = '1',
-            ignore_lock = '0'
-        )
-
         # Logs
         # WARN <gnc.backend.dbi> [gnc_dbi_unlock()] No lock table in database, so not unlocking it.
 
@@ -244,7 +258,7 @@ class SessionTestCase(ApiTestCase):
         self.setup_database()
 
         # 201 CREATED
-        response = self.app.post('/session', data=data)
+        response = self.app.post('/session', data=self.getSessionSettings())
         assert self.clean(response.data) == '"Session started"'
 
         response = self.app.delete('/session')
@@ -284,13 +298,7 @@ class AccountsSessionTestCase(ApiTestCase):
 
         self.setup_database()
 
-        data = dict(
-            connection_string = 'mysql://root:oxford@localhost/test',
-            is_new = '1',
-            ignore_lock = '0'
-        )
-
-        response = self.app.post('/session', data=data)
+        response = self.app.post('/session', data=self.getSessionSettings())
         assert self.clean(response.data) == '"Session started"'
 
     def tearDown(self):
@@ -419,13 +427,7 @@ class TransactionsSessionTestCase(ApiTestCase):
 
         self.setup_database()
 
-        data = dict(
-            connection_string = 'mysql://root:oxford@localhost/test',
-            is_new = '1',
-            ignore_lock = '0'
-        )
-
-        response = self.app.post('/session', data=data)
+        response = self.app.post('/session', data=self.getSessionSettings())
         assert self.clean(response.data) == '"Session started"'
 
     def tearDown(self):
