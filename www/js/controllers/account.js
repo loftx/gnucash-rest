@@ -117,6 +117,8 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 			splitaccount2: $scope.account.guid
 		};
 
+		console.log(params);
+
 		if (
 			$scope.account.type_id == ACCT_TYPE_EXPENSE
 		) {

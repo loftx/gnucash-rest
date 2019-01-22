@@ -21,11 +21,14 @@ function SessionDeleteCtrl($scope, $location, Session) {
 // this is bad due to the case...
 app.controller('modalStartSessionCtrl', ['error', '$scope', '$route', '$uibModalStack', '$uibModalInstance', 'Session', function(error, $scope, $route, $uibModalStack, $uibModalInstance, Session) {
 
+	$scope.loading = 0;
 	$scope.error = error;
 	$scope.session = {};
 
 	// could change to generic function
 	$scope.startSession = function() {
+
+		$scope.loading = 1;
 
 		var params = {
 			connection_string: $scope.session.connection_string,
@@ -35,11 +38,15 @@ app.controller('modalStartSessionCtrl', ['error', '$scope', '$route', '$uibModal
 
 		Session.start(params).then(function(session) {
 
+			$scope.loading = 0;
+
 			//use $uibModalStack.dismissAll() rather than $uibModalInstance.close() as multiple calls currently pop up dialogs which stack;
 			$uibModalStack.dismissAll();
 			$route.reload();
 
 		}, function(data) {
+			$scope.loading = 0;
+
 			if(typeof data.errors != 'undefined') {
 				if (data.errors[0].type == 'GnuCashBackendException') {
 					$scope.error = data.errors[0].message + ': ' + data.errors[0].data.code;
