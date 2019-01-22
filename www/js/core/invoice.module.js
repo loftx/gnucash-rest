@@ -148,6 +148,13 @@ angular.module('core.invoice').
           queryParams = queryParams + 'date_' + params.date_type + '_to=' + params.date_to;
         }
 
+        if (params.is_posted != '') {
+          if (queryParams != '') {
+            queryParams = queryParams + '&';
+          }
+          queryParams = queryParams + 'is_posted=' + params.is_posted;
+        }
+
         if (params.is_paid != '') {
           if (queryParams != '') {
             queryParams = queryParams + '&';
@@ -187,8 +194,14 @@ angular.module('core.invoice').
       format: function(invoice) {
 
         invoice.formatted_date_opened = Dates.dateFormat(invoice.date_opened);
-        invoice.formatted_date_due = Dates.dateFormat(invoice.date_due);
-        invoice.formatted_date_posted = Dates.dateFormat(invoice.date_posted);
+
+        if (invoice.posted) {
+          invoice.formatted_date_posted = Dates.dateFormat(invoice.date_posted);
+          invoice.formatted_date_due = Dates.dateFormat(invoice.date_due);
+        } else {
+          invoice.formatted_date_posted = '';
+          invoice.formatted_date_due = '';
+        }
 
         for (var i in invoice.entries) {
           invoice.entries[i] = Entry.format(invoice.entries[i]);

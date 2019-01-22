@@ -6,7 +6,8 @@ function InvoiceListCtrl($scope, Invoice, Customer, Dates) {
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
 	$scope.date_to = '';
 	$scope.is_paid = '';
-	$scope.is_active = 1;
+	$scope.is_posted = '';
+	$scope.is_active = '1'; // needs to be a string or isn't picked up by Angular...
 
 	var lastParams = {};
 
@@ -55,10 +56,11 @@ function InvoiceListCtrl($scope, Invoice, Customer, Dates) {
 			'date_from': $scope.date_from,
 			'date_to': $scope.date_to,
 			'date_type': $scope.date_type,
+			'is_posted': $scope.is_posted,
 			'is_paid': $scope.is_paid,
 			'is_active': $scope.is_active
 		};
-		
+
 		if (params != lastParams) {
 			
 			// Using $scope.invoices = Invoice.query(params); causes "$scope.invoices.push is not a function" - probably because it's a promise not an array...

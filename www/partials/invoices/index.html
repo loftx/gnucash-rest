@@ -20,6 +20,13 @@
       <label>Date to</label>
       <input id="invoiceDateTo" type="text" placeholder="" ng-model="date_to" ng-change="change()">
 
+      <label>Posted</label>
+      <select ng-model="is_posted" ng-change="change()">
+        <option value=""></option>
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+
       <label>Paid</label>
       <select ng-model="is_paid" ng-change="change()">
         <option value=""></option>
@@ -53,10 +60,10 @@
       </tr>
       <tr ng-repeat="invoice in invoices | filter:query | orderBy:orderProp">
         <td><a href="#/invoices/{{invoice.id}}">{{invoice.id}}</a></td>
-        <td>{{invoice.date_opened}}</a></td>
-        <td>{{invoice.date_due}}</td>
+        <td>{{invoice.formatted_date_opened}}</a></td>
+        <td>{{invoice.formatted_date_due}}</td>
         <td><a href="#/customers/{{invoice.owner.id}}">{{invoice.owner.name}}</a></td>
-        <td>{{invoice.date_posted}}</td>
+        <td>{{invoice.formatted_date_posted}}</td>
         <td>{{invoice.formatted_total}}</td>
         <td>
           <span ng-show="invoice.paid">Yes</span>
