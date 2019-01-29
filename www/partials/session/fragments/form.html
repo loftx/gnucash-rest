@@ -3,39 +3,46 @@
 </div>
 <div class="modal-body">
 
-  <div id="billPostAlert" class="alert  alert-error" ng-show="error != ''">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-    <strong>Error</strong> {{error}}
+  <div ng-show="loading" class="loader">Loading...</div>
+
+  <div ng-show="!loading" >
+
+    <div id="sessionAlert" class="alert  alert-error" ng-show="error != ''">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Error</strong> {{error}}
+    </div>
+
+    
+    <form class="form-horizontal" style="margin: 0px;">
+      <fieldset>
+        
+        <div class="control-group">
+          <label class="control-label" for="sessionConnectionString">Connection string</label>
+          <div class="controls">
+            <textarea id="sessionConnectionString" ng-model="session.connection_string" name="sessionConnectionString" class="input-xlarge"></textarea>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="sessionIsNew">New database</label>
+          <div class="controls">
+            <input id="sessionIsNew" ng-model="session.is_new" name="sessionIsNew" class="input-xlarge" type="checkbox">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="sessionIgnoreLock">Ignore lock</label>
+          <div class="controls">
+            <input id="sessionIgnoreLock" ng-model="session.ignore_lock" name="sessionIgnoreLock" class="input-xlarge" type="checkbox">
+          </div>
+        </div>
+
+      </fieldset>
+    </form>
+
   </div>
-
-  <form class="form-horizontal" style="margin: 0px;">
-    <fieldset>
-      
-      <div class="control-group">
-        <label class="control-label" for="sessionConnectionString">Connection string</label>
-        <div class="controls">
-          <textarea id="sessionConnectionString" ng-model="session.connection_string" name="sessionConnectionString" class="input-xlarge"></textarea>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label" for="sessionIsNew">New database</label>
-        <div class="controls">
-          <input id="sessionIsNew" ng-model="session.is_new" name="sessionIsNew" class="input-xlarge" type="checkbox">
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label" for="sessionIgnoreLock">Ignore lock</label>
-        <div class="controls">
-          <input id="sessionIgnoreLock" ng-model="session.ignore_lock" name="sessionIgnoreLock" class="input-xlarge" type="checkbox">
-        </div>
-      </div>
-
-    </fieldset>
-  </form>
 
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" ng-click="startSession()">Connect</button>
+  <button class="btn btn-primary" ng-disabled="loading" ng-click="startSession()">Connect</button>
 </div>

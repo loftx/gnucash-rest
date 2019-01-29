@@ -27,16 +27,20 @@ angular.module('core').factory('Api', function($timeout, $location, $uibModal) {
 			} else if (status == 400 && typeof data != 'undefined') {
 				if (data.errors[0] != 'undefined') {
 					if (data.errors[0].type == 'SessionDoesNotExist') {
-						var popup = $uibModal.open({
-							templateUrl: 'partials/session/fragments/form.html',
-							controller: 'modalStartSessionCtrl',
-							size: 'sm',
-							resolve: {
-								error: function () {
-								  return data.errors[0].message;
+						// Use a hack to check if the modal is already open - https://stackoverflow.com/questions/39791821/how-to-check-if-a-bootstrap-ui-modal-is-open-angularjs
+						// doesn't work as it's not open when the request is returned - need to store the error somewhere.
+						//if (document.getElementsByClassName("modal").length === 0) {
+							var popup = $uibModal.open({
+								templateUrl: 'partials/session/fragments/form.html',
+								controller: 'modalStartSessionCtrl',
+								size: 'sm',
+								resolve: {
+									error: function () {
+									  return data.errors[0].message;
+									}
 								}
-							}
-						});
+							});
+						//}
 					} else {
 						// alert is a sync function and causes '$digest already in progress' if not wrapped in a timeout
 						// need to define timeout
