@@ -2285,13 +2285,13 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
                 'The transaction currency must match the account currency for this split',
                 {'field': 'account'})
 
-        # TODO - the API should probably allow numerator and denomiator rather than assue 100
+        # TODO - the API should probably allow numerator and denomiator rather than assue 100 - it would also avoid the issue of rounding errrors with float/int conversion
         value = split_values['value']
 
         try: 
             value = float(value)
             value = value * 100
-            value = int(value)
+            value = round(value)
         except ValueError:
             raise Error('InvalidSplitValue',
             'A valid value must be supplied for this split',
