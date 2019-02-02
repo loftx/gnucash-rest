@@ -1,7 +1,7 @@
 angular.module('core.vendor', []);
 
 angular.module('core.vendor').
-  factory('Vendor', function($q, $http, $timeout, Api, Money) {
+  factory('Vendor', function($q, $http, $timeout, Api, Bill) {
     var obj = {
 
       // well use this to get the http bit, then post process it normally?
@@ -43,7 +43,7 @@ angular.module('core.vendor').
           .success(function(bills) {
 
             for (var i in bills) {
-              //bills[i] = Invoice.format(bills[i]);
+              bills[i] = Bill.format(bills[i]);
             }
 
             deferred.resolve(bills);

@@ -2,7 +2,7 @@
   <h1>{{vendor.name}}</h1>
   <h2>Bills</h2>
 
-  <a role="button" class="btn" ng-click="emptyBill()" style="margin-bottom: 25px;">Add bill</a>
+  <a style="margin-bottom: 25px;" role="button" class="btn" ng-click="emptyBill()">Add bill</a>
 
   <table class="table">
     <tr>
@@ -10,14 +10,16 @@
       <th>Opened</th>
       <th>Due</th>
       <th>Posted</th>
+      <th>Total</th>
       <th>Paid</th>
       <th></th>
     </tr>
     <tr ng-repeat="bill in bills">
       <td><a href="#/bills/{{bill.id}}">{{bill.id}}</a></td>
-      <td>{{bill.date_opened}}</a></td>
-      <td>{{bill.date_due}}</td>
-      <td>{{bill.date_posted}}</td>
+      <td>{{bill.formatted_date_opened}}</a></td>
+      <td>{{bill.formatted_date_due}}</td>
+      <td>{{bill.formatted_date_posted}}</td>
+      <td>{{bill.formatted_total}}</td>
       <td>
         <span ng-show="bill.paid">Yes</span>
         <span ng-show="!bill.paid">No</span>

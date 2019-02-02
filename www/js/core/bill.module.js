@@ -131,33 +131,6 @@ angular.module('core.bill').
         return deferred.promise;
       },
 
-      recalculate: function(bill) {
-
-        bill.total = 0;
-
-        for (var i in bill.entries) {
-          bill.total = bill.total + bill.entries[i].total_inc_discount;
-        }
-
-        bill = obj.format(bill);
-
-        return bill;
-      },
-
-      format: function(bill) {
-        bill.formatted_date_opened = Dates.dateFormat(bill.date_opened);
-        bill.formatted_date_due = Dates.dateFormat(bill.date_due);
-        bill.formatted_date_posted = Dates.dateFormat(bill.date_posted);
-
-        for (var i in bill.entries) {
-          bill.entries[i] = Entry.format(bill.entries[i]);
-        }
-
-        bill.formatted_total = Money.format_currency(8, bill.currency, bill.total);
-
-        return bill;
-      },
-
       // should seperate param validation and querystring building
       // TODO: This is identical to invoices
       generateQueryString: function(params) {
@@ -198,6 +171,33 @@ angular.module('core.bill').
 
         return queryParams;
 
+      },
+
+     recalculate: function(bill) {
+
+        bill.total = 0;
+
+        for (var i in bill.entries) {
+          bill.total = bill.total + bill.entries[i].total_inc_discount;
+        }
+
+        bill = obj.format(bill);
+
+        return bill;
+      },
+
+      format: function(bill) {
+        bill.formatted_date_opened = Dates.dateFormat(bill.date_opened);
+        bill.formatted_date_due = Dates.dateFormat(bill.date_due);
+        bill.formatted_date_posted = Dates.dateFormat(bill.date_posted);
+
+        for (var i in bill.entries) {
+          bill.entries[i] = Entry.format(bill.entries[i]);
+        }
+
+        bill.formatted_total = Money.format_currency(8, bill.currency, bill.total);
+
+        return bill;
       },
 
     }
