@@ -684,6 +684,7 @@ def api_invoice(id):
 
     elif request.method == 'PAY':
         
+        transaction_guid = str(request.form.get('transaction_guid', ''))
         posted_account_guid = str(request.form.get('posted_account_guid', ''))
         transfer_account_guid = str(request.form.get('transfer_account_guid',
             ''))
@@ -693,7 +694,7 @@ def api_invoice(id):
         auto_pay = request.form.get('auto_pay', '')
 
         try:
-            invoice = pay_invoice(session.book, id, posted_account_guid,
+            invoice = pay_invoice(session.book, id, transaction_guid, posted_account_guid,
                 transfer_account_guid, payment_date, memo, num, auto_pay)
         except Error as error:
             return Response(json.dumps({'errors': [{'type' : error.type,
@@ -1534,14 +1535,28 @@ def get_invoice(book, id):
 
     return gnucash_simple.invoiceToDict(get_gnucash_invoice(book, id))
 
-def pay_invoice(book, id, posted_account_guid, transfer_account_guid,
+def pay_invoice(book, id, transaction_guid, posted_account_guid, transfer_account_guid,
     payment_date, memo, num, auto_pay):
+
+    # Where is posted_account_guid used - it's in the dialog, but we're not using it
 
     invoice = get_gnucash_invoice(book, id)
 
     if invoice is None:
         raise Error('NoInvoice', 'An invoice with this ID does not exist',
             {'field': 'id'})
+
+    if transaction_guid == '':
+        transaction = None
+    else:
+        guid = gnucash.gnucash_core.GUID() 
+        gnucash.gnucash_core.GUIDString(transaction_guid, guid)
+
+        transaction = guid.TransLookup(book)
+
+        if transaction is None:
+            raise Error('NoTransaction', 'No transaction exists with this GUID',
+            {'field': 'transaction_guid'})
 
     try:
         payment_date = datetime.datetime.strptime(payment_date, "%Y-%m-%d")
@@ -1559,7 +1574,7 @@ def pay_invoice(book, id, posted_account_guid, transfer_account_guid,
         raise Error('NoTransferAccount', 'No account exists with this GUID',
             {'field': 'transfer_account_guid'})
 
-    invoice.ApplyPayment(None, transfer_account, invoice.GetTotal(), GncNumeric(0),
+    invoice.ApplyPayment(transaction, transfer_account, invoice.GetTotal(), GncNumeric(0),
         payment_date, memo, num)
 
     return gnucash_simple.invoiceToDict(invoice)    
@@ -2473,7 +2488,7 @@ def start_session(connection_string, is_new, ignore_lock):
 
     if session is not None:
         raise Error('SessionExists',
-            'The session alredy exists',
+            'The session already exists',
             {})
 
     try:
