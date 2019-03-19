@@ -2512,27 +2512,15 @@ def end_session():
             'The session does not exist',
             {})
 
-    # Does the need to be called? Has resulted in:
-    #
-    # File "/usr/local/lib/python2.7/dist-packages/gnucash/gnucash_core.py", line 151, in new_function
-    # self.raise_backend_errors(function.__name__)
-    # File "/usr/local/lib/python2.7/dist-packages/gnucash/gnucash_core.py", line 129, in raise_backend_errors
-    #errors )
-    # GnuCashBackendException: call to new_function resulted in the following errors, ERR_BACKEND_SERVER_ERR
-    #
-    # Ref: https://lists.gnucash.org/pipermail/gnucash-devel/2013-February/034992.html
-
-    # Don't call session.save as this seems to prevent subsequent commands being run on shutdown leaving database in locked state (will this cause issues for xml backend?)
-
-    #try:
-    #    session.save()
-    #except gnucash.GnuCashBackendException as e:
-    #    raise Error('GnuCashBackendException',
-    #        'There was an error saving the session',
-    #        {
-    #            'message': e.args[0],
-    #            'code': parse_gnucash_backend_exception(e.args[0])
-    #        })
+    try:
+        session.save()
+    except gnucash.GnuCashBackendException as e:
+        raise Error('GnuCashBackendException',
+            'There was an error saving the session',
+            {
+                'message': e.args[0],
+                'code': parse_gnucash_backend_exception(e.args[0])
+            })
 
     session.end()
     session.destroy()

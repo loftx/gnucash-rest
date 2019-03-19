@@ -142,6 +142,73 @@ class ApiTestCase(unittest.TestCase):
 
         return json.loads(self.clean(self.app.post('/accounts', data=data).data))
 
+class TempInvoiceTestCase(ApiTestCase):
+
+    def test(self):
+
+        import random
+        import string
+
+        # remove the database in case tests failed previously
+        #self.teardown_database()
+        filestr = '/tmp/D_' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)) + '.gnucash'
+        #if (self.backend == 'file'):
+        import os
+        import glob
+
+        files = glob.glob('/tmp/*')
+        for f in files:
+            os.remove(f)  
+
+        if os.path.isfile(filestr):
+            print('removing existing file before starting')
+            os.remove(filestr)
+
+        #self.setup_database()
+
+        response = self.app.post('/session', data=dict(
+            connection_string = 'xml://' + filestr,
+            is_new = '1',
+            ignore_lock = '0'
+        ))
+
+        assert self.clean(response.data) == '"Session started"'
+
+        # force root account creation and dirty book
+        response = json.loads(self.clean(self.app.get('/accounts').data))
+        assert response['name'] == 'Root Account'
+
+        #self.createCustomer()
+        #invoice = self.createInvoice()
+
+        # get_book().get_root_account()
+
+        response = self.app.delete('/session')
+        assert self.clean(response.data) == '"Session ended"'
+
+        if os.path.isfile(filestr):
+            print('exists')
+        else:
+            print('not exists')
+
+        assert os.path.isfile(filestr)
+
+        return
+
+        response = self.app.post('/session', data=dict(
+            connection_string = 'xml://' + filestr,
+            is_new = '0',
+            ignore_lock = '0'
+        ))
+
+        print(response.data)
+        assert self.clean(response.data) == '"Session started"'
+
+        invoice = self.app.get('/invoices/999999').data
+        print(invoice)
+
+        self.teardown_database()
+
 class ApiSessionTestCase(ApiTestCase):
 
     def setUp(self):
