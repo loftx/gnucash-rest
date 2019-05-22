@@ -25,8 +25,8 @@
         <span ng-show="!invoice.paid">No</span>
       </td>
       <td>
-        <span ng-switch on="invoice.date_posted">
-            <span ng-switch-when="null">
+        <span ng-switch on="invoice.posted">
+            <span ng-switch-when="false">
                 <a ng-click="emptyPostInvoice(invoice.id)">post</a>
             </span>
         </span>

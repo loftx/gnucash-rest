@@ -17,17 +17,31 @@
         <th></th>
         <th></th>
       </tr>
-      <tr ng-repeat="split in splits">
+      <tr ng-if="0" ng-repeat-start="split in splits"></tr>
+      <tr>
         <td>{{split.transaction.date_posted}}</td>
         <td>{{split.transaction.num}}</td>
         <td>{{split.transaction.description}}</td>
-        <td>{{split.other_split.account.name}}</td>
+        <td ng-show="split.transaction.count_splits == 2">{{split.other_split.account.name}}</td>
+        <td ng-show="split.transaction.count_splits != 2"><a ng-click="getTransactionSplit(split.transaction.guid)">-- Split transaction -- </a></td>
         <td>{{split.decrease}}</td>
         <td>{{split.increase}}</td>
         <td>{{split.formatted_balance}}</td>
         <td><a ng-click="populateTransaction(split.transaction.guid)">edit</a></td>
         <td><a ng-click="deleteTransaction(split.transaction.guid)">delete</a></td>
       </tr>
+      <tr ng-repeat="transactionsplit in split.transaction.splits">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{transactionsplit.account.name}}</td>
+        <td>{{transactionsplit.decrease}}</td>
+        <td>{{transactionsplit.increase}}</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr ng-if="0" ng-repeat-end></tr>
     </table>
 
     <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyTransaction()">Add transaction</a>

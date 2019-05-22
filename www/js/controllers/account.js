@@ -174,6 +174,42 @@ function AccountDetailCtrl($scope, $routeParams, $route, Account, Transaction, D
 
 	}
 
+	$scope.getTransactionSplit = function(guid) {
+
+		Transaction.get(guid).then(function(transaction) {
+
+			// order splits so split from this account is first
+			/*for (var i = 0; i < transaction.splits.length; i++) {
+				if (transaction.splits[i].account.guid == $scope.account.guid) {
+					if (i > 0) {
+						var accountsplit = transaction.splits[i];
+						transaction.splits.splice(i, 1);
+						transaction.splits.unshift(accountsplit);
+					}
+				}
+			}*/
+
+
+			// apply formatting to new splits
+			for (var i = 0; i < transaction.splits.length; i++) {
+				transaction.splits[i] = Account.formatSplit(transaction.splits[i], transaction.splits[i].account);
+				console.log(transaction.splits[i]);
+			}
+
+			// find the requested transaction in the splits list and add the full splits list to it
+			for (var i = 0; i < $scope.splits.length; i++) {
+				if ($scope.splits[i].transaction.guid == transaction.guid) {
+
+
+
+					$scope.splits[i].transaction.splits = transaction.splits;
+				}
+			}
+
+		});
+
+	}
+
 	$scope.populateTransaction = function(guid) {
 
 		Transaction.get(guid).then(function(transaction) {
