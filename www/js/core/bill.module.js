@@ -195,6 +195,7 @@ angular.module('core.bill').
           bill.entries[i] = Entry.format(bill.entries[i]);
         }
 
+        bill.formatted_tax = Money.format_currency(8, bill.currency, bill.total_tax);
         bill.formatted_total = Money.format_currency(8, bill.currency, bill.total);
 
         return bill;
