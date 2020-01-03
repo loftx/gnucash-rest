@@ -272,13 +272,13 @@ def entryToDict(entry):
         simple_entry['bill_price'] = entry.GetBillPrice().to_double()
         simple_entry['bill_taxable'] = entry.GetBillTaxable()
         simple_entry['bill_tax_included'] = entry.GetBillTaxIncluded()
-        simple_entry['bill_tax_table'] = entry.GetBillTaxTable()
+        # While GetBillTaxTable() returns a TaxTable object, this does not seem to be fully implemented in such a way to return actual tax values
+        #simple_entry['bill_tax_table'] = taxtableToDict(entry.GetBillTaxTable())
         simple_entry['billable'] = entry.GetBillable()
         simple_entry['bill_payment'] = entry.GetBillPayment()
         simple_entry['is_open'] = entry.IsOpen()
 
         return simple_entry
-
 
 def accountToDict(account):
 
@@ -307,3 +307,34 @@ def accountToDict(account):
         simple_account['placeholder'] = account.GetPlaceholder()
 
         return simple_account
+
+def taxtableToDict(taxtable):
+
+    if taxtable is None:
+        return None 
+    else:
+        simple_taxtable = {}
+
+        # guid exists in database table but is not returned in taxtable object
+        #simple_taxtable['guid'] = ?
+        simple_taxtable['name'] = taxtable.GetName()
+        simple_taxtable['refcount'] = taxtable.GetRefcount()
+        simple_taxtable['parent'] = taxtableToDict(taxtable.GetParent())
+        # invisible exists in database table but is not returned in taxtable object
+        #simple_taxtable['invisible'] = ?
+
+        simple_taxtable['entries'] = []
+        for n, entry in enumerate(taxtable.GetEntries()):
+            simple_taxtable['entries'].append(taxtableEntryToDict(entry))
+        # GetTables method exists, but isn't returned here
+        #simple_taxtable['tables'] = taxtable.GetTables()
+
+        return simple_taxtable
+
+def taxtableEntryToDict(entry):
+
+    if entry is None:
+        return None 
+    else:
+        # entry is of type <gnucash.gnucash_core_c._gnc_monetary; proxy of <Swig Object of type '_gnc_monetary *' at 0x7ff728c44420> >
+        pass
