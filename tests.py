@@ -5,16 +5,21 @@ import gnucash_rest
 import MySQLdb
 import warnings
 import sys
+import os
+import glob
 
 class ApiTestCase(unittest.TestCase):
 
     backend = 'file'
 
+    def getConnectionFile(self):
+        return '/tmp/simple_book.gnucash'
+
     def getConnectionString(self):
         if (self.backend == 'mysql'):
             return 'mysql://root:oxford@localhost/test'
         else:
-            return 'xml:///tmp/simple_book.gnucash'
+            return 'xml://' + self.getConnectionFile()
 
     def getSessionSettings(self):
         return dict(
@@ -49,6 +54,14 @@ class ApiTestCase(unittest.TestCase):
             database.close()
             cursor = None
             database = None
+        else:
+            try:
+                os.remove(self.getConnectionFile())
+                # Remove simple_book.gnucash.LCK, simple_book.gnucash.xxx.log, etc
+                for f in glob.glob(self.getConnectionFile() + '*'):
+                    os.remove(f)
+            except:
+                pass
 
     # probably not the most pythonic way to do this
     def clean(self, data):
@@ -204,7 +217,7 @@ class SessionTestCase(ApiTestCase):
         if (self.backend == 'mysql'):
             gnucash_rest.app.connection_string = 'mysql://root:oxford@localhost/none'
         else:
-            gnucash_rest.app.connection_string = 'xml:///tmp/simple_book.gnucash'
+            gnucash_rest.app.connection_string = 'xml:///tmp/simple_book_not_found.gnucash'
 
         # remove the database in case tests failed previously
         self.teardown_database()
@@ -287,7 +300,7 @@ class AccountsTestCase(ApiTestCase):
     def test_account_get_splits_no_session(self):
         assert self.get_error_type('get', '/accounts/none/splits', dict()) == 'SessionDoesNotExist'
 
-class AccountsSessionTestCase(ApiTestCase):
+class AccountsSessionTestCase(ApiSessionTestCase):
 
     def setUp(self):
         self.app = gnucash_rest.app.test_client()
@@ -416,7 +429,7 @@ class TransactionsTestCase(ApiTestCase):
     def test_transaction_no_session(self):
         assert self.get_error_type('post', '/transactions/none', dict()) == 'SessionDoesNotExist'
 
-class TransactionsSessionTestCase(ApiTestCase):
+class TransactionsSessionTestCase(ApiSessionTestCase):
 
     def setUp(self):
         self.app = gnucash_rest.app.test_client()
