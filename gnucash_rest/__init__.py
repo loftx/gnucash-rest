@@ -2393,7 +2393,7 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
     # Should we do all checks before calling split_guid.SplitLookup(book) as it's not clear when these will be comitted?
     for split_values in splits:
 
-        split_guids.append(split_values['guid']);
+        split_guids.append(split_values['guid'])
 
         split_guid = gnucash.gnucash_core.GUID() 
         gnucash.gnucash_core.GUIDString(split_values['guid'], split_guid)
