@@ -1505,7 +1505,7 @@ def get_gnucash_invoice(book, id):
 
 def get_gnucash_bill(book ,id):
 
-    # we don't use book.InvoicelLookupByID(id) as this is identical to
+    # we don't use book.InvoiceLookupByID(id) as this is identical to
     # book.BillLookupByID(id) so can return the same object if they share IDs
 
     query = gnucash.Query()
@@ -1745,9 +1745,6 @@ def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
         raise Error('NoCustomer',
             'A customer with this ID does not exist', {'field': 'id'})
 
-    if id is None:
-        id = book.InvoiceNextID(customer)
-
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
     except ValueError:
@@ -1770,6 +1767,11 @@ def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
         raise Error('MismatchedInvoiceCurrency',
             'The currency of this invoice does not match the customer',
             {'field': 'currency'})
+
+    # Do this last to avoid errors - gnucash.gnucash_core.GnuCashBackendException: call to new_function resulted in the following errors, ERR_BACKEND_MISC
+
+    if id is None:
+        id = book.InvoiceNextID(customer)
 
     invoice = Invoice(book, id, currency, customer, date_opened.date())
 
@@ -2177,9 +2179,6 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
         raise Error('NoVendor', 'A vendor with this ID does not exist',
             {'field': 'id'})
 
-    if id is None:
-        id = book.BillNextID(vendor)
-
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
     except ValueError:
@@ -2202,6 +2201,11 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
         raise Error('MismatchedBillCurrency',
             'The currency of this bill does not match the vendor',
             {'field': 'currency'})
+
+    # Do this last to avoid errors - gnucash.gnucash_core.GnuCashBackendException: call to new_function resulted in the following errors, ERR_BACKEND_MISC
+
+    if id is None:
+        id = book.BillNextID(vendor)
 
     bill = Bill(book, id, currency, vendor, date_opened.date())
 
