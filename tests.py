@@ -10,7 +10,7 @@ import glob
 
 class ApiTestCase(unittest.TestCase):
 
-    backend = 'file'
+    backend = 'mysql'
 
     def getConnectionFile(self):
         return '/tmp/simple_book.gnucash'
@@ -170,7 +170,6 @@ class ApiSessionTestCase(ApiTestCase):
         assert self.clean(response.data) == '"Session started"'
 
     def tearDown(self):
-
         response = self.app.delete('/session')
         assert self.clean(response.data) == '"Session ended"'
 
@@ -248,7 +247,6 @@ class SessionTestCase(ApiTestCase):
             self.setup_database()
 
             database = gnucash_rest.startup()
-            print(database)
             assert isinstance(database, gnucash.gnucash_core.Session)
 
             # Logs
@@ -2161,9 +2159,6 @@ class EntriesSessionTestCase(ApiSessionTestCase):
         # In entry.Destroy()
 
         assert self.app.delete('/entries/' + self.createEntry()['guid'], data=dict()).status == '200 OK'
-
-
-
 
 if __name__ == '__main__':
     unittest.main()
