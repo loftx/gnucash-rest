@@ -22,16 +22,23 @@
           </div>
 
           <div class="control-group">
+            <label class="control-label" for="invoiceActive">Active</label>
+            <div class="controls">
+              <input id="invoiceActive" ng-model="invoice.active" name="invoiceActive" class="input-xlarge" type="checkbox">
+            </div>
+          </div>
+
+          <div class="control-group">
             <label class="control-label" for="invoiceDateOpened">Date opened</label>
             <div class="controls">
-              <input id="invoiceDateOpened" ng-model="invoice.date_opened" name="invoiceDateOpened" class="input-xlarge" type="text">
+              <input id="invoiceDateOpened" ng-model="invoice.date_opened" name="invoiceDateOpened" class="input-xlarge" type="text" ng-disabled="invoice.posted">
             </div>
           </div>
 
           <div class="control-group">
             <label class="control-label" for="invoiceCompany">Company</label>
             <div class="controls">
-              <select data-ng-model="invoice.customer_id" data-ng-options="customer.id as customer.name for customer in customers" class="input-xlarge"></select>
+              <select data-ng-model="invoice.customer_id" data-ng-options="customer.id as customer.name for customer in customers" class="input-xlarge" type="text" ng-disabled="invoice.posted"></select>
             </div>
           </div>
 

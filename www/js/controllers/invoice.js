@@ -198,6 +198,7 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 
 		var params = {
 			id: $scope.invoice.id,
+			active: $scope.invoice.active,
 			customer_id: $scope.invoice.owner.id,
 			currency: $scope.invoice.currency,
 			date_opened: $scope.invoice.date_opened,
