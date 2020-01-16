@@ -1165,9 +1165,6 @@ class InvoicesTestCase(ApiTestCase):
     def test_invoice_no_session(self):
         assert self.get_error_type('get', '/invoices/XXXXXX', dict()) == 'SessionDoesNotExist'
 
-    def test_invoice_notes_no_session(self):
-        assert self.get_error_type('get', '/invoices/XXXXXX/notes', dict()) == 'SessionDoesNotExist'
-
 class InvoicesSessionTestCase(ApiSessionTestCase):
 
     def test_add_invoice_no_parameters(self):
@@ -1250,9 +1247,6 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
 
         assert json.loads(self.clean(self.app.get('/invoices/999999').data))['id'] == '999999'
 
-    def test_update_invoice_no_invoice(self):
-        assert self.app.post('/invoices/999999/notes', data=dict()).status == '404 NOT FOUND'
-
     def test_update_invoice_no_customer(self):
         invoice = self.createInvoice()
 
@@ -1286,11 +1280,6 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
         )
 
         assert self.get_error_type('post', '/invoices/999999', data=data) == 'InvalidDateOpened'
-
-    def test_update_invoice_notes_no_invoice(self):
-        assert self.app.post('/invoices/999999/notes', data=dict()).status == '404 NOT FOUND'
-
-
 
     def test_post_invoice_no_date_posted(self):
         invoice = self.createInvoice()
@@ -1393,15 +1382,6 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
         )
 
         assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['id'] == '999999'
-
-    def test_update_invoice_notes(self):
-        invoice = self.createInvoice()
-
-        data = dict(
-            notes = 'XXXXX',
-        )
-
-        assert json.loads(self.clean(self.app.post('/invoices/999999/notes', data=data).data))['notes'] == 'XXXXX'
 
     def test_pay_invoice_no_invoice(self):
         assert self.get_error_type('pay', '/invoices/999999', data=dict()) == 'NoInvoice'

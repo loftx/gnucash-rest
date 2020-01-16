@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/python
 
 '''
 
 gnucash_rest.py -- A Flask app which responds to REST requests
 with JSON responses
 
-Copyright (C) 2013-2020 Tom Lofts <dev@loftx.co.uk>
+Copyright (C) 2013 Tom Lofts <dev@loftx.co.uk>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -744,34 +744,6 @@ def api_invoice_entries(id):
                     status=400, mimetype='application/json')
             else:
                 return Response(json.dumps(entry), status=201,
-                    mimetype='application/json')
-
-@app.route('/invoices/<id>/notes', methods=['POST'])
-def api_invoice_notes(id):
-
-    try:
-        session = get_session()
-    except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
-
-    invoice = get_invoice(session.book, id)
-    
-    if invoice is None:
-        abort(404)
-    else:
-        if request.method == 'POST':
-            notes = str(request.form.get('notes', ''))
-
-            try:
-                entry = update_invoice_notes(session.book, id, notes)
-            except Error as error:
-                return Response(json.dumps({'errors': [{'type' : error.type,
-                    'message': error.message, 'data': error.data}]}),
-                    status=400, mimetype='application/json')
-            else:
-                return Response(json.dumps(entry), status=200,
                     mimetype='application/json')
 
 @app.route('/entries/<guid>', methods=['GET', 'POST', 'DELETE'])
@@ -1882,20 +1854,6 @@ def update_invoice(book, id, customer_id, currency_mnumonic, date_opened,
     if (invoice.GetDatePosted() is None and posted == 1):
         invoice.PostToAccount(posted_account, posted_date, due_date,
             posted_memo, posted_accumulatesplits, posted_autopay)
-
-    return gnucash_simple.invoiceToDict(invoice)
-
-def update_invoice_notes(book, id, notes):
-    # Used for posted invoices to prevent accidently making changes to other fields (possibly could be replaced by correct calls to update_invoice)
-
-    invoice = get_gnucash_invoice(book, id)
-
-    if invoice is None:
-        raise Error('NoInvoice',
-            'An invoice with this ID does not exist',
-            {'field': 'id'})
-
-    invoice.SetNotes(notes)
 
     return gnucash_simple.invoiceToDict(invoice)
 
