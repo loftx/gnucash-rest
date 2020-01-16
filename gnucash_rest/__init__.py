@@ -36,6 +36,7 @@ from functools import wraps
 from flask import Flask, abort, request, Response, g
 import re
 import sys
+import getopt
 
 # to resolve bug in http://stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime
 import _strptime
@@ -2654,3 +2655,56 @@ class Error(Exception):
         self.type = type
         self.message = message
         self.data = data
+
+if __name__ == '__main__':
+    try:
+        options, arguments = getopt.getopt(sys.argv[1:], 'nh:', ['host=', 'new='])
+    except getopt.GetoptError as err:
+    #     print(str(err)) # will print something like "option -a not recognized"
+        print('Usage: python-rest.py <connection string>')
+        sys.exit(2)
+    # 
+    # if len(arguments) == 0:
+    #     print('Usage: python-rest.py <connection string>')
+    #     sys.exit(2)
+
+    #set default host for Flask
+    host = '127.0.0.1'
+
+    #allow host option to be changed
+    for option, value in options:
+        if option in ("-h", "--host"):
+            host = value
+
+    # is_new = False
+    # 
+    # # allow a new database to be used
+    # for option, value in options:
+    #     if option in ("-n", "--new"):
+    #         is_new = True
+    # 
+    # #start gnucash session base on connection string argument
+    # if is_new:
+    #     session = gnucash.Session(arguments[0], is_new=True)
+    # 
+    #     # seem to get errors if we use the session directly, so save it and
+    #     #destroy it so it's no longer new
+    # 
+    #     session.save()
+    #     session.end()
+    #     session.destroy()
+    # 
+    # session = gnucash.Session(arguments[0], ignore_lock=True)
+
+    # register method to close gnucash connection gracefully
+    atexit.register(shutdown)
+
+    # log to console
+    import logging
+    from logging import StreamHandler
+    stream_handler = StreamHandler()
+    stream_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(stream_handler)
+
+    # start Flask server
+    app.run(host=host)
