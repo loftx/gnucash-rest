@@ -636,6 +636,7 @@ def api_invoice(id):
 
     elif request.method == 'POST':
 
+        active = request.form.get('active', '')
         customer_id = str(request.form.get('customer_id', ''))
         currency = str(request.form.get('currency', ''))
         date_opened = request.form.get('date_opened', '')
@@ -648,6 +649,15 @@ def api_invoice(id):
         posted_accumulatesplits = request.form.get('posted_accumulatesplits',
             '')
         posted_autopay = request.form.get('posted_autopay', '')
+
+        # default to active
+        if (active == '0'
+            or active == 'false'
+            or active == 'False'
+            or active == False):
+            active = False
+        else:
+            active = True
 
         if posted == '1':
             posted = 1
@@ -667,7 +677,7 @@ def api_invoice(id):
         else:
             posted_autopay = False
         try:
-            invoice = update_invoice(session.book, id, customer_id, currency,
+            invoice = update_invoice(session.book, id, active, customer_id, currency,
                 date_opened, notes, posted, posted_account_guid, posted_date,
                 due_date, posted_memo, posted_accumulatesplits, posted_autopay)
         except Error as error:
@@ -1780,7 +1790,7 @@ def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
     return gnucash_simple.invoiceToDict(invoice)
 
-def update_invoice(book, id, customer_id, currency_mnumonic, date_opened,
+def update_invoice(book, id, active, customer_id, currency_mnumonic, date_opened,
     notes, posted, posted_account_guid, posted_date, due_date, posted_memo,
     posted_accumulatesplits, posted_autopay):
 
@@ -1846,9 +1856,13 @@ def update_invoice(book, id, customer_id, currency_mnumonic, date_opened,
                 'No account exists with the posted account GUID',
                 {'field': 'posted_account_guid'})
 
+    invoice.SetActive(active)
     invoice.SetOwner(customer)
     invoice.SetDateOpened(date_opened)
     invoice.SetNotes(notes)
+
+    print(posted)
+    print(invoice.GetDatePosted())
 
     # post if currently unposted and posted=1
     if (invoice.GetDatePosted() is None and posted == 1):
