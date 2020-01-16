@@ -161,12 +161,14 @@ def invoiceToDict(invoice):
         simple_invoice['date_opened'] = invoice.GetDateOpened().strftime(
             '%Y-%m-%d')
 
-        if invoice.GetDatePosted() is None:
+        # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+        if invoice.GetDatePosted() is None or invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01':
             simple_invoice['date_posted'] = None
         else:
             simple_invoice['date_posted'] = invoice.GetDatePosted().strftime(
                 '%Y-%m-%d')
-        if invoice.GetDateDue() is None:
+            # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+        if invoice.GetDateDue() is None or invoice.GetDateDue().strftime('%Y-%m-%d') == '1970-01-01':
             simple_invoice['date_due'] = None
         else:
             simple_invoice['date_due'] = invoice.GetDateDue().strftime(
@@ -207,12 +209,14 @@ def billToDict(bill):
         simple_bill['id'] = bill.GetID()
         simple_bill['type'] = bill.GetType()
         simple_bill['date_opened'] = bill.GetDateOpened().strftime('%Y-%m-%d')
-        if bill.GetDatePosted() is None:
+        # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+        if bill.GetDatePosted() is None or bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01':
             simple_bill['date_posted'] = None
         else:
             simple_bill['date_posted'] = bill.GetDatePosted().strftime(
                 '%Y-%m-%d')
-        if bill.GetDateDue() is None:
+            # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+        if bill.GetDateDue() is None or bill.GetDateDue().strftime('%Y-%m-%d') == '1970-01-01':
             simple_bill['date_due'] = None
         else:
             simple_bill['date_due'] = bill.GetDateDue().strftime('%Y-%m-%d')

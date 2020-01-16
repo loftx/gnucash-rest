@@ -1861,11 +1861,9 @@ def update_invoice(book, id, active, customer_id, currency_mnumonic, date_opened
     invoice.SetDateOpened(date_opened)
     invoice.SetNotes(notes)
 
-    print(posted)
-    print(invoice.GetDatePosted())
-
     # post if currently unposted and posted=1
-    if (invoice.GetDatePosted() is None and posted == 1):
+    # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+    if ((invoice.GetDatePosted() is None or invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') and posted == 1):
         invoice.PostToAccount(posted_account, posted_date, due_date,
             posted_memo, posted_accumulatesplits, posted_autopay)
 
@@ -1942,7 +1940,8 @@ def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
     bill.SetNotes(notes)
 
     # post if currently unposted and posted=1
-    if bill.GetDatePosted() is None and posted == 1:
+    # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+    if (bill.GetDatePosted() is None or bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') and posted == 1:
         bill.PostToAccount(posted_account, posted_date, due_date, posted_memo,
             posted_accumulatesplits, posted_autopay)
 
