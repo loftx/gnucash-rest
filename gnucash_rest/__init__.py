@@ -615,7 +615,7 @@ def api_invoices():
             return Response(json.dumps(invoice), status=201,
                 mimetype='application/json')
 
-@app.route('/invoices/<id>', methods=['GET', 'POST', 'PAY'])
+@app.route('/invoices/<id>', methods=['GET', 'POST', 'UNPOST', 'PAY'])
 def api_invoice(id):
 
     try:
@@ -692,6 +692,34 @@ def api_invoice(id):
             abort(404)
         else:
             return Response(json.dumps(invoice), mimetype='application/json')
+
+    elif request.method == 'UNPOST':
+
+        invoice = get_invoice(session.book, id)
+
+        if invoice is None:
+            abort(404)
+        else:
+            try:
+                
+                reset_tax_tables = request.form.get('reset_tax_tables', '')
+                
+                if (reset_tax_tables == '0'
+                    or reset_tax_tables == 'false'
+                    or reset_tax_tables == 'False'
+                    or reset_tax_tables == False):
+                    reset_tax_tables = False
+                else:
+                    reset_tax_tables = True
+
+                invoice = unpost_invoice(session.book, id, reset_tax_tables)
+            except Error as error:
+                return Response(json.dumps({'errors': [{'type' : error.type,
+                    'message': error.message, 'data': error.data}]}), status=400,
+                    mimetype='application/json')
+            else:
+                return Response(json.dumps(invoice), status=200,
+                    mimetype='application/json')
 
     elif request.method == 'PAY':
         
@@ -1866,6 +1894,19 @@ def update_invoice(book, id, active, customer_id, currency_mnumonic, date_opened
     if ((invoice.GetDatePosted() is None or invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') and posted == 1):
         invoice.PostToAccount(posted_account, posted_date, due_date,
             posted_memo, posted_accumulatesplits, posted_autopay)
+
+    return gnucash_simple.invoiceToDict(invoice)
+
+def unpost_invoice(book, id, reset_tax_tables):
+
+    invoice = get_gnucash_invoice(book, id)
+
+    if invoice is None:
+        raise Error('NoInvoice',
+            'An invoice with this ID does not exist',
+            {'field': 'id'})
+
+    invoice.Unpost(reset_tax_tables)
 
     return gnucash_simple.invoiceToDict(invoice)
 

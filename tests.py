@@ -1371,6 +1371,23 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
 
         assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['posted'] == True
 
+    def test_unpost_invoice(self):
+        invoice = self.createInvoice()
+        account = self.createAccount()
+
+        data = dict(
+            customer_id = self.createCustomer()['id'],
+            date_opened = '2010-01-01',
+            posted = '1',
+            posted_date = '2010-01-01',
+            due_date = '2010-01-01',
+            posted_account_guid = account['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post('/invoices/999999', data=data).data))['posted'] == True
+
+        assert json.loads(self.clean(self.app.open('/invoices/999999', data=dict(), method='unpost').data))['posted'] == False
+
     def test_update_invoice(self):
         invoice = self.createInvoice()
 
