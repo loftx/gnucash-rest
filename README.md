@@ -3,8 +3,6 @@ Gnucash Rest
 
 A Python based REST framework for the Gnucash accounting application
 
-**Please note this is a very early work in progress and should not be run against live or production data.**
-
 This project is designed to allow other applications to easily extract data from Gnucash via a RESTful API.
 
 The API is built on the existing Python bindings and uses the Flask framework via WSGI to serve responses in JSON.
@@ -16,8 +14,8 @@ Accounts
 --------
 
 GET request to /accounts - returns a complete list of accounts  
-GET request to /accounts/<guid> - returns an individual account  
-GET request to /accounts/<guid>/splits - returns splits for an individual account
+GET request to /accounts/&lt;guid&gt; - returns an individual account  
+GET request to /accounts/&lt;guid&gt;/splits - returns splits for an individual account
 
 POST request to /transactions - creates a new transaction (currently with only two splits)
 
@@ -31,9 +29,9 @@ splitaccount1 - required - the GUID for the 1st account on this transaction (can
 splitvalue2 - required - the value of the split on splitaccount2  
 splitaccount2 - required - the GUID for the 2nd account on this transaction  
 
-GET request to /transactions/<guid> - returns an individual transaction   
-POST request to /transactions/<guid> - edits an existing transaction (accepts the same post variables as /transactions)  
-DELETE request to /transactions/<guid> - deletes a transaction  
+GET request to /transactions/&lt;guid&gt; - returns an individual transaction   
+POST request to /transactions/&lt;guid&gt; - edits an existing transaction (accepts the same post variables as /transactions)  
+DELETE request to /transactions/&lt;guid&gt; - deletes a transaction  
 
 Bills
 -----
@@ -55,8 +53,8 @@ currency - required - a gnucash currency code
 date_opened - required - a date formatted as YYYY-MM-DD  
 notes - optional - notes for this bill  
 
-GET request to /bills/<id> - returns an individual bill  
-POST request to /bills/<id> - edits (and optionally posts) a bill
+GET request to /bills/&lt;id&gt; - returns an individual bill  
+POST request to /bills/&lt;id&gt; - edits (and optionally posts) a bill
 
 POST variables:  
 vendor_id - required - the id of the vendor of this bill (can be obtained from /vendors)  
@@ -71,7 +69,7 @@ posted_memo - optional - a description
 posted_accumulatesplits - optional - whether to accumulate splits or not (1 for yes, 0 for no)  
 posted_autopay - optional - whether to auto pay or not (1 for yes, 0 for no)
 
-PAY request to /bills/<id> - mark a bill as paid
+PAY request to /bills/&lt;id&gt; - mark a bill as paid
 
 POST variables:  
 posted_account_guid - required - the GUID for the posted account  
@@ -81,8 +79,8 @@ num - optional - a number for this payment
 memo - optional - a description for this payment  
 auto_pay - required - whether to auto pay or not (1 for yes, 0 for no)  
 
-GET request to /bills/<id>/entries  - return all entries for an individual bill  
-POST request to /bills/<id>/entries - adds a new entry to a bill
+GET request to /bills/&lt;id&gt;/entries  - return all entries for an individual bill  
+POST request to /bills/&lt;id&gt;/entries - adds a new entry to a bill
 
 date - required -  a date formatted as YYYY-MM-DD  
 description  - required -   the description for this entry  
@@ -103,8 +101,8 @@ currency - required - a gnucash currency code
 date_opened - a date formatted as YYYY-MM-DD  
 notes - optional -  notes for this invoice  
 
-GET request to /invoices/<id> - returns an individual invoice  
-POST request to /invoices/<id> - edits (and optionally posts) an invoice
+GET request to /invoices/&lt;id&gt; - returns an individual invoice  
+POST request to /invoices/&lt;id&gt; - edits (and optionally posts) an invoice
 
 POST variables:  
 customer_id - required - the id of the customer of this bill (can be obtained from /customers)  
@@ -119,13 +117,13 @@ posted_memo - optional - a description
 posted_accumulatesplits - optional - whether to accumulate splits or not (1 for yes, 0 for no)  
 posted_autopay - optional - whether to auto pay or not (1 for yes, 0 for no)  
 
-PAY request to /invoices/<id> - mark an invoice as paid (accepts the same post variables as /bills/<id>)
+PAY request to /invoices/&lt;id&gt; - mark an invoice as paid (accepts the same post variables as /bills/&lt;id&gt;)
 
-GET request to /invoices/<id>/entries - return all entries for an individual invoice  
-POST request to /invoices/<id>/entries - adds a new entry to an  invoice (accepts the same post variables as /bills/<id>/entries)
+GET request to /invoices/&lt;id&gt;/entries - return all entries for an individual invoice  
+POST request to /invoices/&lt;id&gt;/entries - adds a new entry to an  invoice (accepts the same post variables as /bills/&lt;id&gt;/entries)
 
-GET request to /entries/<guid> - returns an individual entry   
-POST request to /entries/<guid> - edits an existing entry (accepts the same post variables as /bills/<id>/entries)
+GET request to /entries/&lt;guid&gt; - returns an individual entry   
+POST request to /entries/&lt;guid&gt; - edits an existing entry (accepts the same post variables as /bills/&lt;id&gt;/entries)
 
 Customers
 ---------
@@ -146,9 +144,9 @@ phone - optional - the customer's phone number
 fax - optional - the customer's fax number  
 email - optional - the customer's email address  
 
-GET request to /customers/<id> - returns an individual customer  
-POST request to /customers/<id> - edits an existing customer (accepts the same post variables as /customers)  
-GET request to /customers/<id>/invoices - returns all invoices for a single customer
+GET request to /customers/&lt;id&gt; - returns an individual customer  
+POST request to /customers/&lt;id&gt; - edits an existing customer (accepts the same post variables as /customers)  
+GET request to /customers/&lt;id&gt;/invoices - returns all invoices for a single customer
 
 Vendors
 -------
@@ -169,15 +167,33 @@ phone - optional - the vendor's phone number
 fax - optional - the vendor's fax number  
 email - optional - the vendor's email address  
 
-GET request to /vendors/<id> - returns an individual vendor  
-GET request to /vendors/<id>/bills - returns all bills for a single vendor
+GET request to /vendors/&lt;id&gt; - returns an individual vendor  
+GET request to /vendors/&lt;id&gt;/bills - returns all bills for a single vendor
+
+Requirements
+
+The majority of the functionality in the Rest API is available in recent Gnucash versions but to ensure full compatiblity you may want to build Gnucash from source using the latest maintenance branch <https://github.com/Gnucash/gnucash/tree/maint/> following instructions at https://wiki.gnucash.org/wiki/Building.
+
+Should you not wish to build from source, the API should run (but not all functions may work) from around Gnucash 3.6 onwards with the Python bindings.
+
+You'll also need Flask installed.
 
 Usage
 -----
 
-**As this is work in progress you'll need a knowledge of building Gnucash from source and experience with python.**
+To quickly test the API backend run the following:
 
-Full details to be provided at a later date, but in short you'll need a copy of Gnucash (at least 2.4) built with Python bindings and the Flask module installed and a web server supporting WSGI.
+	git clone https://github.com/loftx/gnucash-rest.git
+	python3 gnucash-rest/gnucash_rest/__init__.py
+
+Then visit http://127.0.0.1:5000/ which should display: "Gnucash REST API"
+
+The host and  port may be changes with the --host and --port flags respectively
+
+Production usage
+----------------
+
+Full details to be provided at a later date, but in short you'll need a recent copy of Gnucash (3.6 onwards) built with Python bindings and the Flask module installed and a web server supporting WSGI.
 
 A sample Apache configuration is as follows:
 
