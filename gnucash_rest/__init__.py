@@ -2858,24 +2858,23 @@ class Error(Exception):
 if __name__ == '__main__':
     try:
         options, arguments = getopt.getopt(
-            sys.argv[1:], 'nh:', ['host=', 'new='])
+            sys.argv[1:], 'hp:', ['host=', 'port='])
     except getopt.GetoptError as err:
-        # print(str(err)) # will print something like "option -a not
-        # recognized"
-        print('Usage: python-rest.py <connection string>')
+        print('Usage: __init__.py [options...]')
+        print(' -h, --host       Set the host IP address to bind to')
+        print(' -p, --port       Set the port to bind to')
         sys.exit(2)
-    #
-    # if len(arguments) == 0:
-    #     print('Usage: python-rest.py <connection string>')
-    #     sys.exit(2)
-
-    # set default host for Flask
+    
+    # set default host and port for Flask
     host = '127.0.0.1'
+    port = 5000
 
     # allow host option to be changed
     for option, value in options:
         if option in ("-h", "--host"):
             host = value
+        elif option in ("-p", "--port"):
+            port = value
 
     # is_new = False
     #
@@ -2908,4 +2907,4 @@ if __name__ == '__main__':
     app.logger.addHandler(stream_handler)
 
     # start Flask server
-    app.run(host=host)
+    app.run(host=host, port=port)
