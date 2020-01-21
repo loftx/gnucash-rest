@@ -3,7 +3,7 @@
 gnucash_simple.py -- A helper file to convert Gnucash objects into
 dictionaries for easier conversion to JSON
 
-Copyright (C) 2013 Tom Lofts <dev@loftx.co.uk>
+Copyright (C) 2013-2020 Tom Lofts <dev@loftx.co.uk>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -30,6 +30,7 @@ import gnucash
 from gnucash.gnucash_business import Entry, Split, Account
 import sys
 
+
 def addressToDict(address):
     if address is None:
         return None
@@ -46,6 +47,7 @@ def addressToDict(address):
 
         return simple_address
 
+
 def vendorToDict(vendor):
 
     if vendor is None:
@@ -58,11 +60,12 @@ def vendorToDict(vendor):
         simple_vendor['notes'] = vendor.GetNotes()
         simple_vendor['active'] = vendor.GetActive()
         simple_vendor['currency'] = vendor.GetCurrency().get_mnemonic()
-        #simple_vendor['tax_table_override'] = vendor.GetTaxTableOverride()
+        # simple_vendor['tax_table_override'] = vendor.GetTaxTableOverride()
         simple_vendor['address'] = addressToDict(vendor.GetAddr())
         simple_vendor['tax_included'] = vendor.GetTaxIncluded()
 
         return simple_vendor
+
 
 def customerToDict(customer):
 
@@ -78,13 +81,15 @@ def customerToDict(customer):
         simple_customer['discount'] = customer.GetDiscount().to_double()
         simple_customer['credit'] = customer.GetCredit().to_double()
         simple_customer['currency'] = customer.GetCurrency().get_mnemonic()
-        # simple_customer['tax_table_override'] = customer.GetTaxTableOverride()
+        # simple_customer['tax_table_override'] =
+        # customer.GetTaxTableOverride()
         simple_customer['address'] = addressToDict(customer.GetAddr())
         simple_customer['shipping_address'] = addressToDict(
             customer.GetShipAddr())
         simple_customer['tax_included'] = customer.GetTaxIncluded()
 
         return simple_customer
+
 
 def transactionToDict(transaction, entities):
     if transaction is None:
@@ -95,12 +100,12 @@ def transactionToDict(transaction, entities):
         simple_transaction['num'] = transaction.GetNum()
         simple_transaction['notes'] = transaction.GetNotes()
         simple_transaction['is_closing_txn'] = transaction.GetIsClosingTxn()
-        
+
         if 'splits' in entities:
             simple_transaction['splits'] = []
-            for split in transaction.GetSplitList(): 
+            for split in transaction.GetSplitList():
                 if type(split) != Split:
-                    split=Split(instance=split) 
+                    split = Split(instance=split)
                 simple_transaction['splits'].append(
                     splitToDict(split, ['account']))
 
@@ -108,17 +113,17 @@ def transactionToDict(transaction, entities):
         simple_transaction['has_reconciled_splits'] = \
             transaction.HasReconciledSplits()
         simple_transaction['currency'] = transaction.GetCurrency(
-            ).get_mnemonic()
+        ).get_mnemonic()
         simple_transaction['imbalance_value'] = transaction.GetImbalanceValue(
-            ).to_double()
+        ).to_double()
         simple_transaction['is_balanced'] = transaction.IsBalanced()
         simple_transaction['date'] = transaction.GetDate().strftime('%Y-%m-%d')
         simple_transaction['date_posted'] = transaction.RetDatePosted(
-            ).strftime('%Y-%m-%d')
+        ).strftime('%Y-%m-%d')
         simple_transaction['date_entered'] = transaction.RetDateEntered(
-            ).strftime('%Y-%m-%d')
+        ).strftime('%Y-%m-%d')
         simple_transaction['date_due'] = transaction.RetDateDue().strftime(
-            '%Y-%m-%d') 
+            '%Y-%m-%d')
         simple_transaction['void_status'] = transaction.GetVoidStatus()
         simple_transaction['void_time'] = transaction.GetVoidTime().strftime(
             '%Y-%m-%d')
@@ -126,6 +131,7 @@ def transactionToDict(transaction, entities):
         simple_transaction['description'] = transaction.GetDescription()
 
         return simple_transaction
+
 
 def splitToDict(split, entities):
     if split is None:
@@ -137,7 +143,7 @@ def splitToDict(split, entities):
             simple_split['account'] = accountToDict(split.GetAccount())
         if 'transaction' in entities:
             simple_split['transaction'] = transactionToDict(
-                split.GetParent(), [])      
+                split.GetParent(), [])
         if 'other_split' in entities:
             simple_split['other_split'] = splitToDict(
                 split.GetOtherSplit(), ['account'])
@@ -146,9 +152,10 @@ def splitToDict(split, entities):
         simple_split['balance'] = split.GetBalance().to_double()
         simple_split['cleared_balance'] = split.GetClearedBalance().to_double()
         simple_split['reconciled_balance'] = split.GetReconciledBalance(
-            ).to_double()
+        ).to_double()
 
         return simple_split
+
 
 def invoiceToDict(invoice):
 
@@ -161,14 +168,18 @@ def invoiceToDict(invoice):
         simple_invoice['date_opened'] = invoice.GetDateOpened().strftime(
             '%Y-%m-%d')
 
-        # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
-        if invoice.GetDatePosted() is None or invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01':
+        # GetDatePosted might be null or 1970-01-01
+        # https://bugs.gnucash.org/show_bug.cgi?id=797147
+        if (invoice.GetDatePosted() is None or
+                invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01'):
             simple_invoice['date_posted'] = None
         else:
             simple_invoice['date_posted'] = invoice.GetDatePosted().strftime(
                 '%Y-%m-%d')
-            # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
-        if invoice.GetDateDue() is None or invoice.GetDateDue().strftime('%Y-%m-%d') == '1970-01-01':
+            # GetDatePosted might be null or 1970-01-01
+            # https://bugs.gnucash.org/show_bug.cgi?id=797147
+        if (invoice.GetDateDue() is None or
+                invoice.GetDateDue().strftime('%Y-%m-%d') == '1970-01-01'):
             simple_invoice['date_due'] = None
         else:
             simple_invoice['date_due'] = invoice.GetDateDue().strftime(
@@ -182,23 +193,26 @@ def invoiceToDict(invoice):
         simple_invoice['owner'] = vendorToDict(owner)
         simple_invoice['owner_type'] = invoice.GetOwnerType()
         simple_invoice['billing_id'] = invoice.GetBillingID()
-        simple_invoice['to_charge_amount'] = invoice.GetToChargeAmount().to_double()
-        simple_invoice['posted_txn'] = transactionToDict(invoice.GetPostedTxn(), [])
+        simple_invoice[
+            'to_charge_amount'] = invoice.GetToChargeAmount().to_double()
+        simple_invoice['posted_txn'] = transactionToDict(
+            invoice.GetPostedTxn(), [])
         simple_invoice['total'] = invoice.GetTotal().to_double()
         simple_invoice['total_subtotal'] = invoice.GetTotalSubtotal(
-            ).to_double()
+        ).to_double()
         simple_invoice['total_tax'] = invoice.GetTotalTax().to_double()
 
         simple_invoice['entries'] = []
         for n, entry in enumerate(invoice.GetEntries()):
             if type(entry) != Entry:
-                entry=Entry(instance=entry) 
+                entry = Entry(instance=entry)
             simple_invoice['entries'].append(entryToDict(entry))
 
         simple_invoice['posted'] = invoice.IsPosted()
         simple_invoice['paid'] = invoice.IsPaid()
 
         return simple_invoice
+
 
 def billToDict(bill):
 
@@ -209,13 +223,15 @@ def billToDict(bill):
         simple_bill['id'] = bill.GetID()
         simple_bill['type'] = bill.GetType()
         simple_bill['date_opened'] = bill.GetDateOpened().strftime('%Y-%m-%d')
-        # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+        # GetDatePosted might be null or 1970-01-01
+        # https://bugs.gnucash.org/show_bug.cgi?id=797147
         if bill.GetDatePosted() is None or bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01':
             simple_bill['date_posted'] = None
         else:
             simple_bill['date_posted'] = bill.GetDatePosted().strftime(
                 '%Y-%m-%d')
-            # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
+            # GetDatePosted might be null or 1970-01-01
+            # https://bugs.gnucash.org/show_bug.cgi?id=797147
         if bill.GetDateDue() is None or bill.GetDateDue().strftime('%Y-%m-%d') == '1970-01-01':
             simple_bill['date_due'] = None
         else:
@@ -223,7 +239,7 @@ def billToDict(bill):
         simple_bill['notes'] = bill.GetNotes()
         simple_bill['active'] = bill.GetActive()
         simple_bill['currency'] = bill.GetCurrency().get_mnemonic()
-        simple_bill['owner'] = vendorToDict(bill.GetOwner()) 
+        simple_bill['owner'] = vendorToDict(bill.GetOwner())
         simple_bill['owner_type'] = bill.GetOwnerType()
         simple_bill['billing_id'] = bill.GetBillingID()
         simple_bill['to_charge_amount'] = bill.GetToChargeAmount().to_double()
@@ -234,13 +250,14 @@ def billToDict(bill):
         simple_bill['entries'] = []
         for n, entry in enumerate(bill.GetEntries()):
             if type(entry) != Entry:
-                entry=Entry(instance=entry) 
+                entry = Entry(instance=entry)
             simple_bill['entries'].append(entryToDict(entry))
 
         simple_bill['posted'] = bill.IsPosted()
         simple_bill['paid'] = bill.IsPaid()
 
         return simple_bill
+
 
 def entryToDict(entry):
 
@@ -257,10 +274,10 @@ def entryToDict(entry):
         simple_entry['action'] = entry.GetAction()
         simple_entry['notes'] = entry.GetNotes()
         simple_entry['quantity'] = entry.GetQuantity().to_double()
-        if entry.GetInvAccount() == None:
+        if entry.GetInvAccount() is None:
             simple_entry['inv_account'] = {}
-        else: 
-            simple_entry['inv_account'] = accountToDict(entry.GetInvAccount())      
+        else:
+            simple_entry['inv_account'] = accountToDict(entry.GetInvAccount())
         simple_entry['inv_price'] = entry.GetInvPrice().to_double()
         simple_entry['discount'] = entry.GetInvDiscount().to_double()
         simple_entry['discount_type'] = entry.GetInvDiscountType()
@@ -268,21 +285,25 @@ def entryToDict(entry):
         simple_entry['inv_taxable'] = entry.GetInvTaxable()
         simple_entry['inv_tax_included'] = entry.GetInvTaxIncluded()
         # simple_entry['inv_tax_table_override'] = entry.GetInvTaxTable()
-        if entry.GetBillAccount() == None:
+        if entry.GetBillAccount() is None:
             simple_entry['bill_account'] = {}
-        else: 
+        else:
             simple_entry['bill_account'] = accountToDict(
-                entry.GetBillAccount()) 
+                entry.GetBillAccount())
         simple_entry['bill_price'] = entry.GetBillPrice().to_double()
         simple_entry['bill_taxable'] = entry.GetBillTaxable()
         simple_entry['bill_tax_included'] = entry.GetBillTaxIncluded()
-        # While GetBillTaxTable() returns a TaxTable object, this does not seem to be fully implemented in such a way to return actual tax values
-        #simple_entry['bill_tax_table'] = taxtableToDict(entry.GetBillTaxTable())
+        # While GetBillTaxTable() returns a TaxTable object, this does
+        # not seem to be fully implemented in such a way to return actual
+        # tax values
+        # simple_entry['bill_tax_table'] =
+        # taxtableToDict(entry.GetBillTaxTable())
         simple_entry['billable'] = entry.GetBillable()
         simple_entry['bill_payment'] = entry.GetBillPayment()
         simple_entry['is_open'] = entry.IsOpen()
 
         return simple_entry
+
 
 def accountToDict(account):
 
@@ -297,7 +318,7 @@ def accountToDict(account):
         simple_account['type_id'] = account.GetType()
         simple_account['description'] = account.GetDescription()
         simple_account['guid'] = account.GetGUID().to_string()
-        if account.GetCommodity() == None:
+        if account.GetCommodity() is None:
             simple_account['currency'] = ''
         else:
             simple_account['currency'] = account.GetCommodity().get_mnemonic()
@@ -312,33 +333,37 @@ def accountToDict(account):
 
         return simple_account
 
+
 def taxtableToDict(taxtable):
 
     if taxtable is None:
-        return None 
+        return None
     else:
         simple_taxtable = {}
 
         # guid exists in database table but is not returned in taxtable object
-        #simple_taxtable['guid'] = ?
+        # simple_taxtable['guid'] = ?
         simple_taxtable['name'] = taxtable.GetName()
         simple_taxtable['refcount'] = taxtable.GetRefcount()
         simple_taxtable['parent'] = taxtableToDict(taxtable.GetParent())
-        # invisible exists in database table but is not returned in taxtable object
-        #simple_taxtable['invisible'] = ?
+        # invisible exists in database table but is not returned in taxtable
+        # object
+        # simple_taxtable['invisible'] = ?
 
         simple_taxtable['entries'] = []
         for n, entry in enumerate(taxtable.GetEntries()):
             simple_taxtable['entries'].append(taxtableEntryToDict(entry))
         # GetTables method exists, but isn't returned here
-        #simple_taxtable['tables'] = taxtable.GetTables()
+        # simple_taxtable['tables'] = taxtable.GetTables()
 
         return simple_taxtable
+
 
 def taxtableEntryToDict(entry):
 
     if entry is None:
-        return None 
+        return None
     else:
-        # entry is of type <gnucash.gnucash_core_c._gnc_monetary; proxy of <Swig Object of type '_gnc_monetary *' at 0x7ff728c44420> >
+        # entry is of type <gnucash.gnucash_core_c._gnc_monetary; proxy of
+        # <Swig Object of type '_gnc_monetary *' at 0x7ff728c44420> >
         pass

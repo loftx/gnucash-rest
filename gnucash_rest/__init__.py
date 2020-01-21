@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 '''
 
 gnucash_rest.py -- A Flask app which responds to REST requests
 with JSON responses
 
-Copyright (C) 2013 Tom Lofts <dev@loftx.co.uk>
+Copyright (C) 2013-2020 Tom Lofts <dev@loftx.co.uk>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -38,7 +38,8 @@ import re
 import sys
 import getopt
 
-# to resolve bug in http://stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime
+# to resolve bug in
+# http://stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime
 import _strptime
 import datetime
 
@@ -81,7 +82,7 @@ from gnucash import \
 
 from gnucash import \
     INVOICE_IS_PAID
-   
+
 from gnucash.gnucash_core_c import \
     GNC_INVOICE_CUST_INVOICE, \
     GNC_INVOICE_VEND_INVOICE, \
@@ -93,11 +94,13 @@ session = None
 # start application
 app = Flask(__name__)
 
+
 @app.before_first_request
 def _run_on_start():
     startup()
     # register method to close gnucash connection gracefully
     atexit.register(shutdown)
+
 
 @app.after_request
 def after_request(response):
@@ -109,11 +112,13 @@ def after_request(response):
 
     return response
 
+
 @app.route('/', methods=['GET'])
 #@requires_auth
 def api_root():
     return Response(json.dumps('Gnucash REST API'), status=201,
-        mimetype='application/json')
+                    mimetype='application/json')
+
 
 @app.route('/session', methods=['POST', 'DELETE'])
 def api_session():
@@ -127,12 +132,14 @@ def api_session():
         try:
             start_session(connection_string, is_new, ignore_lock)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps('Session started'), status=201,
-                mimetype='application/json')
+                            mimetype='application/json')
 
     elif request.method == 'DELETE':
 
@@ -140,12 +147,15 @@ def api_session():
             end_session()
         except Error as error:
             # some of these errors may be status 500?
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps('Session ended'), status=200,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/accounts', methods=['GET', 'POST'])
 def api_accounts():
@@ -153,9 +163,11 @@ def api_accounts():
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}
+                                                ),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -171,14 +183,19 @@ def api_accounts():
         parent_account_guid = str(request.form.get('parent_account_guid', ''))
 
         try:
-            account = add_account(session.book, name, currency, account_type_id, parent_account_guid)
+            account = add_account(
+                session.book, name, currency, account_type_id,
+                    parent_account_guid)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(account), status=201,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/accounts/<guid>', methods=['GET'])
 def api_account(guid):
@@ -186,16 +203,19 @@ def api_account(guid):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}
+                                                ),
+                        status=400, mimetype='application/json')
 
     account = get_account(session.book, guid)
-    
+
     if account is None:
         abort(404)
     else:
         return Response(json.dumps(account), mimetype='application/json')
+
 
 @app.route('/accounts/<guid>/splits', methods=['GET'])
 def api_account_splits(guid):
@@ -203,9 +223,11 @@ def api_account_splits(guid):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}
+                                                ),
+                        status=400, mimetype='application/json')
 
     date_posted_from = request.args.get('date_posted_from', None)
     date_posted_to = request.args.get('date_posted_to', None)
@@ -218,13 +240,16 @@ def api_account_splits(guid):
 
     try:
         splits = get_account_splits(session.book, guid, date_posted_from,
-        date_posted_to)
+                                    date_posted_to)
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
- 
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}
+                                                ),
+                        status=400, mimetype='application/json')
+
     return Response(json.dumps(splits), mimetype='application/json')
+
 
 @app.route('/transactions', methods=['POST'])
 def api_transactions():
@@ -232,12 +257,14 @@ def api_transactions():
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}
+                                                ),
+                        status=400, mimetype='application/json')
 
     if request.method == 'POST':
-        
+
         currency = str(request.form.get('currency', ''))
         description = str(request.form.get('description', ''))
         num = str(request.form.get('num', ''))
@@ -245,26 +272,33 @@ def api_transactions():
 
         splits = []
 
-        # loop over all fields, extract splitvalues assign matching splitaccount should one exist
+        # loop over all fields, extract splitvalues assign matching
+        # splitaccount should one exist
         for field in request.form:
             if field[:10] == 'splitvalue':
-                splitvalue = str(request.form.get('splitvalue' + field[10:], ''))
+                splitvalue = str(request.form.get(
+                    'splitvalue' + field[10:], ''))
                 if 'splitaccount' + field[10:] in request.form:
-                    splitaccount = str(request.form.get('splitaccount' + field[10:], ''))
+                    splitaccount = str(request.form.get(
+                        'splitaccount' + field[10:], ''))
                 else:
                     splitaccount = ''
-                splits.append({'value': splitvalue, 'account_guid': splitaccount})
+                splits.append(
+                    {'value': splitvalue, 'account_guid': splitaccount})
 
         try:
             transaction = add_transaction(session.book, num, description,
-                date_posted, currency, splits)
+                                          date_posted, currency, splits)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(transaction), status=201,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/transactions/<guid>', methods=['GET', 'POST', 'DELETE'])
 def api_transaction(guid):
@@ -272,9 +306,11 @@ def api_transaction(guid):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}
+                                                ),
+                status=400, mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -282,7 +318,7 @@ def api_transaction(guid):
 
         if transaction is None:
             abort(404)
-        
+
         return Response(json.dumps(transaction), mimetype='application/json')
 
     elif request.method == 'POST':
@@ -294,38 +330,50 @@ def api_transaction(guid):
 
         splits = []
 
-        # loop over all fields, extract splitguids and assign matching splitvalues and splitaccount should they exist
+        # loop over all fields, extract splitguids and assign matching
+        # splitvalues and splitaccount should they exist
         for field in request.form:
             if field[:9] == 'splitguid':
                 splitguid = str(request.form.get('splitguid' + field[9:], ''))
                 if 'splitvalue' + field[9:] in request.form:
-                    splitvalue = str(request.form.get('splitvalue' + field[9:], ''))
+                    splitvalue = str(request.form.get(
+                        'splitvalue' + field[9:], ''))
                 else:
                     splitvalue = ''
                 if 'splitaccount' + field[9:] in request.form:
-                    splitaccount = str(request.form.get('splitaccount' + field[9:], ''))
+                    splitaccount = str(request.form.get(
+                        'splitaccount' + field[9:], ''))
                 else:
                     splitaccount = ''
-                splits.append({'guid': splitguid, 'value': splitvalue, 'account_guid': splitaccount})
+                splits.append({'guid': splitguid, 
+                                'value': splitvalue,
+                                'account_guid': splitaccount})
 
         try:
             transaction = edit_transaction(session.book, guid, num, description,
-                date_posted, currency, splits)
+                                           date_posted, currency, splits)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400, mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                    status=400, mimetype='application/json')
         else:
             return Response(json.dumps(transaction), status=200,
-                mimetype='application/json')
+                            mimetype='application/json')
 
     elif request.method == 'DELETE':
         try:
             delete_transaction(session.book, guid)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400, mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                    status=400, mimetype='application/json')
         else:
-            return Response('', status=200, mimetype='application/json')    
+            return Response('', status=200, mimetype='application/json')
+
 
 @app.route('/bills', methods=['GET', 'POST'])
 def api_bills():
@@ -333,12 +381,14 @@ def api_bills():
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}
+                                                ),
+                    status=400, mimetype='application/json')
 
     if request.method == 'GET':
-        
+
         is_paid = request.args.get('is_paid', None)
         is_active = request.args.get('is_active', None)
         date_opened_to = request.args.get('date_opened_to', None)
@@ -375,10 +425,12 @@ def api_bills():
             })
 
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}),
-                status=400, mimetype='application/json')
-        
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                            status=400, mimetype='application/json')
+
         return Response(json.dumps(bills), mimetype='application/json')
 
     elif request.method == 'POST':
@@ -395,14 +447,17 @@ def api_bills():
 
         try:
             bill = add_bill(session.book, id, vendor_id, currency, date_opened,
-                notes)
+                            notes)
         except Error as error:
             # handle incorrect parameter errors
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400, mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(bill), status=201,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/bills/<id>', methods=['GET', 'POST', 'PAY'])
 def api_bill(id):
@@ -410,14 +465,15 @@ def api_bill(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
 
         bill = get_bill(session.book, id)
-        
+
         if bill is None:
             abort(404)
         else:
@@ -435,7 +491,7 @@ def api_bill(id):
         due_date = request.form.get('due_date', '')
         posted_memo = str(request.form.get('posted_memo', ''))
         posted_accumulatesplits = request.form.get('posted_accumulatesplits',
-            '')
+                                                   '')
         posted_autopay = request.form.get('posted_autopay', '')
 
         if posted == '1':
@@ -444,9 +500,9 @@ def api_bill(id):
             posted = 0
 
         if (posted_accumulatesplits == '1'
-            or posted_accumulatesplits == 'true'
-            or posted_accumulatesplits == 'True'
-            or posted_accumulatesplits == True):
+                or posted_accumulatesplits == 'true'
+                or posted_accumulatesplits == 'True'
+                or posted_accumulatesplits is True):
             posted_accumulatesplits = True
         else:
             posted_accumulatesplits = False
@@ -457,27 +513,29 @@ def api_bill(id):
             posted_autopay = False
         try:
             bill = update_bill(session.book, id, vendor_id, currency,
-                date_opened, notes, posted, posted_account_guid, posted_date,
-                due_date, posted_memo, posted_accumulatesplits, posted_autopay)
+                               date_opened, notes, posted, posted_account_guid, posted_date,
+                               due_date, posted_memo, posted_accumulatesplits, posted_autopay)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}
+                                                    ),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(bill), status=200,
-                mimetype='application/json')
+                            mimetype='application/json')
 
         if bill is None:
             abort(404)
         else:
             return Response(json.dumps(bill),
-                mimetype='application/json')
+                            mimetype='application/json')
 
     elif request.method == 'PAY':
-        
+
         posted_account_guid = str(request.form.get('posted_account_guid', ''))
         transfer_account_guid = str(request.form.get('transfer_account_guid',
-            ''))
+                                                     ''))
         payment_date = request.form.get('payment_date', '')
         num = str(request.form.get('num', ''))
         memo = str(request.form.get('posted_memo', ''))
@@ -485,14 +543,16 @@ def api_bill(id):
 
         try:
             bill = pay_bill(session.book, id, posted_account_guid,
-                transfer_account_guid, payment_date, memo, num, auto_pay)
+                            transfer_account_guid, payment_date, memo, num, auto_pay)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(bill), status=200,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/bills/<id>/entries', methods=['GET', 'POST'])
 def api_bill_entries(id):
@@ -500,12 +560,13 @@ def api_bill_entries(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     bill = get_bill(session.book, id)
-    
+
     if bill is None:
         abort(404)
     else:
@@ -521,14 +582,16 @@ def api_bill_entries(id):
 
             try:
                 entry = add_bill_entry(session.book, id, date, description,
-                    account_guid, quantity, price)
+                                       account_guid, quantity, price)
             except Error as error:
-                return Response(json.dumps({'errors': [{'type' : error.type,
-                    'message': error.message, 'data': error.data}]}),
-                    status=400, mimetype='application/json')
+                return Response(json.dumps({'errors': [{'type': error.type,
+                                                        'message': error.message,
+                                                        'data': error.data}]}),
+                                status=400, mimetype='application/json')
             else:
                 return Response(json.dumps(entry), status=201,
-                    mimetype='application/json')
+                                mimetype='application/json')
+
 
 @app.route('/invoices', methods=['GET', 'POST'])
 def api_invoices():
@@ -536,12 +599,13 @@ def api_invoices():
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
-        
+
         is_posted = request.args.get('is_posted', None)
         is_paid = request.args.get('is_paid', None)
         is_active = request.args.get('is_active', None)
@@ -586,9 +650,10 @@ def api_invoices():
                 'date_posted_to': date_posted_to,
             })
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}),
-                status=400, mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                            status=400, mimetype='application/json')
 
         return Response(json.dumps(invoices), mimetype='application/json')
 
@@ -606,14 +671,16 @@ def api_invoices():
 
         try:
             invoice = add_invoice(session.book, id, customer_id, currency,
-                date_opened, notes)
+                                  date_opened, notes)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(invoice), status=201,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/invoices/<id>', methods=['GET', 'POST', 'UNPOST', 'PAY'])
 def api_invoice(id):
@@ -621,14 +688,15 @@ def api_invoice(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
 
         invoice = get_invoice(session.book, id)
-        
+
         if invoice is None:
             abort(404)
         else:
@@ -647,14 +715,14 @@ def api_invoice(id):
         due_date = request.form.get('due_date', '')
         posted_memo = str(request.form.get('posted_memo', ''))
         posted_accumulatesplits = request.form.get('posted_accumulatesplits',
-            '')
+                                                   '')
         posted_autopay = request.form.get('posted_autopay', '')
 
         # default to active
         if (active == '0'
-            or active == 'false'
-            or active == 'False'
-            or active == False):
+                or active == 'false'
+                or active == 'False'
+                or active is False):
             active = False
         else:
             active = True
@@ -665,9 +733,9 @@ def api_invoice(id):
             posted = 0
 
         if (posted_accumulatesplits == '1'
-            or posted_accumulatesplits == 'true'
-            or posted_accumulatesplits == 'True'
-            or posted_accumulatesplits == True):
+                or posted_accumulatesplits == 'true'
+                or posted_accumulatesplits == 'True'
+                or posted_accumulatesplits is True):
             posted_accumulatesplits = True
         else:
             posted_accumulatesplits = False
@@ -677,16 +745,19 @@ def api_invoice(id):
         else:
             posted_autopay = False
         try:
-            invoice = update_invoice(session.book, id, active, customer_id, currency,
-                date_opened, notes, posted, posted_account_guid, posted_date,
-                due_date, posted_memo, posted_accumulatesplits, posted_autopay)
+            invoice = update_invoice(session.book, id, active, customer_id,
+                                    currency, date_opened, notes, posted,
+                                    posted_account_guid, posted_date,
+                                    due_date, posted_memo,
+                                    posted_accumulatesplits, posted_autopay)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(invoice), status=200,
-                mimetype='application/json')
+                            mimetype='application/json')
 
         if invoice is None:
             abort(404)
@@ -701,32 +772,33 @@ def api_invoice(id):
             abort(404)
         else:
             try:
-                
+
                 reset_tax_tables = request.form.get('reset_tax_tables', '')
-                
+
                 if (reset_tax_tables == '0'
-                    or reset_tax_tables == 'false'
-                    or reset_tax_tables == 'False'
-                    or reset_tax_tables == False):
+                        or reset_tax_tables == 'false'
+                        or reset_tax_tables == 'False'
+                        or reset_tax_tables is False):
                     reset_tax_tables = False
                 else:
                     reset_tax_tables = True
 
                 invoice = unpost_invoice(session.book, id, reset_tax_tables)
             except Error as error:
-                return Response(json.dumps({'errors': [{'type' : error.type,
-                    'message': error.message, 'data': error.data}]}), status=400,
-                    mimetype='application/json')
+                return Response(json.dumps({'errors': [{'type': error.type,
+                                                        'message': error.message,
+                                                        'data': error.data}]}),
+                                status=400, mimetype='application/json')
             else:
                 return Response(json.dumps(invoice), status=200,
-                    mimetype='application/json')
+                                mimetype='application/json')
 
     elif request.method == 'PAY':
-        
+
         transaction_guid = str(request.form.get('transaction_guid', ''))
         posted_account_guid = str(request.form.get('posted_account_guid', ''))
         transfer_account_guid = str(request.form.get('transfer_account_guid',
-            ''))
+                                                     ''))
         payment_date = request.form.get('payment_date', '')
         num = str(request.form.get('num', ''))
         memo = str(request.form.get('posted_memo', ''))
@@ -734,14 +806,16 @@ def api_invoice(id):
 
         try:
             invoice = pay_invoice(session.book, id, transaction_guid, posted_account_guid,
-                transfer_account_guid, payment_date, memo, num, auto_pay)
+                                  transfer_account_guid, payment_date, memo, num, auto_pay)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(invoice), status=200,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/invoices/<id>/entries', methods=['GET', 'POST'])
 def api_invoice_entries(id):
@@ -749,21 +823,23 @@ def api_invoice_entries(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     invoice = get_invoice(session.book, id)
-    
+
     if invoice is None:
         abort(404)
     else:
         if request.method == 'GET':
             return Response(json.dumps(invoice['entries']),
-                mimetype='application/json')
+                            mimetype='application/json')
         elif request.method == 'POST':
 
-            # TODO: discount should be checked as numeric / maybe also discount type / date
+            # TODO: discount should be checked as numeric / maybe also discount
+            # type / date
 
             date = str(request.form.get('date', ''))
             description = str(request.form.get('description', ''))
@@ -775,14 +851,17 @@ def api_invoice_entries(id):
 
             try:
                 entry = add_entry(session.book, id, date, description,
-                    account_guid, quantity, price, discount_type, discount)
+                                  account_guid, quantity, price, discount_type,
+                                  discount)
             except Error as error:
-                return Response(json.dumps({'errors': [{'type' : error.type,
-                    'message': error.message, 'data': error.data}]}),
-                    status=400, mimetype='application/json')
+                return Response(json.dumps({'errors': [{'type': error.type,
+                                                        'message': error.message,
+                                                        'data': error.data}]}),
+                                status=400, mimetype='application/json')
             else:
                 return Response(json.dumps(entry), status=201,
-                    mimetype='application/json')
+                                mimetype='application/json')
+
 
 @app.route('/entries/<guid>', methods=['GET', 'POST', 'DELETE'])
 def api_entry(guid):
@@ -790,12 +869,13 @@ def api_entry(guid):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     entry = get_entry(session.book, guid)
-    
+
     if entry is None:
         abort(404)
     else:
@@ -803,7 +883,8 @@ def api_entry(guid):
             return Response(json.dumps(entry), mimetype='application/json')
         elif request.method == 'POST':
 
-            # TODO: discount should be checked as numeric / maybe also discount type / date
+            # TODO: discount should be checked as numeric / maybe also discount
+            # type / date
 
             date = str(request.form.get('date', ''))
             description = str(request.form.get('description', ''))
@@ -817,21 +898,23 @@ def api_entry(guid):
             else:
                 discount_type = None
 
-            if 'discount' in request.form:    
+            if 'discount' in request.form:
                 discount = str(request.form.get('discount', ''))
             else:
                 discount = None
 
             try:
                 entry = update_entry(session.book, guid, date, description,
-                    account_guid, quantity, price, discount_type, discount)
+                                     account_guid, quantity, price,
+                                     discount_type, discount)
             except Error as error:
-                return Response(json.dumps({'errors': [{'type' : error.type,
-                    'message': error.message, 'data': error.data}]}),
-                    status=400, mimetype='application/json')
+                return Response(json.dumps({'errors': [{'type': error.type,
+                                                        'message': error.message,
+                                                        'data': error.data}]}),
+                                status=400, mimetype='application/json')
             else:
                 return Response(json.dumps(entry), status=200,
-                    mimetype='application/json')
+                                mimetype='application/json')
 
         elif request.method == 'DELETE':
 
@@ -839,15 +922,17 @@ def api_entry(guid):
 
             return Response('', status=200, mimetype='application/json')
 
+
 @app.route('/customers', methods=['GET', 'POST'])
 def api_customers():
 
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
         customers = get_customers(session.book)
@@ -872,15 +957,18 @@ def api_customers():
 
         try:
             customer = add_customer(session.book, id, currency, name, contact,
-                address_line_1, address_line_2, address_line_3, address_line_4,
-                phone, fax, email)
+                                    address_line_1, address_line_2,
+                                    address_line_3, address_line_4,
+                                    phone, fax, email)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                        status=400, mimetype='application/json')
         else:
             return Response(json.dumps(customer), status=201,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/customers/<id>', methods=['GET', 'POST'])
 def api_customer(id):
@@ -888,9 +976,10 @@ def api_customer(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -920,20 +1009,24 @@ def api_customer(id):
 
         try:
             customer = update_customer(session.book, id, name, contact,
-                address_line_1, address_line_2, address_line_3, address_line_4,
-                phone, fax, email)
+                                       address_line_1, address_line_2,
+                                       address_line_3, address_line_4,
+                                       phone, fax, email)
         except Error as error:
             if error.type == 'NoCustomer':
-                return Response(json.dumps({'errors': [{'type' : error.type,
-                    'message': error.message, 'data': error.data}]}),
-                    status=404, mimetype='application/json')
+                return Response(json.dumps({'errors': [{'type': error.type,
+                                                        'message': error.message,
+                                                        'data': error.data}]}),
+                                status=404, mimetype='application/json')
             else:
-                return Response(json.dumps({'errors': [{'type' : error.type,
-                    'message': error.message, 'data': error.data}]}),
-                    status=400, mimetype='application/json')
+                return Response(json.dumps({'errors': [{'type': error.type,
+                                                        'message': error.message,
+                                                        'data': error.data}]}),
+                                status=400, mimetype='application/json')
         else:
             return Response(json.dumps(customer), status=200,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/customers/<id>/invoices', methods=['GET'])
 def api_customer_invoices(id):
@@ -941,15 +1034,15 @@ def api_customer_invoices(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     customer = get_customer(session.book, id)
-    
+
     if customer is None:
         abort(404)
-
 
     is_paid = request.args.get('is_paid', None)
     is_active = request.args.get('is_active', None)
@@ -973,7 +1066,7 @@ def api_customer_invoices(id):
         is_active = 0
     else:
         is_active = None
-    
+
     try:
         invoices = get_invoices(session.book, {
             'customer': customer['guid'],
@@ -987,11 +1080,13 @@ def api_customer_invoices(id):
             'date_posted_to': date_posted_to,
         })
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}),
-            status=400, mimetype='application/json')
-    
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
+
     return Response(json.dumps(invoices), mimetype='application/json')
+
 
 @app.route('/vendors', methods=['GET', 'POST'])
 def api_vendors():
@@ -999,9 +1094,10 @@ def api_vendors():
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
         vendors = get_vendors(session.book)
@@ -1026,15 +1122,18 @@ def api_vendors():
 
         try:
             vendor = add_vendor(session.book, id, currency, name, contact,
-                address_line_1, address_line_2, address_line_3, address_line_4,
-                phone, fax, email)
+                                address_line_1, address_line_2,
+                                address_line_3, address_line_4,
+                                phone, fax, email)
         except Error as error:
-            return Response(json.dumps({'errors': [{'type' : error.type,
-                'message': error.message, 'data': error.data}]}), status=400,
-                mimetype='application/json')
+            return Response(json.dumps({'errors': [{'type': error.type,
+                                                    'message': error.message,
+                                                    'data': error.data}]}),
+                            status=400, mimetype='application/json')
         else:
             return Response(json.dumps(vendor), status=201,
-                mimetype='application/json')
+                            mimetype='application/json')
+
 
 @app.route('/vendors/<id>', methods=['GET', 'POST'])
 def api_vendor(id):
@@ -1042,9 +1141,10 @@ def api_vendor(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
 
     if request.method == 'GET':
 
@@ -1055,6 +1155,7 @@ def api_vendor(id):
         else:
             return Response(json.dumps(vendor), mimetype='application/json')
 
+
 @app.route('/vendors/<id>/bills', methods=['GET'])
 def api_vendor_bills(id):
 
@@ -1063,12 +1164,13 @@ def api_vendor_bills(id):
     try:
         session = get_session()
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}), status=400,
-            mimetype='application/json')
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                    status=400, mimetype='application/json')
 
     vendor = get_vendor(session.book, id)
-    
+
     if vendor is None:
         abort(404)
 
@@ -1108,11 +1210,13 @@ def api_vendor_bills(id):
             'date_posted_to': date_posted_to,
         })
     except Error as error:
-        return Response(json.dumps({'errors': [{'type' : error.type,
-            'message': error.message, 'data': error.data}]}),
-            status=400, mimetype='application/json')
-         
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                        status=400, mimetype='application/json')
+
     return Response(json.dumps(bills), mimetype='application/json')
+
 
 def get_customers(book):
 
@@ -1129,6 +1233,7 @@ def get_customers(book):
 
     return customers
 
+
 def get_customer(book, id):
 
     customer = book.CustomerLookupByID(id)
@@ -1137,6 +1242,7 @@ def get_customer(book, id):
         return None
     else:
         return gnucash_simple.customerToDict(customer)
+
 
 def get_vendors(book):
 
@@ -1153,6 +1259,7 @@ def get_vendors(book):
 
     return vendors
 
+
 def get_vendor(book, id):
 
     vendor = book.VendorLookupByID(id)
@@ -1162,15 +1269,17 @@ def get_vendor(book, id):
     else:
         return gnucash_simple.vendorToDict(vendor)
 
+
 def get_accounts(book):
 
     accounts = gnucash_simple.accountToDict(book.get_root_account())
 
     return accounts
 
+
 def get_account(book, guid):
 
-    account_guid = gnucash.gnucash_core.GUID() 
+    account_guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(guid, account_guid)
 
     account = account_guid.AccountLookup(book)
@@ -1185,16 +1294,17 @@ def get_account(book, guid):
     else:
         return account
 
+
 def get_account_splits(book, guid, date_posted_from, date_posted_to):
 
-    account_guid = gnucash.gnucash_core.GUID() 
+    account_guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(guid, account_guid)
 
     query = gnucash.Query()
     query.search_for('Split')
     query.set_book(book)
 
-    SPLIT_TRANS= 'trans'
+    SPLIT_TRANS = 'trans'
 
     QOF_DATE_MATCH_NORMAL = 1
 
@@ -1202,11 +1312,12 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
 
     if date_posted_from is not None:
         try:
-            date_posted_from = datetime.datetime.strptime(date_posted_from, "%Y-%m-%d")
+            date_posted_from = datetime.datetime.strptime(
+                date_posted_from, "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePostedFrom',
-                'The date posted from must be provided in the form YYYY-MM-DD',
-                {'field': 'date_posted_from'})
+                        'The date posted from must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_posted_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, QOF_DATE_MATCH_NORMAL, date_posted_from.date())
@@ -1216,17 +1327,18 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
     if date_posted_to is not None:
 
         try:
-            date_posted_to = datetime.datetime.strptime(date_posted_to, "%Y-%m-%d")
+            date_posted_to = datetime.datetime.strptime(
+                date_posted_to, "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePostedTo',
-                'The date posted to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_posted_from'})
+                        'The date posted to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_posted_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, QOF_DATE_MATCH_NORMAL, date_posted_to.date())
         param_list = [SPLIT_TRANS, TRANS_DATE_POSTED]
         query.add_term(param_list, pred_data, QOF_QUERY_AND)
-    
+
     SPLIT_ACCOUNT = 'account'
     QOF_PARAM_GUID = 'guid'
 
@@ -1247,6 +1359,8 @@ def get_account_splits(book, guid, date_posted_from, date_posted_to):
     return splits
 
 # Might be a good idea to pass though these options as properties instead
+
+
 def get_invoices(book, properties):
 
     defaults = [
@@ -1290,18 +1404,19 @@ def get_invoices(book, properties):
     INVOICE_OWNER = 'owner'
 
     if properties['customer'] is not None:
-        customer_guid = gnucash.gnucash_core.GUID() 
+        customer_guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(properties['customer'], customer_guid)
         query.add_guid_match(
             [INVOICE_OWNER, QOF_PARAM_GUID], customer_guid, QOF_QUERY_AND)
 
     if properties['date_due_from'] is not None:
         try:
-            properties['date_due_from'] = datetime.datetime.strptime(properties['date_due_from'], "%Y-%m-%d")
+            properties['date_due_from'] = datetime.datetime.strptime(
+                properties['date_due_from'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateDueFrom',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_due_from'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_due_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, properties['date_due_from'].date())
@@ -1309,11 +1424,12 @@ def get_invoices(book, properties):
 
     if properties['date_due_to'] is not None:
         try:
-            properties['date_due_to'] = datetime.datetime.strptime(properties['date_due_to'], "%Y-%m-%d")
+            properties['date_due_to'] = datetime.datetime.strptime(
+                properties['date_due_to'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateDueTo',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_due_to'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_due_to'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, properties['date_due_to'].date())
@@ -1321,11 +1437,12 @@ def get_invoices(book, properties):
 
     if properties['date_opened_from'] is not None:
         try:
-            properties['date_opened_from'] = datetime.datetime.strptime(properties['date_opened_from'], "%Y-%m-%d")
+            properties['date_opened_from'] = datetime.datetime.strptime(
+                properties['date_opened_from'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateOpenedFrom',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_opened_from'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_opened_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, properties['date_opened_from'].date())
@@ -1333,11 +1450,12 @@ def get_invoices(book, properties):
 
     if properties['date_opened_to'] is not None:
         try:
-            properties['date_opened_to'] = datetime.datetime.strptime(properties['date_opened_to'], "%Y-%m-%d")
+            properties['date_opened_to'] = datetime.datetime.strptime(
+                properties['date_opened_to'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateOpenedTo',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_opened_to'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_opened_to'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, properties['date_opened_to'].date())
@@ -1345,11 +1463,12 @@ def get_invoices(book, properties):
 
     if properties['date_posted_from'] is not None:
         try:
-            properties['date_posted_from'] = datetime.datetime.strptime(properties['date_posted_from'], "%Y-%m-%d")
+            properties['date_posted_from'] = datetime.datetime.strptime(
+                properties['date_posted_from'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePostedFrom',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_posted_from'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_posted_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, properties['date_posted_from'].date())
@@ -1357,11 +1476,12 @@ def get_invoices(book, properties):
 
     if properties['date_posted_to'] is not None:
         try:
-            properties['date_posted_to'] = datetime.datetime.strptime(properties['date_posted_to'], "%Y-%m-%d")
+            properties['date_posted_to'] = datetime.datetime.strptime(
+                properties['date_posted_to'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePostedTo',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_posted_to'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_posted_to'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, properties['date_posted_to'].date())
@@ -1369,7 +1489,7 @@ def get_invoices(book, properties):
 
     # return only invoices
     pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL,
-        GNC_INVOICE_CUST_INVOICE)
+                                                         GNC_INVOICE_CUST_INVOICE)
     query.add_term([INVOICE_TYPE], pred_data, QOF_QUERY_AND)
 
     invoices = []
@@ -1381,6 +1501,7 @@ def get_invoices(book, properties):
     query.destroy()
 
     return invoices
+
 
 def get_bills(book, properties):
 
@@ -1420,7 +1541,7 @@ def get_bills(book, properties):
     INVOICE_OWNER = 'owner'
 
     if properties['customer'] is not None:
-        customer_guid = gnucash.gnucash_core.GUID() 
+        customer_guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(properties['customer'], customer_guid)
         query.add_guid_match(
             [INVOICE_OWNER, QOF_PARAM_GUID], customer_guid, QOF_QUERY_AND)
@@ -1429,11 +1550,12 @@ def get_bills(book, properties):
 
     if properties['date_due_from'] is not None:
         try:
-            properties['date_due_from'] = datetime.datetime.strptime(properties['date_due_from'], "%Y-%m-%d")
+            properties['date_due_from'] = datetime.datetime.strptime(
+                properties['date_due_from'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateDueFrom',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_due_from'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_due_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, properties['date_due_from'].date())
@@ -1441,11 +1563,12 @@ def get_bills(book, properties):
 
     if properties['date_due_to'] is not None:
         try:
-            properties['date_due_to'] = datetime.datetime.strptime(properties['date_due_to'], "%Y-%m-%d")
+            properties['date_due_to'] = datetime.datetime.strptime(
+                properties['date_due_to'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateDueTo',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_due_to'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_due_to'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, properties['date_due_to'].date())
@@ -1453,11 +1576,12 @@ def get_bills(book, properties):
 
     if properties['date_opened_from'] is not None:
         try:
-            properties['date_opened_from'] = datetime.datetime.strptime(properties['date_opened_from'], "%Y-%m-%d")
+            properties['date_opened_from'] = datetime.datetime.strptime(
+                properties['date_opened_from'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateOpenedFrom',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_opened_from'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_opened_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, properties['date_opened_from'].date())
@@ -1465,11 +1589,12 @@ def get_bills(book, properties):
 
     if properties['date_opened_to'] is not None:
         try:
-            properties['date_opened_to'] = datetime.datetime.strptime(properties['date_opened_to'], "%Y-%m-%d")
+            properties['date_opened_to'] = datetime.datetime.strptime(
+                properties['date_opened_to'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateOpenedTo',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_opened_to'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_opened_to'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, properties['date_opened_to'].date())
@@ -1477,11 +1602,12 @@ def get_bills(book, properties):
 
     if properties['date_posted_from'] is not None:
         try:
-            properties['date_posted_from'] = datetime.datetime.strptime(properties['date_posted_from'], "%Y-%m-%d")
+            properties['date_posted_from'] = datetime.datetime.strptime(
+                properties['date_posted_from'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePostedFrom',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_posted_from'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_posted_from'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_GTE, 2, properties['date_posted_from'].date())
@@ -1489,11 +1615,12 @@ def get_bills(book, properties):
 
     if properties['date_posted_to'] is not None:
         try:
-            properties['date_posted_to'] = datetime.datetime.strptime(properties['date_posted_to'], "%Y-%m-%d")
+            properties['date_posted_to'] = datetime.datetime.strptime(
+                properties['date_posted_to'], "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePostedTo',
-                'The date due from to must be provided in the form YYYY-MM-DD',
-                {'field': 'date_posted_to'})
+                        'The date due from to must be provided in the form YYYY-MM-DD',
+                        {'field': 'date_posted_to'})
 
         pred_data = gnucash.gnucash_core.QueryDatePredicate(
             QOF_COMPARE_LTE, 2, properties['date_posted_to'].date())
@@ -1513,6 +1640,7 @@ def get_bills(book, properties):
 
     return bills
 
+
 def get_gnucash_invoice(book, id):
 
     # we don't use book.InvoicelLookupByID(id) as this is identical to
@@ -1524,7 +1652,7 @@ def get_gnucash_invoice(book, id):
 
     # return only invoices
     pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL,
-        GNC_INVOICE_CUST_INVOICE)
+                                                         GNC_INVOICE_CUST_INVOICE)
     query.add_term([INVOICE_TYPE], pred_data, QOF_QUERY_AND)
 
     INVOICE_ID = 'id'
@@ -1542,7 +1670,8 @@ def get_gnucash_invoice(book, id):
 
     return invoice
 
-def get_gnucash_bill(book ,id):
+
+def get_gnucash_bill(book, id):
 
     # we don't use book.InvoiceLookupByID(id) as this is identical to
     # book.BillLookupByID(id) so can return the same object if they share IDs
@@ -1570,114 +1699,121 @@ def get_gnucash_bill(book ,id):
 
     return bill
 
+
 def get_invoice(book, id):
 
     return gnucash_simple.invoiceToDict(get_gnucash_invoice(book, id))
 
-def pay_invoice(book, id, transaction_guid, posted_account_guid, transfer_account_guid,
-    payment_date, memo, num, auto_pay):
 
-    # Where is posted_account_guid used - it's in the dialog, but we're not using it
+def pay_invoice(book, id, transaction_guid, posted_account_guid,
+        transfer_account_guid, payment_date, memo, num, auto_pay):
+
+    # Where is posted_account_guid used - it's in the dialog, but we're not
+    # using it
 
     invoice = get_gnucash_invoice(book, id)
 
     if invoice is None:
         raise Error('NoInvoice', 'An invoice with this ID does not exist',
-            {'field': 'id'})
+                    {'field': 'id'})
 
     if transaction_guid == '':
         transaction = None
     else:
-        guid = gnucash.gnucash_core.GUID() 
+        guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(transaction_guid, guid)
 
         transaction = guid.TransLookup(book)
 
         if transaction is None:
             raise Error('NoTransaction', 'No transaction exists with this GUID',
-            {'field': 'transaction_guid'})
+                        {'field': 'transaction_guid'})
 
     try:
         payment_date = datetime.datetime.strptime(payment_date, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidPaymentDate',
-            'The payment date must be provided in the form YYYY-MM-DD',
-            {'field': 'payment_date'})
-    
-    account_guid = gnucash.gnucash_core.GUID() 
+                    'The payment date must be provided in the form YYYY-MM-DD',
+                    {'field': 'payment_date'})
+
+    account_guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(transfer_account_guid, account_guid)
 
     transfer_account = account_guid.AccountLookup(book)
 
     if transfer_account is None:
         raise Error('NoTransferAccount', 'No account exists with this GUID',
-            {'field': 'transfer_account_guid'})
+                    {'field': 'transfer_account_guid'})
 
-    invoice.ApplyPayment(transaction, transfer_account, invoice.GetTotal(), GncNumeric(0),
-        payment_date, memo, num)
+    invoice.ApplyPayment(transaction, transfer_account, invoice.GetTotal(),
+        GncNumeric(0), payment_date, memo, num)
 
-    return gnucash_simple.invoiceToDict(invoice)    
+    return gnucash_simple.invoiceToDict(invoice)
+
 
 def pay_bill(book, id, posted_account_guid, transfer_account_guid, payment_date,
-    memo, num, auto_pay):
+             memo, num, auto_pay):
 
-    # The posted_account_guid is not actually used in bill.ApplyPayment - why is it on the payment screen?
+    # The posted_account_guid is not actually used in bill.ApplyPayment - why
+    # is it on the payment screen?
 
     bill = get_gnucash_bill(book, id)
 
     if bill is None:
         raise Error('NoBill', 'A bill with this ID does not exist',
-            {'field': 'id'})
+                    {'field': 'id'})
 
     try:
         payment_date = datetime.datetime.strptime(payment_date, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidPaymentDate',
-            'The payment date must be provided in the form YYYY-MM-DD',
-            {'field': 'payment_date'})
+                    'The payment date must be provided in the form YYYY-MM-DD',
+                    {'field': 'payment_date'})
 
-    account_guid = gnucash.gnucash_core.GUID() 
+    account_guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(transfer_account_guid, account_guid)
 
     transfer_account = account_guid.AccountLookup(book)
 
     if transfer_account is None:
         raise Error('NoTransferAccount', 'No account exists with this GUID',
-            {'field': 'transfer_account_guid'})
+                    {'field': 'transfer_account_guid'})
 
     # We pay the negitive total as the bill as this seemed to cause issues
     # with the split not being set correctly and not being marked as paid
-    bill.ApplyPayment(None, transfer_account, bill.GetTotal().neg(), GncNumeric(0),
-        payment_date, memo, num)
+    bill.ApplyPayment(None, transfer_account, bill.GetTotal().neg(),
+        GncNumeric(0), payment_date, memo, num)
 
     return gnucash_simple.billToDict(bill)
+
 
 def get_bill(book, id):
 
     return gnucash_simple.billToDict(get_gnucash_bill(book, id))
 
+
 def add_vendor(book, id, currency_mnumonic, name, contact, address_line_1,
-    address_line_2, address_line_3, address_line_4, phone, fax, email):
+               address_line_2, address_line_3, address_line_4, phone, fax, email):
 
     if name == '':
         raise Error('NoVendorName', 'A name must be entered for this company',
-            {'field': 'name'})
+                    {'field': 'name'})
 
     if (address_line_1 == ''
-        and address_line_2 == ''
-        and address_line_3 == ''
-        and address_line_4 == ''):
+            and address_line_2 == ''
+            and address_line_3 == ''
+            and address_line_4 == ''):
         raise Error('NoVendorAddress',
-            'An address must be entered for this company',
-            {'field': 'address'})
+                    'An address must be entered for this company',
+                    {'field': 'address'})
 
     commod_table = book.get_table()
     currency = commod_table.lookup('CURRENCY', currency_mnumonic)
 
     if currency is None:
         raise Error('InvalidVendorCurrency',
-            'A valid currency must be supplied for this vendor',
-            {'field': 'currency'})
+                    'A valid currency must be supplied for this vendor',
+                    {'field': 'currency'})
 
     if id is None:
         id = book.VendorNextID()
@@ -1696,28 +1832,29 @@ def add_vendor(book, id, currency_mnumonic, name, contact, address_line_1,
 
     return gnucash_simple.vendorToDict(vendor)
 
+
 def add_customer(book, id, currency_mnumonic, name, contact, address_line_1,
-    address_line_2, address_line_3, address_line_4, phone, fax, email):
+                 address_line_2, address_line_3, address_line_4, phone, fax, email):
 
     if name == '':
         raise Error('NoCustomerName',
-            'A name must be entered for this company', {'field': 'name'})
+                    'A name must be entered for this company', {'field': 'name'})
 
     if (address_line_1 == ''
-        and address_line_2 == ''
-        and address_line_3 == ''
-        and address_line_4 == ''):
+            and address_line_2 == ''
+            and address_line_3 == ''
+            and address_line_4 == ''):
         raise Error('NoCustomerAddress',
-            'An address must be entered for this company',
-            {'field': 'address'})
+                    'An address must be entered for this company',
+                    {'field': 'address'})
 
     commod_table = book.get_table()
     currency = commod_table.lookup('CURRENCY', currency_mnumonic)
 
     if currency is None:
         raise Error('InvalidCustomerCurrency',
-            'A valid currency must be supplied for this customer',
-            {'field': 'currency'})
+                    'A valid currency must be supplied for this customer',
+                    {'field': 'currency'})
 
     if id is None:
         id = book.CustomerNextID()
@@ -1736,26 +1873,27 @@ def add_customer(book, id, currency_mnumonic, name, contact, address_line_1,
 
     return gnucash_simple.customerToDict(customer)
 
+
 def update_customer(book, id, name, contact, address_line_1, address_line_2,
-    address_line_3, address_line_4, phone, fax, email):
+                    address_line_3, address_line_4, phone, fax, email):
 
     customer = book.CustomerLookupByID(id)
 
     if customer is None:
         raise Error('NoCustomer', 'A customer with this ID does not exist',
-            {'field': 'id'})
+                    {'field': 'id'})
 
     if name == '':
         raise Error('NoCustomerName',
-            'A name must be entered for this company', {'field': 'name'})
+                    'A name must be entered for this company', {'field': 'name'})
 
     if (address_line_1 == ''
-        and address_line_2 == ''
-        and address_line_3 == ''
-        and address_line_4 == ''):
+            and address_line_2 == ''
+            and address_line_3 == ''
+            and address_line_4 == ''):
         raise Error('NoCustomerAddress',
-            'An address must be entered for this company',
-            {'field': 'address'})
+                    'An address must be entered for this company',
+                    {'field': 'address'})
 
     customer.SetName(name)
 
@@ -1771,25 +1909,27 @@ def update_customer(book, id, name, contact, address_line_1, address_line_2,
 
     return gnucash_simple.customerToDict(customer)
 
+
 def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
-    # Check customer ID is provided to avoid "CRIT <qof> qof_query_string_predicate: assertion '*str != '\0'' failed" error
+    # Check customer ID is provided to avoid "CRIT <qof>
+    # qof_query_string_predicate: assertion '*str != '\0'' failed" error
     if customer_id == '':
         raise Error('NoCustomer',
-            'A customer ID must be provided', {'field': 'id'})
+                    'A customer ID must be provided', {'field': 'id'})
 
     customer = book.CustomerLookupByID(customer_id)
 
     if customer is None:
         raise Error('NoCustomer',
-            'A customer with this ID does not exist', {'field': 'id'})
+                    'A customer with this ID does not exist', {'field': 'id'})
 
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDateOpened',
-            'The date opened must be provided in the form YYYY-MM-DD',
-            {'field': 'date_opened'})
+                    'The date opened must be provided in the form YYYY-MM-DD',
+                    {'field': 'date_opened'})
 
     if currency_mnumonic is None:
         currency_mnumonic = customer.GetCurrency().get_mnemonic()
@@ -1799,15 +1939,17 @@ def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
     if currency is None:
         raise Error('InvalidInvoiceCurrency',
-            'A valid currency must be supplied for this invoice',
-            {'field': 'currency'})
+                    'A valid currency must be supplied for this invoice',
+                    {'field': 'currency'})
     elif currency.get_mnemonic() != customer.GetCurrency().get_mnemonic():
         # Does Gnucash actually enforce this?
         raise Error('MismatchedInvoiceCurrency',
-            'The currency of this invoice does not match the customer',
-            {'field': 'currency'})
+                    'The currency of this invoice does not match the customer',
+                    {'field': 'currency'})
 
-    # Do this last to avoid errors - gnucash.gnucash_core.GnuCashBackendException: call to new_function resulted in the following errors, ERR_BACKEND_MISC
+    # Do this last to avoid errors -
+    # gnucash.gnucash_core.GnuCashBackendException: call to new_function
+    # resulted in the following errors, ERR_BACKEND_MISC
 
     if id is None:
         id = book.InvoiceNextID(customer)
@@ -1818,71 +1960,72 @@ def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
     return gnucash_simple.invoiceToDict(invoice)
 
+
 def update_invoice(book, id, active, customer_id, currency_mnumonic, date_opened,
-    notes, posted, posted_account_guid, posted_date, due_date, posted_memo,
-    posted_accumulatesplits, posted_autopay):
+                   notes, posted, posted_account_guid, posted_date, due_date,
+                   posted_memo, posted_accumulatesplits, posted_autopay):
 
     invoice = get_gnucash_invoice(book, id)
 
     if invoice is None:
         raise Error('NoInvoice',
-            'An invoice with this ID does not exist',
-            {'field': 'id'})
+                    'An invoice with this ID does not exist',
+                    {'field': 'id'})
 
     customer = book.CustomerLookupByID(customer_id)
 
     if customer is None:
         raise Error('NoCustomer', 'A customer with this ID does not exist',
-            {'field': 'customer_id'})
+                    {'field': 'customer_id'})
 
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDateOpened',
-            'The date opened must be provided in the form YYYY-MM-DD',
-            {'field': 'date_opened'})
+                    'The date opened must be provided in the form YYYY-MM-DD',
+                    {'field': 'date_opened'})
 
     if posted_date == '':
         if posted == 1:
             raise Error('NoDatePosted',
-                'The date posted must be supplied when posted=1',
-                {'field': 'date_posted'})
+                        'The date posted must be supplied when posted=1',
+                        {'field': 'date_posted'})
     else:
         try:
             posted_date = datetime.datetime.strptime(posted_date, "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePosted',
-                'The date posted must be provided in the form YYYY-MM-DD',
-                {'field': 'posted_date'})
+                        'The date posted must be provided in the form YYYY-MM-DD',
+                        {'field': 'posted_date'})
 
     if due_date == '':
         if posted == 1:
             raise Error('NoDateDue',
-                'The due date must be supplied when posted=1',
-                {'field': 'due_date'})
+                        'The due date must be supplied when posted=1',
+                        {'field': 'due_date'})
     else:
         try:
             due_date = datetime.datetime.strptime(due_date, "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateDue',
-                'The due date must be provided in the form YYYY-MM-DD',
-                {'field': 'due_date'})
+                        'The due date must be provided in the form YYYY-MM-DD',
+                        {'field': 'due_date'})
 
     if posted_account_guid == '':
         if posted == 1:
             raise Error('NoPostedAccountGuid',
-                'The posted account GUID must be supplied when posted=1',
-                {'field': 'posted_account_guid'})
+                        'The posted account GUID must be supplied when posted=1',
+                        {'field': 'posted_account_guid'})
     else:
-        guid = gnucash.gnucash_core.GUID() 
+        guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(posted_account_guid, guid)
 
         posted_account = guid.AccountLookup(book)
 
         if posted_account is None:
             raise Error('NoAccount',
-                'No account exists with the posted account GUID',
-                {'field': 'posted_account_guid'})
+                        'No account exists with the posted account GUID',
+                        {'field': 'posted_account_guid'})
 
     invoice.SetActive(active)
     invoice.SetOwner(customer)
@@ -1890,12 +2033,17 @@ def update_invoice(book, id, active, customer_id, currency_mnumonic, date_opened
     invoice.SetNotes(notes)
 
     # post if currently unposted and posted=1
-    # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
-    if ((invoice.GetDatePosted() is None or invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') and posted == 1):
+    # GetDatePosted might be null or 1970-01-01
+    # https://bugs.gnucash.org/show_bug.cgi?id=797147
+    if ((invoice.GetDatePosted() is None or
+            invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') 
+            and posted == 1):
         invoice.PostToAccount(posted_account, posted_date, due_date,
-            posted_memo, posted_accumulatesplits, posted_autopay)
+                              posted_memo, posted_accumulatesplits,
+                              posted_autopay)
 
     return gnucash_simple.invoiceToDict(invoice)
+
 
 def unpost_invoice(book, id, reset_tax_tables):
 
@@ -1903,139 +2051,144 @@ def unpost_invoice(book, id, reset_tax_tables):
 
     if invoice is None:
         raise Error('NoInvoice',
-            'An invoice with this ID does not exist',
-            {'field': 'id'})
+                    'An invoice with this ID does not exist',
+                    {'field': 'id'})
 
     invoice.Unpost(reset_tax_tables)
 
     return gnucash_simple.invoiceToDict(invoice)
 
+
 def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
-    posted, posted_account_guid, posted_date, due_date, posted_memo,
-    posted_accumulatesplits, posted_autopay):
+                posted, posted_account_guid, posted_date, due_date, posted_memo,
+                posted_accumulatesplits, posted_autopay):
 
     bill = get_gnucash_bill(book, id)
 
     if bill is None:
         raise Error('NoBill', 'A bill with this ID does not exist',
-            {'field': 'id'})
+                    {'field': 'id'})
 
     vendor = book.VendorLookupByID(vendor_id)
 
     if vendor is None:
         raise Error('NoVendor',
-            'A vendor with this ID does not exist',
-            {'field': 'vendor_id'})
+                    'A vendor with this ID does not exist',
+                    {'field': 'vendor_id'})
 
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDateOpened',
-            'The date opened must be provided in the form YYYY-MM-DD',
-            {'field': 'date_opened'})
+                    'The date opened must be provided in the form YYYY-MM-DD',
+                    {'field': 'date_opened'})
 
     if posted_date == '':
         if posted == 1:
             raise Error('NoDatePosted',
-                'The date posted must be supplied when posted=1',
-                {'field': 'date_posted'})
+                        'The date posted must be supplied when posted=1',
+                        {'field': 'date_posted'})
     else:
         try:
             posted_date = datetime.datetime.strptime(posted_date, "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDatePosted',
-                'The date posted must be provided in the form YYYY-MM-DD',
-                {'field': 'posted_date'})
+                        'The date posted must be provided in the form YYYY-MM-DD',
+                        {'field': 'posted_date'})
 
     if due_date == '':
         if posted == 1:
             raise Error('NoDateDue',
-                'The due date must be supplied when posted=1',
-                {'field': 'date_sue'})
+                        'The due date must be supplied when posted=1',
+                        {'field': 'date_sue'})
     else:
         try:
             due_date = datetime.datetime.strptime(due_date, "%Y-%m-%d")
         except ValueError:
             raise Error('InvalidDateDue',
-                'The due date must be provided in the form YYYY-MM-DD',
-                {'field': 'due_date'})
+                        'The due date must be provided in the form YYYY-MM-DD',
+                        {'field': 'due_date'})
 
     if posted_account_guid == '':
         if posted == 1:
             raise Error('NoPostedAccountGuid',
-                'The posted account GUID must be supplied when posted=1',
-                {'field': 'posted_account_guid'})
+                        'The posted account GUID must be supplied when posted=1',
+                        {'field': 'posted_account_guid'})
     else:
-        guid = gnucash.gnucash_core.GUID() 
+        guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(posted_account_guid, guid)
 
         posted_account = guid.AccountLookup(book)
 
         if posted_account is None:
             raise Error('NoAccount',
-                'No account exists with the posted account GUID',
-                {'field': 'posted_account_guid'})
+                        'No account exists with the posted account GUID',
+                        {'field': 'posted_account_guid'})
 
     bill.SetOwner(vendor)
     bill.SetDateOpened(date_opened)
     bill.SetNotes(notes)
 
     # post if currently unposted and posted=1
-    # GetDatePosted might be null or 1970-01-01 https://bugs.gnucash.org/show_bug.cgi?id=797147
-    if (bill.GetDatePosted() is None or bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') and posted == 1:
+    # GetDatePosted might be null or 1970-01-01
+    # https://bugs.gnucash.org/show_bug.cgi?id=797147
+    if ((bill.GetDatePosted() is None
+            or bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01')
+            and posted == 1):
         bill.PostToAccount(posted_account, posted_date, due_date, posted_memo,
-            posted_accumulatesplits, posted_autopay)
+                           posted_accumulatesplits, posted_autopay)
 
     return gnucash_simple.billToDict(bill)
 
+
 def add_entry(book, invoice_id, date, description, account_guid, quantity,
-    price, discount_type, discount):
+              price, discount_type, discount):
 
     invoice = get_gnucash_invoice(book, invoice_id)
 
     if invoice is None:
         raise Error('NoInvoice',
-            'No invoice exists with this ID', {'field': 'invoice_id'})
+                    'No invoice exists with this ID', {'field': 'invoice_id'})
 
     try:
         date = datetime.datetime.strptime(date, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDateOpened',
-            'The date opened must be provided in the form YYYY-MM-DD',
-            {'field': 'date'})
+                    'The date opened must be provided in the form YYYY-MM-DD',
+                    {'field': 'date'})
 
     # Only value based discounts are supported
     if discount_type != GNC_AMT_TYPE_VALUE:
         raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
-            {'field': 'discount_type'})
+                    {'field': 'discount_type'})
 
-    guid = gnucash.gnucash_core.GUID() 
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(account_guid, guid)
 
     account = guid.AccountLookup(book)
 
     if account is None:
         raise Error('NoAccount', 'No account exists with this GUID',
-            {'field': 'account_guid'})
+                    {'field': 'account_guid'})
 
     try:
         quantity = Decimal(quantity).quantize(Decimal('.01'))
     except ArithmeticError:
         raise Error('InvalidQuantity', 'This quantity is not valid',
-            {'field': 'quantity'})
+                    {'field': 'quantity'})
 
     try:
         price = Decimal(price).quantize(Decimal('.01'))
     except ArithmeticError:
         raise Error('InvalidPrice', 'This price is not valid',
-            {'field': 'price'})
+                    {'field': 'price'})
 
     # Currently only value based discounts are supported
     try:
         discount = Decimal(discount).quantize(Decimal('.01'))
     except ArithmeticError:
         raise Error('InvalidDiscount', 'This discount is not valid',
-            {'field': 'discount'})
+                    {'field': 'discount'})
 
     entry = Entry(book, invoice, date.date())
     entry.SetDateEntered(datetime.datetime.now())
@@ -2051,55 +2204,57 @@ def add_entry(book, invoice_id, date, description, account_guid, quantity,
 
     return gnucash_simple.entryToDict(entry)
 
-def add_bill_entry(book, bill_id, date, description, account_guid, quantity, 
-    price):
 
-    bill = get_gnucash_bill(book,bill_id)
+def add_bill_entry(book, bill_id, date, description, account_guid, quantity,
+                   price):
+
+    bill = get_gnucash_bill(book, bill_id)
 
     if bill is None:
         raise Error('NoBill', 'No bill exists with this ID',
-            {'field': 'bill_id'})
+                    {'field': 'bill_id'})
 
     try:
         date = datetime.datetime.strptime(date, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDateOpened',
-            'The date opened must be provided in the form YYYY-MM-DD',
-            {'field': 'date'})
+                    'The date opened must be provided in the form YYYY-MM-DD',
+                    {'field': 'date'})
 
-    guid = gnucash.gnucash_core.GUID() 
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(account_guid, guid)
 
     account = guid.AccountLookup(book)
 
     if account is None:
         raise Error('NoAccount', 'No account exists with this GUID',
-            {'field': 'account_guid'})
+                    {'field': 'account_guid'})
 
     try:
         quantity = Decimal(quantity).quantize(Decimal('.01'))
     except ArithmeticError:
         raise Error('InvalidQuantity', 'This quantity is not valid',
-            {'field': 'quantity'})
+                    {'field': 'quantity'})
 
     try:
         price = Decimal(price).quantize(Decimal('.01'))
     except ArithmeticError:
         raise Error('InvalidPrice', 'This price is not valid',
-            {'field': 'price'})
-    
+                    {'field': 'price'})
+
     entry = Entry(book, bill, date.date())
     entry.SetDateEntered(datetime.datetime.now())
     entry.SetDescription(description)
     entry.SetBillAccount(account)
     entry.SetQuantity(gnc_numeric_from_decimal(quantity))
     entry.SetBillPrice(gnc_numeric_from_decimal(price))
-    
+
     return gnucash_simple.entryToDict(entry)
+
 
 def get_entry(book, entry_guid):
 
-    guid = gnucash.gnucash_core.GUID() 
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(entry_guid, guid)
 
     entry = book.EntryLookup(guid)
@@ -2109,66 +2264,68 @@ def get_entry(book, entry_guid):
     else:
         return gnucash_simple.entryToDict(entry)
 
-def update_entry(book, entry_guid, date, description, account_guid, quantity,
-    price, discount_type, discount):
 
-    guid = gnucash.gnucash_core.GUID() 
+def update_entry(book, entry_guid, date, description, account_guid, quantity,
+                 price, discount_type, discount):
+
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(entry_guid, guid)
 
     entry = book.EntryLookup(guid)
 
     if entry is None:
         raise Error('NoEntry', 'No entry exists with this GUID',
-            {'field': 'entry_guid'})
+                    {'field': 'entry_guid'})
 
     try:
         date = datetime.datetime.strptime(date, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDateOpened',
-            'The date opened must be provided in the form YYYY-MM-DD',
-            {'field': 'date'})
+                    'The date opened must be provided in the form YYYY-MM-DD',
+                    {'field': 'date'})
 
     # Only check discount type for invoices
     if entry.GetInvAccount() is not None:
         # Only value based discounts are supported
         if discount_type != GNC_AMT_TYPE_VALUE:
             raise Error('UnsupportedDiscountType', 'Only value based discounts are currently supported',
-                {'field': 'discount_type'})
- 
+                        {'field': 'discount_type'})
+
     gnucash.gnucash_core.GUIDString(account_guid, guid)
 
     account = guid.AccountLookup(book)
 
     if account is None:
         raise Error('NoAccount', 'No account exists with this GUID',
-            {'field': 'account_guid'})
+                    {'field': 'account_guid'})
 
     try:
         quantity = Decimal(quantity).quantize(Decimal('.01'))
     except ArithmeticError:
         raise Error('InvalidQuantity', 'This quantity is not valid',
-            {'field': 'quantity'})
+                    {'field': 'quantity'})
 
     try:
         price = Decimal(price).quantize(Decimal('.01'))
     except ArithmeticError:
         raise Error('InvalidPrice', 'This price is not valid',
-            {'field': 'price'})
+                    {'field': 'price'})
 
     # Only discount for invoices
     if entry.GetInvAccount() is not None:
         # Currently only value based discounts are supported
 
-        # As bills may pass the discount though as None check this and raise an error for invoices
+        # As bills may pass the discount though as None check this and raise an
+        # error for invoices
         if discount is None:
             raise Error('InvalidDiscount', 'This discount is not valid',
-                {'field': 'discount'})
+                        {'field': 'discount'})
 
         try:
             discount = Decimal(discount).quantize(Decimal('.01'))
         except ArithmeticError:
             raise Error('InvalidDiscount', 'This discount is not valid',
-                {'field': 'discount'})
+                        {'field': 'discount'})
 
     entry.SetDate(date.date())
 
@@ -2194,9 +2351,10 @@ def update_entry(book, entry_guid, date, description, account_guid, quantity,
 
     return gnucash_simple.entryToDict(entry)
 
+
 def delete_entry(book, entry_guid):
 
-    guid = gnucash.gnucash_core.GUID() 
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(entry_guid, guid)
 
     entry = book.EntryLookup(guid)
@@ -2212,9 +2370,10 @@ def delete_entry(book, entry_guid):
     if entry is not None:
         entry.Destroy()
 
+
 def delete_transaction(book, transaction_guid):
 
-    guid = gnucash.gnucash_core.GUID() 
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(transaction_guid, guid)
 
     transaction = guid.TransLookup(book)
@@ -2222,9 +2381,10 @@ def delete_transaction(book, transaction_guid):
     # Might be nicer to raise a 404?
     if transaction is None:
         raise Error('NoTransaction', 'A transaction with this GUID does not exist',
-            {'field': 'id'})
+                    {'field': 'id'})
 
     transaction.Destroy()
+
 
 def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 
@@ -2232,14 +2392,14 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 
     if vendor is None:
         raise Error('NoVendor', 'A vendor with this ID does not exist',
-            {'field': 'id'})
+                    {'field': 'id'})
 
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDateOpened',
-            'The date opened must be provided in the form YYYY-MM-DD',
-            {'field': 'date_opened'})
+                    'The date opened must be provided in the form YYYY-MM-DD',
+                    {'field': 'date_opened'})
 
     if currency_mnumonic is None:
         currency_mnumonic = vendor.GetCurrency().get_mnemonic()
@@ -2249,15 +2409,17 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 
     if currency is None:
         raise Error('InvalidBillCurrency',
-            'A valid currency must be supplied for this bill',
-            {'field': 'currency'})
+                    'A valid currency must be supplied for this bill',
+                    {'field': 'currency'})
     elif currency.get_mnemonic() != vendor.GetCurrency().get_mnemonic():
         # Does Gnucash actually enforce this?
         raise Error('MismatchedBillCurrency',
-            'The currency of this bill does not match the vendor',
-            {'field': 'currency'})
+                    'The currency of this bill does not match the vendor',
+                    {'field': 'currency'})
 
-    # Do this last to avoid errors - gnucash.gnucash_core.GnuCashBackendException: call to new_function resulted in the following errors, ERR_BACKEND_MISC
+    # Do this last to avoid errors -
+    # gnucash.gnucash_core.GnuCashBackendException: call to new_function
+    # resulted in the following errors, ERR_BACKEND_MISC
 
     if id is None:
         id = book.BillNextID(vendor)
@@ -2268,46 +2430,47 @@ def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
 
     return gnucash_simple.billToDict(bill)
 
+
 def add_account(book, name, currency_mnumonic, account_type_id, parent_account_guid):
 
     from gnucash.gnucash_core_c import \
-    ACCT_TYPE_BANK, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT, ACCT_TYPE_ASSET, \
-    ACCT_TYPE_LIABILITY , ACCT_TYPE_STOCK , ACCT_TYPE_MUTUAL, \
-    ACCT_TYPE_INCOME, ACCT_TYPE_EXPENSE, ACCT_TYPE_EQUITY, \
-    ACCT_TYPE_RECEIVABLE, ACCT_TYPE_PAYABLE, ACCT_TYPE_TRADING 
+        ACCT_TYPE_BANK, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT, ACCT_TYPE_ASSET, \
+        ACCT_TYPE_LIABILITY, ACCT_TYPE_STOCK, ACCT_TYPE_MUTUAL, \
+        ACCT_TYPE_INCOME, ACCT_TYPE_EXPENSE, ACCT_TYPE_EQUITY, \
+        ACCT_TYPE_RECEIVABLE, ACCT_TYPE_PAYABLE, ACCT_TYPE_TRADING
 
     if name == '':
         raise Error('NoAccountName', 'A name must be entered for this account',
-            {'field': 'name'})
+                    {'field': 'name'})
 
     commod_table = book.get_table()
     currency = commod_table.lookup('CURRENCY', currency_mnumonic)
 
     if currency is None:
         raise Error('InvalidAccountCurrency',
-            'A valid currency must be supplied for this account',
-            {'field': 'currency'})
+                    'A valid currency must be supplied for this account',
+                    {'field': 'currency'})
 
-    if account_type_id not in [ACCT_TYPE_BANK, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT, \
-    ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY , ACCT_TYPE_STOCK , ACCT_TYPE_MUTUAL, \
-    ACCT_TYPE_INCOME, ACCT_TYPE_EXPENSE, ACCT_TYPE_EQUITY, ACCT_TYPE_RECEIVABLE, \
-    ACCT_TYPE_PAYABLE, ACCT_TYPE_TRADING]:
+    if account_type_id not in [ACCT_TYPE_BANK, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT,
+                               ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY, ACCT_TYPE_STOCK, ACCT_TYPE_MUTUAL,
+                               ACCT_TYPE_INCOME, ACCT_TYPE_EXPENSE, ACCT_TYPE_EQUITY, ACCT_TYPE_RECEIVABLE,
+                               ACCT_TYPE_PAYABLE, ACCT_TYPE_TRADING]:
         raise Error('InvalidAccountTypeID',
-            'A valid account type ID must be supplied for this account',
-            {'field': 'account_type_id'})
+                    'A valid account type ID must be supplied for this account',
+                    {'field': 'account_type_id'})
 
     if parent_account_guid == '':
         parent_account = book.get_root_account()
     else:
-        account_guid = gnucash.gnucash_core.GUID() 
+        account_guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(parent_account_guid, account_guid)
 
         parent_account = account_guid.AccountLookup(book)
 
     if parent_account is None:
         raise Error('InvalidParentAccount',
-            'A valid account parent account must be supplied for this account',
-            {'field': 'parent_account_guid'})
+                    'A valid account parent account must be supplied for this account',
+                    {'field': 'parent_account_guid'})
 
     account = Account(book)
     parent_account.append_child(account)
@@ -2316,6 +2479,7 @@ def add_account(book, name, currency_mnumonic, account_type_id, parent_account_g
     account.SetCommodity(currency)
 
     return gnucash_simple.accountToDict(account)
+
 
 def add_transaction(book, num, description, date_posted, currency_mnumonic, splits):
 
@@ -2328,52 +2492,55 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
 
     if currency is None:
         raise Error('InvalidTransactionCurrency',
-            'A valid currency must be supplied for this transaction',
-            {'field': 'currency'})
+                    'A valid currency must be supplied for this transaction',
+                    {'field': 'currency'})
 
     try:
         date_posted = datetime.datetime.strptime(date_posted, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDatePosted',
-            'The date posted must be provided in the form YYYY-MM-DD',
-            {'field': 'date_posted'})
+                    'The date posted must be provided in the form YYYY-MM-DD',
+                    {'field': 'date_posted'})
 
     if len(splits) is 0:
         raise Error('NoSplits',
-            'At least one split must be provided',
-            {'field': 'splits'})
+                    'At least one split must be provided',
+                    {'field': 'splits'})
 
     for split_values in splits:
-        account_guid = gnucash.gnucash_core.GUID() 
-        gnucash.gnucash_core.GUIDString(split_values['account_guid'], account_guid)
+        account_guid = gnucash.gnucash_core.GUID()
+        gnucash.gnucash_core.GUIDString(
+            split_values['account_guid'], account_guid)
 
         account = account_guid.AccountLookup(book)
 
         if account is None:
             raise Error('InvalidSplitAccount',
-                'A valid account must be supplied for this split',
-                {'field': 'account'})
+                        'A valid account must be supplied for this split',
+                        {'field': 'account'})
 
         if account.GetCommodity().get_mnemonic() != currency_mnumonic:
             raise Error('InvalidSplitAccountCurrency',
-                'The transaction currency must match the account currency for this split',
-                {'field': 'account'})
+                        'The transaction currency must match the account currency for this split',
+                        {'field': 'account'})
 
-        # TODO - the API should probably allow numerator and denomiator rather than assue 100 - it would also avoid the issue of rounding errrors with float/int conversion
+        # TODO - the API should probably allow numerator and denomiator rather
+        # than assue 100 - it would also avoid the issue of rounding errrors
+        # with float/int conversion
         value = split_values['value']
 
-        try: 
+        try:
             value = float(value)
             value = value * 100
             value = round(value)
         except ValueError:
             raise Error('InvalidSplitValue',
-            'A valid value must be supplied for this split',
-            {'field': 'value'})
+                        'A valid value must be supplied for this split',
+                        {'field': 'value'})
         except TypeError:
             raise Error('InvalidSplitValue',
-            'A valid value must be supplied for this split',
-            {'field': 'value'})
+                        'A valid value must be supplied for this split',
+                        {'field': 'value'})
 
         split = Split(book)
         split.SetValue(GncNumeric(value, 100))
@@ -2387,7 +2554,7 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
     transaction.SetNum(num)
 
     # This function changes at some point between Gnucash/Python 2/3
-    if sys.version_info >= (3,0):
+    if sys.version_info >= (3, 0):
         transaction.SetDatePostedSecs(date_posted)
     else:
         transaction.SetDatePostedTS(date_posted)
@@ -2396,9 +2563,10 @@ def add_transaction(book, num, description, date_posted, currency_mnumonic, spli
 
     return gnucash_simple.transactionToDict(transaction, ['splits'])
 
+
 def get_transaction(book, transaction_guid):
 
-    guid = gnucash.gnucash_core.GUID() 
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(transaction_guid, guid)
 
     transaction = guid.TransLookup(book)
@@ -2408,18 +2576,19 @@ def get_transaction(book, transaction_guid):
     else:
         return gnucash_simple.transactionToDict(transaction, ['splits'])
 
-def edit_transaction(book, transaction_guid, num, description, date_posted,
-    currency_mnumonic, splits):
 
-    guid = gnucash.gnucash_core.GUID() 
+def edit_transaction(book, transaction_guid, num, description, date_posted,
+                     currency_mnumonic, splits):
+
+    guid = gnucash.gnucash_core.GUID()
     gnucash.gnucash_core.GUIDString(transaction_guid, guid)
 
     transaction = guid.TransLookup(book)
 
     if transaction is None:
         raise Error('InvalidTransactionGuid',
-            'A transaction with this GUID does not exist',
-            {'field': 'guid'})
+                    'A transaction with this GUID does not exist',
+                    {'field': 'guid'})
 
     transaction.BeginEdit()
 
@@ -2428,39 +2597,40 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
 
     if currency is None:
         raise Error('InvalidTransactionCurrency',
-            'A valid currency must be supplied for this transaction',
-            {'field': 'currency'})
+                    'A valid currency must be supplied for this transaction',
+                    {'field': 'currency'})
 
     try:
         date_posted = datetime.datetime.strptime(date_posted, "%Y-%m-%d")
     except ValueError:
         raise Error('InvalidDatePosted',
-            'The date posted must be provided in the form YYYY-MM-DD',
-            {'field': 'date_posted'})
+                    'The date posted must be provided in the form YYYY-MM-DD',
+                    {'field': 'date_posted'})
 
     if len(splits) is 0:
         raise Error('NoSplits',
-            'At least one split must be provided',
-            {'field': 'splits'})
+                    'At least one split must be provided',
+                    {'field': 'splits'})
 
     split_guids = []
 
-    # Should we do all checks before calling split_guid.SplitLookup(book) as it's not clear when these will be comitted?
+    # Should we do all checks before calling split_guid.SplitLookup(book) as
+    # it's not clear when these will be comitted?
     for split_values in splits:
 
         split_guids.append(split_values['guid'])
 
-        split_guid = gnucash.gnucash_core.GUID() 
+        split_guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(split_values['guid'], split_guid)
 
         split = split_guid.SplitLookup(book)
 
         if split is None:
             raise Error('InvalidSplitGuid',
-                'A valid guid must be supplied for this split',
-                {'field': 'guid'})
+                        'A valid guid must be supplied for this split',
+                        {'field': 'guid'})
 
-        account_guid = gnucash.gnucash_core.GUID() 
+        account_guid = gnucash.gnucash_core.GUID()
         gnucash.gnucash_core.GUIDString(
             split_values['account_guid'], account_guid)
 
@@ -2468,29 +2638,30 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
 
         if account is None:
             raise Error('InvalidSplitAccount',
-                'A valid account must be supplied for this split',
-                {'field': 'account'})
+                        'A valid account must be supplied for this split',
+                        {'field': 'account'})
 
         if account.GetCommodity().get_mnemonic() != currency_mnumonic:
             raise Error('InvalidSplitAccountCurrency',
-                'The transaction currency must match the account currency for this split',
-                {'field': 'account'})
+                        'The transaction currency must match the account currency for this split',
+                        {'field': 'account'})
 
-        # TODO - the API should probably allow numerator and denomiator rather than assue 100
+        # TODO - the API should probably allow numerator and denomiator rather
+        # than assue 100
         value = split_values['value']
 
-        try: 
+        try:
             value = float(value)
             value = value * 100
             value = int(value)
         except ValueError:
             raise Error('InvalidSplitValue',
-            'A valid value must be supplied for this split',
-            {'field': 'value'})
+                        'A valid value must be supplied for this split',
+                        {'field': 'value'})
         except TypeError:
             raise Error('InvalidSplitValue',
-            'A valid value must be supplied for this split',
-            {'field': 'value'})
+                        'A valid value must be supplied for this split',
+                        {'field': 'value'})
 
         split.SetValue(GncNumeric(value, 100))
         split.SetAccount(account)
@@ -2498,15 +2669,15 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
 
     if len(split_guids) != len(set(split_guids)):
         raise Error('DuplicateSplitGuid',
-            'One of the splits provided shares a GUID with another split',
-            {'field': 'guid'})
+                    'One of the splits provided shares a GUID with another split',
+                    {'field': 'guid'})
 
     transaction.SetCurrency(currency)
     transaction.SetDescription(description)
     transaction.SetNum(num)
 
     # This function changes at some point between Guncash/Python 2/3
-    if sys.version_info >= (3,0):
+    if sys.version_info >= (3, 0):
         transaction.SetDatePostedSecs(date_posted)
     else:
         transaction.SetDatePostedTS(date_posted)
@@ -2515,19 +2686,21 @@ def edit_transaction(book, transaction_guid, num, description, date_posted,
 
     return gnucash_simple.transactionToDict(transaction, ['splits'])
 
+
 def start_session(connection_string, is_new, ignore_lock):
 
     global session
 
-    # If no parameters are supplied attempt to use the app.connection_string if one exists
-    if connection_string == '' and is_new == '' and  ignore_lock == '' and hasattr(app, 'connection_string') and app.connection_string != '':
+    # If no parameters are supplied attempt to use the app.connection_string
+    # if one exists
+    if connection_string == '' and is_new == '' and ignore_lock == '' and hasattr(app, 'connection_string') and app.connection_string != '':
         is_new = False
         ignore_lock = False
         connection_string = app.connection_string
 
     if connection_string == '':
         raise Error('InvalidConnectionString', 'A connection string must be supplied',
-            {'field': 'connection_string'})
+                    {'field': 'connection_string'})
 
     if str(is_new).lower() in ['true', '1', 't', 'y', 'yes']:
         is_new = True
@@ -2535,7 +2708,7 @@ def start_session(connection_string, is_new, ignore_lock):
         is_new = False
     else:
         raise Error('InvalidIsNew', 'is_new must be true or false',
-            {'field': 'is_new'})
+                    {'field': 'is_new'})
 
     if str(ignore_lock).lower() in ['true', '1', 't', 'y', 'yes']:
         ignore_lock = True
@@ -2543,92 +2716,104 @@ def start_session(connection_string, is_new, ignore_lock):
         ignore_lock = False
     else:
         raise Error('InvalidIgnoreLock', 'ignore_lock must be true or false',
-            {'field': 'ignore_lock'})
+                    {'field': 'ignore_lock'})
 
     if session is not None:
         raise Error('SessionExists',
-            'The session already exists',
-            {})
+                    'The session already exists',
+                    {})
 
     try:
-        session = gnucash.Session(connection_string, is_new=is_new, ignore_lock=ignore_lock)
+        session = gnucash.Session(
+            connection_string, is_new=is_new, ignore_lock=ignore_lock)
     except gnucash.GnuCashBackendException as e:
         raise Error('GnuCashBackendException',
-            'There was an error starting the session',
-            {
-                'message': e.args[0],
-                'code': parse_gnucash_backend_exception(e.args[0])
-            })
+                    'There was an error starting the session',
+                    {
+                        'message': e.args[0],
+                        'code': parse_gnucash_backend_exception(e.args[0])
+                    })
 
     return session
+
 
 def end_session():
 
     global session
 
-    if session == None:
+    if session is None:
         raise Error('SessionDoesNotExist',
-            'The session does not exist',
-            {})
+                    'The session does not exist',
+                    {})
 
     try:
         session.save()
     except gnucash.GnuCashBackendException as e:
         raise Error('GnuCashBackendException',
-            'There was an error saving the session',
-            {
-                'message': e.args[0],
-                'code': parse_gnucash_backend_exception(e.args[0])
-            })
+                    'There was an error saving the session',
+                    {
+                        'message': e.args[0],
+                        'code': parse_gnucash_backend_exception(e.args[0])
+                    })
 
     session.end()
     session.destroy()
 
     session = None
 
+
 def get_session():
 
     global session
 
-    if session == None:
+    if session is None:
         raise Error('SessionDoesNotExist',
-            'The session does not exist',
-            {})
+                    'The session does not exist',
+                    {})
 
     return session
 
+
 def startup():
 
-    if hasattr(app, 'connection_string') and app.connection_string != '': 
+    if hasattr(app, 'connection_string') and app.connection_string != '':
         is_new = False
         ignore_lock = False
 
         try:
             return start_session(app.connection_string, is_new, ignore_lock)
         except Error as error:
-            # We can't return a response here as this is run before the first request so no way to alert user to the error?
+            # We can't return a response here as this is run before the first
+            # request so no way to alert user to the error?
             return error
+
 
 def shutdown():
     try:
         end_session()
-    except: 
-        # Errors are ignored as we can't pass them back via the response (could log them though...)
+    except:
+        # Errors are ignored as we can't pass them back via the response (could
+        # log them though...)
         pass
 
+
 def parse_gnucash_backend_exception(exception_string):
-    # Argument is of the form "call to %s resulted in the following errors, %s" - extract the second string
-    reresult = re.match(r'^call to (.*?) resulted in the following errors, (.*?)$', exception_string)
+    # Argument is of the form "call to %s resulted in the following errors,
+    # %s" - extract the second string
+    reresult = re.match(
+        r'^call to (.*?) resulted in the following errors, (.*?)$', exception_string)
     if len(reresult.groups()) == 2:
         return reresult.group(2)
     else:
         return ''
+
 
 def sint(s):
     try:
         return int(s)
     except ValueError:
         return None
+
 
 def gnc_numeric_from_decimal(decimal_value):
     sign, digits, exponent = decimal_value.as_tuple()
@@ -2639,11 +2824,11 @@ def gnc_numeric_from_decimal(decimal_value):
     # but without the wated conversion to string and back,
     # this is probably the same algorithm int() uses
     numerator = 0
-    TEN = int(Decimal(0).radix()) # this is always 10
+    TEN = int(Decimal(0).radix())  # this is always 10
     numerator_place_value = 1
     # add each digit to the final value multiplied by the place value
     # from least significant to most sigificant
-    for i in range(len(digits)-1,-1,-1):
+    for i in range(len(digits) - 1, -1, -1):
         numerator += digits[i] * numerator_place_value
         numerator_place_value *= TEN
 
@@ -2651,7 +2836,7 @@ def gnc_numeric_from_decimal(decimal_value):
         numerator = -numerator
 
     # if the exponent is negative, we use it to set the denominator
-    if exponent < 0 :
+    if exponent < 0:
         denominator = TEN ** (-exponent)
     # if the exponent isn't negative, we bump up the numerator
     # and set the denominator to 1
@@ -2661,8 +2846,10 @@ def gnc_numeric_from_decimal(decimal_value):
 
     return GncNumeric(numerator, denominator)
 
+
 class Error(Exception):
     """Base class for exceptions in this module."""
+
     def __init__(self, type, message, data):
         self.type = type
         self.message = message
@@ -2670,42 +2857,44 @@ class Error(Exception):
 
 if __name__ == '__main__':
     try:
-        options, arguments = getopt.getopt(sys.argv[1:], 'nh:', ['host=', 'new='])
+        options, arguments = getopt.getopt(
+            sys.argv[1:], 'nh:', ['host=', 'new='])
     except getopt.GetoptError as err:
-    #     print(str(err)) # will print something like "option -a not recognized"
+        # print(str(err)) # will print something like "option -a not
+        # recognized"
         print('Usage: python-rest.py <connection string>')
         sys.exit(2)
-    # 
+    #
     # if len(arguments) == 0:
     #     print('Usage: python-rest.py <connection string>')
     #     sys.exit(2)
 
-    #set default host for Flask
+    # set default host for Flask
     host = '127.0.0.1'
 
-    #allow host option to be changed
+    # allow host option to be changed
     for option, value in options:
         if option in ("-h", "--host"):
             host = value
 
     # is_new = False
-    # 
+    #
     # # allow a new database to be used
     # for option, value in options:
     #     if option in ("-n", "--new"):
     #         is_new = True
-    # 
+    #
     # #start gnucash session base on connection string argument
     # if is_new:
     #     session = gnucash.Session(arguments[0], is_new=True)
-    # 
+    #
     #     # seem to get errors if we use the session directly, so save it and
     #     #destroy it so it's no longer new
-    # 
+    #
     #     session.save()
     #     session.end()
     #     session.destroy()
-    # 
+    #
     # session = gnucash.Session(arguments[0], ignore_lock=True)
 
     # register method to close gnucash connection gracefully
