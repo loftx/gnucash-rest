@@ -1,4 +1,12 @@
-function InvoiceListCtrl($scope, Invoice, Customer, Dates) {
+function InvoiceListCtrl($scope, Invoice, Customer, Account, Dates) {
+
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_RECEIVABLE]).then(function(accounts) {
+		$scope.accounts = accounts;
+	});
+
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_ASSET, ACCT_TYPE_CASH, ACCT_TYPE_BANK, ACCT_TYPE_LIABILITY, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
+		$scope.transferAccounts = transferAccounts;
+	});
 
 	$scope.invoices = [];
 
@@ -73,6 +81,155 @@ function InvoiceListCtrl($scope, Invoice, Customer, Dates) {
 	}
 
 	$scope.change();
+
+	// all these functions are identical to those in customer.js - CustomerDetailCtrl
+	$scope.postInvoice = function(id) {
+
+		Invoice.get($scope.invoice.id).then(function(invoice) {
+			
+			var params = {
+				customer_id: invoice.owner.id,
+				currency: invoice.currency,
+				date_opened: invoice.date_opened,
+				notes: invoice.notes,
+				posted: 1,
+				posted_account_guid: $scope.invoice.posted_account,
+				posted_date: $scope.invoice.date_posted,
+				due_date: $scope.invoice.date_due,
+				posted_memo: $scope.invoice.posted_memo,
+				posted_accumulatesplits: $scope.invoice.posted_accumulatesplits, // this is True but should be 1
+				posted_autopay: 0
+			};
+
+			Invoice.update($scope.invoice.id, params).then(function(invoice) {
+			
+				$('#invoicePostForm').modal('hide');
+				$('#invoicePostAlert').hide();
+
+				$scope.invoice = invoice;
+			
+				for (var i in $scope.invoices) {
+					if ($scope.invoices[i].id == $scope.invoice.id) {
+						$scope.invoices[i] = $scope.invoice;
+					}
+				}
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#invoicePostAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
+
+	}
+
+	$scope.unpostInvoice = function(id) {
+
+		Invoice.get($scope.invoice.id).then(function(invoice) {
+			
+			var params = {
+				reset_tax_tables: $scope.invoice.reset_tax_tables,
+			};
+
+			Invoice.unpost($scope.invoice.id, params).then(function(invoice) {
+			
+				$('#invoiceUnpostForm').modal('hide');
+				$('#invoiceUnpostAlert').hide();
+
+				$scope.invoice = invoice;
+			
+				for (var i in $scope.invoices) {
+					if ($scope.invoices[i].id == $scope.invoice.id) {
+						$scope.invoices[i] = $scope.invoice;
+					}
+				}
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#invoiceUnpostAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
+
+	}
+
+	// id is unused here as it's undefined when passed though
+	$scope.payInvoice = function(id) {
+
+		var params = {
+			posted_account_guid: $scope.invoice.post_account,
+			transfer_account_guid: $scope.invoice.transfer_account,
+			payment_date: $scope.invoice.date_paid,
+			num: '',
+			memo: '',
+			auto_pay: 0,
+		};
+
+		Invoice.pay($scope.invoice.id, params).then(function(invoice) {
+			
+			$('#invoicePayForm').modal('hide');
+			$('#invoicePayAlert').hide();
+
+			$scope.invoice = invoice;
+
+			for (var i in $scope.invoices) {
+				if ($scope.invoices[i].id == $scope.invoice.id) {
+					$scope.invoices[i] = $scope.invoice;
+				}
+			}
+
+		}, function(data) {
+			if(typeof data.errors != 'undefined') {
+				$('#invoicePayAlert').show();
+				$scope.invoiceError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
+		});
+
+	}
+
+	$scope.emptyPostInvoice = function(id) {
+
+		$scope.invoice.id = id;
+		$scope.invoice.date_posted = Dates.format_todays_date();
+		$scope.invoice.date_due = Dates.format_todays_date();
+		$scope.invoice.posted_accumulatesplits = true;
+
+		$('#invoicePostForm').modal('show');
+
+	}
+
+	$scope.emptyUnpostInvoice = function(id) {
+
+		$scope.invoice.id = id;
+		$scope.invoice.reset_tax_tables = true;
+
+		$('#invoiceUnpostForm').modal('show');
+
+	}
+
+	$scope.emptyPayInvoice = function(id) {
+
+		$scope.invoice.id = id;
+		$scope.invoice.date_paid = Dates.format_todays_date();
+		//$scope.invoice.date_due = Dates.format_todays_date();
+		//$scope.invoice.posted_accumulatesplits = true;
+
+		$('#invoicePayForm').modal('show');
+
+	}
 
 	$scope.emptyInvoice = function() {
 

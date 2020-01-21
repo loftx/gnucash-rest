@@ -316,6 +316,41 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 
 	}
 
+	$scope.unpostInvoice = function(id) {
+
+		Invoice.get($scope.invoice.id).then(function(invoice) {
+			
+			var params = {
+				reset_tax_tables: $scope.invoice.reset_tax_tables,
+			};
+
+			Invoice.unpost($scope.invoice.id, params).then(function(invoice) {
+			
+				$('#invoiceUnpostForm').modal('hide');
+				$('#invoiceUnpostAlert').hide();
+
+				$scope.invoice = invoice;
+			
+				for (var i in $scope.invoices) {
+					if ($scope.invoices[i].id == $scope.invoice.id) {
+						$scope.invoices[i] = $scope.invoice;
+					}
+				}
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#invoiceUnpostAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
+
+	}
+
 	// id is unused here as it's undefined when passed though
 	$scope.payInvoice = function(id) {
 
@@ -361,6 +396,15 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 		$scope.invoice.posted_accumulatesplits = true;
 
 		$('#invoicePostForm').modal('show');
+
+	}
+
+	$scope.emptyUnpostInvoice = function(id) {
+
+		$scope.invoice.id = id;
+		$scope.invoice.reset_tax_tables = true;
+
+		$('#invoiceUnpostForm').modal('show');
 
 	}
 

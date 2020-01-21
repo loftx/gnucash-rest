@@ -57,6 +57,7 @@
         <th>Posted</th>
         <th>Total</th>
         <th>Paid</th>
+        <th></th>
       </tr>
       <tr ng-repeat="invoice in invoices | filter:query | orderBy:orderProp">
         <td><a href="#/invoices/{{invoice.id}}">{{invoice.id}}</a></td>
@@ -69,6 +70,21 @@
           <span ng-show="invoice.paid">Yes</span>
           <span ng-show="!invoice.paid">No</span>
         </td>
+        <td>
+        <span ng-switch on="invoice.posted">
+            <span ng-switch-when="false">
+                <a ng-click="emptyPostInvoice(invoice.id)">post</a>
+            </span>
+            <span ng-switch-when="true">
+                <a ng-click="emptyUnpostInvoice(invoice.id)">unpost</a>
+            </span>
+        </span>
+        <span ng-switch on="invoice.paid">
+            <span ng-switch-when="false">
+                <a ng-click="emptyPayInvoice(invoice.id)">pay</a>
+            </span>
+        </span>
+      </td>
       </tr>
     </table>
   </div>
@@ -79,4 +95,5 @@
 
 <div ng-include src="'partials/invoices/fragments/form.html'"></div>
 <div ng-include src="'partials/invoices/fragments/postform.html'"></div>
+<div ng-include src="'partials/invoices/fragments/unpostform.html'"></div>
 <div ng-include src="'partials/invoices/fragments/payform.html'"></div>

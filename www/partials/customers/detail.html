@@ -29,6 +29,9 @@
             <span ng-switch-when="false">
                 <a ng-click="emptyPostInvoice(invoice.id)">post</a>
             </span>
+            <span ng-switch-when="true">
+                <a ng-click="emptyUnpostInvoice(invoice.id)">unpost</a>
+            </span>
         </span>
         <span ng-switch on="invoice.paid">
             <span ng-switch-when="false">
@@ -47,4 +50,5 @@
 
 <div ng-include src="'partials/invoices/fragments/form.html'"></div>
 <div ng-include src="'partials/invoices/fragments/postform.html'"></div>
+<div ng-include src="'partials/invoices/fragments/unpostform.html'"></div>
 <div ng-include src="'partials/invoices/fragments/payform.html'"></div>

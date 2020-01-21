@@ -101,6 +101,35 @@ angular.module('core.invoice').
       },
 
       // this is idential to update apart from the verb
+      unpost: function(invoiceID, params) {
+        var deferred = $q.defer();
+
+        var headers = Api.getHeaders();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $http({
+          method: 'UNPOST',
+          url: Api.getUrl() + '/invoices/' + invoiceID,
+          transformRequest: function(obj) {
+            var str = [];
+            for(var p in obj)
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+          },
+          data: params,
+          headers: headers
+        }).success(function(invoice) {
+
+          invoice = obj.format(invoice);
+
+          deferred.resolve(invoice);
+        
+        }).error(deferred.reject);
+
+        return deferred.promise;
+      },
+
+      // this is idential to update apart from the verb
       pay: function(invoiceID, params) {
         var deferred = $q.defer();
 
