@@ -2777,11 +2777,16 @@ def get_session():
 def startup():
 
     if hasattr(app, 'connection_string') and app.connection_string != '':
-        is_new = False
-        ignore_lock = False
+
+        if not hasattr(app, 'is_new') or app.is_new == '':
+            app.is_new = False
+
+        if not hasattr(app, 'ignore_lock') or app.ignore_lock == '':
+            app.ignore_lock = False
 
         try:
-            return start_session(app.connection_string, is_new, ignore_lock)
+            return start_session(app.connection_string, app.is_new,
+                                 app.ignore_lock)
         except Error as error:
             # We can't return a response here as this is run before the first
             # request so no way to alert user to the error?
@@ -2858,13 +2863,15 @@ class Error(Exception):
 if __name__ == '__main__':
     try:
         options, arguments = getopt.getopt(
-            sys.argv[1:], 'hp:', ['host=', 'port='])
+            sys.argv[1:], 'hinp:', ['host=', 'ignore_lock' 'new', 'port='])
     except getopt.GetoptError as err:
-        print('Usage: __init__.py [options...]')
+        print('Usage: __init__.py [options...] [connection string]')
         print(' -h, --host       Set the host IP address to bind to')
         print(' -p, --port       Set the port to bind to')
+        print(' -n, --new        Start a new session')
+        print(' -i, --ignore_lock   Ignore a lock on the connection')
         sys.exit(2)
-    
+
     # set default host and port for Flask
     host = '127.0.0.1'
     port = 5000
@@ -2876,25 +2883,23 @@ if __name__ == '__main__':
         elif option in ("-p", "--port"):
             port = value
 
-    # is_new = False
-    #
-    # # allow a new database to be used
-    # for option, value in options:
-    #     if option in ("-n", "--new"):
-    #         is_new = True
-    #
-    # #start gnucash session base on connection string argument
-    # if is_new:
-    #     session = gnucash.Session(arguments[0], is_new=True)
-    #
-    #     # seem to get errors if we use the session directly, so save it and
-    #     #destroy it so it's no longer new
-    #
-    #     session.save()
-    #     session.end()
-    #     session.destroy()
-    #
-    # session = gnucash.Session(arguments[0], ignore_lock=True)
+    if len(arguments) == 1:
+
+        for option, value in options:
+            if option in ("-n", "--new"):
+                app.is_new = True
+            elif option in ("-i", "--ignore_lock"):
+                app.ignore_lock = True
+
+        app.connection_string = arguments[0]
+
+    elif len(arguments) >= 2:
+        print('Usage: __init__.py [options...] [connection string]')
+        print(' -h, --host          Set the host IP address to bind to')
+        print(' -p, --port          Set the port to bind to')
+        print(' -n, --new           Start a new session')
+        print(' -i, --ignore_lock   Ignore a lock on the connection')
+        sys.exit(2)
 
     # register method to close gnucash connection gracefully
     atexit.register(shutdown)
