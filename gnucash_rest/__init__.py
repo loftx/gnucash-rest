@@ -481,6 +481,7 @@ def api_bill(id):
 
     elif request.method == 'POST':
 
+        active = request.form.get('active', '')
         vendor_id = str(request.form.get('vendor_id', ''))
         currency = str(request.form.get('currency', ''))
         date_opened = request.form.get('date_opened', '')
@@ -493,6 +494,15 @@ def api_bill(id):
         posted_accumulatesplits = request.form.get('posted_accumulatesplits',
                                                    '')
         posted_autopay = request.form.get('posted_autopay', '')
+
+        # default to active
+        if (active == '0'
+                or active == 'false'
+                or active == 'False'
+                or active is False):
+            active = False
+        else:
+            active = True
 
         if posted == '1':
             posted = 1
@@ -512,7 +522,7 @@ def api_bill(id):
         else:
             posted_autopay = False
         try:
-            bill = update_bill(session.book, id, vendor_id, currency,
+            bill = update_bill(session.book, id, active, vendor_id, currency,
                                date_opened, notes, posted, posted_account_guid, posted_date,
                                due_date, posted_memo, posted_accumulatesplits, posted_autopay)
         except Error as error:
@@ -2059,7 +2069,7 @@ def unpost_invoice(book, id, reset_tax_tables):
     return gnucash_simple.invoiceToDict(invoice)
 
 
-def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
+def update_bill(book, id, active, vendor_id, currency_mnumonic, date_opened, notes,
                 posted, posted_account_guid, posted_date, due_date, posted_memo,
                 posted_accumulatesplits, posted_autopay):
 
@@ -2125,6 +2135,7 @@ def update_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes,
                         'No account exists with the posted account GUID',
                         {'field': 'posted_account_guid'})
 
+    bill.SetActive(active)
     bill.SetOwner(vendor)
     bill.SetDateOpened(date_opened)
     bill.SetNotes(notes)

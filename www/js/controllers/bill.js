@@ -4,7 +4,9 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
 	$scope.date_to = '';
 	$scope.is_paid = '';
-	$scope.is_active = 1;
+	$scope.is_posted = '';
+	$scope.is_active = '1'; // needs to be a string or isn't picked up by Angular...
+
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -240,6 +242,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 		var params = {
 			id: $scope.bill.id,
+			active: $scope.bill.active,
 			vendor_id: $scope.bill.owner.id,
 			currency: $scope.bill.currency,
 			date_opened: $scope.bill.date_opened,
