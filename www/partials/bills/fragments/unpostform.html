@@ -1,0 +1,31 @@
+<div id="billUnpostForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Unpost bill</h3>
+  </div>
+  <div class="modal-body">
+
+  <div id="billUnpostAlert" class="alert  alert-error" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>Error</strong> {{billError}}
+  </div>
+
+    <form class="form-horizontal" style="margin: 0px;">
+      <fieldset>
+
+        <div class="control-group">
+          <label class="control-label" for="billResetTaxTables">Reset tax tables</label>
+          <div class="controls">
+            <input id="billResetTaxTables" ng-model="bill.reset_tax_tables" name="billResetTaxTables" class="input-xlarge" type="checkbox">
+          </div>
+        </div>
+
+      </fieldset>
+    </form>
+    
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" ng-click="unpostBill()">Unpost</button>
+  </div>
+</div>

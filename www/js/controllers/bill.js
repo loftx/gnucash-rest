@@ -1,5 +1,7 @@
 function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
+	$scope.orderProp = 'id';
+	$scope.reverseProp = 'false';
 	$scope.date_type = 'opened';
 	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
 	$scope.date_to = '';
@@ -39,6 +41,11 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 			}
 		});
 	});
+
+	$scope.sortBy = function(orderProp) {
+		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
+    	$scope.orderProp = orderProp;
+	}
 
 	$scope.change = function() {
 

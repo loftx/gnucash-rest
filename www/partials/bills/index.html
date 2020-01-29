@@ -5,7 +5,6 @@
     <fieldset>
       <label>Search</label>
       <input type="text" placeholder="Bill ID or vendor" ng-model="query">
-      <!-- <input type="hidden" value="id" ng-init="orderProp='id'" ng-model="orderProp"> -->
 
       <label>Date type</label>
       <select ng-model="date_type" ng-change="change()">
@@ -43,16 +42,16 @@
     <div ng-show="!bills" class="loader">Loading...</div>
     <table ng-show="bills" class="table">
       <tr>
-        <th>ID</th>
-        <th>Opened</th>
-        <th>Due</th>
-        <th>Vendor</th>
-        <th>Posted</th>
-        <th>Total</th>
-        <th>Paid</th>
+        <th ng-click="sortBy('id')">ID</th>
+        <th ng-click="sortBy('date_opened')">Opened</th>
+        <th ng-click="sortBy('date_due')">Due</th>
+        <th ng-click="sortBy('vendor')">Vendor</th>
+        <th ng-click="sortBy('date_posted')">Posted</th>
+        <th ng-click="sortBy('total')">Total</th>
+        <th ng-click="sortBy('paid')">Paid</th>
         <th></th>
       </tr>
-      <tr ng-repeat="bill in bills | filter:query | orderBy:orderProp">
+      <tr ng-repeat="bill in bills | filter:query | orderBy:orderProp:reverseProp">
         <td><a href="#/bills/{{bill.id}}">{{bill.id}}</a></td>
         <td>{{bill.formatted_date_opened}}</a></td>
         <td>{{bill.formatted_date_due}}</td>
@@ -67,6 +66,9 @@
         <span ng-switch on="bill.date_posted">
             <span ng-switch-when="null">
                 <a ng-click="emptyPostBill(bill.id)">post</a>
+            </span>
+            <span ng-switch-when="true">
+                <a ng-click="emptyUnpostInvoice(invoice.id)">unpost</a>
             </span>
         </span>
         <span ng-switch on="bill.paid">
@@ -83,5 +85,8 @@
 
   <!-- copied from vendors/details.html -->
   <div ng-include src="'partials/bills/fragments/form.html'"></div>
+  <div ng-include src="'partials/bills/fragments/postform.html'"></div>
+  <div ng-include src="'partials/bills/fragments/unpostform.html'"></div>
+  <div ng-include src="'partials/bills/fragments/payform.html'"></div>
 
 </div>
