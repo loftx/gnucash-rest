@@ -5,7 +5,6 @@
     <fieldset>
       <label>Search</label>
       <input type="text" placeholder="Company name, ID or contact" ng-model="query">
-      <input type="hidden" value="id" ng-init="orderProp='id'" ng-model="orderProp">
     </fieldset>
   </form>
 
@@ -15,12 +14,12 @@
     <div ng-show="!vendors" class="loader">Loading...</div>
     <table ng-show="vendors" class="table">
       <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Contact</th>
-        <th>Edit</th>
+        <th ng-click="sortBy('id')">ID</th>
+        <th ng-click="sortBy('name')">Name</th>
+        <th ng-click="sortBy('address.name')">Contact</th>
+        <th></th>
       </tr>
-      <tr id="vendor{{vendor.id}}" ng-repeat="vendor in vendors | filter:query | orderBy:orderProp">
+      <tr id="vendor{{vendor.id}}" ng-repeat="vendor in vendors | filter:query | orderBy:orderProp:reverseProp">
         <td><a href="#/vendors/{{vendor.id}}">{{vendor.id}}</a></td>
         <td><a href="#/vendors/{{vendor.id}}">{{vendor.name}}</a></td>
         <td>{{vendor.address.name}}</td>

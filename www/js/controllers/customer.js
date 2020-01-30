@@ -4,7 +4,8 @@ function CustomerListCtrl($scope, Customer, Money) {
 		$scope.customers = customers;
 	});
 
-	$scope.orderProp = "id";
+	$scope.orderProp = 'id';
+	$scope.reverseProp = 'false';
 
 	$scope.customer = {};
 	$scope.customer.id = '';
@@ -20,6 +21,11 @@ function CustomerListCtrl($scope, Customer, Money) {
 	$scope.customer.address.email = '';
 
 	$scope.currencys = Money.currencys();
+
+	$scope.sortBy = function(orderProp) {
+		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
+		$scope.orderProp = orderProp;
+	}
 
 	$scope.addCustomer = function() {
 
@@ -179,7 +185,8 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 		$scope.transferAccounts = transferAccounts;
 	});
 
-	$scope.orderProp = "id";
+	$scope.orderProp = 'id';
+	$scope.reverseProp = 'false';
 
 	$scope.invoice = {};
 	$scope.invoice.id = '';
@@ -224,6 +231,11 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 			}
 		});
 	});
+
+	$scope.sortBy = function(orderProp) {
+		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
+		$scope.orderProp = orderProp;
+	}
 
 	$scope.addInvoice = function() {
 

@@ -4,7 +4,8 @@ function VendorListCtrl($scope, Vendor, Money, Dates) {
 		$scope.vendors = vendors;
 	});
 
-	$scope.orderProp = "id";
+	$scope.orderProp = 'id';
+	$scope.reverseProp = 'false';
 
 	$scope.vendor = {};
 	$scope.vendor.id = '';
@@ -20,6 +21,11 @@ function VendorListCtrl($scope, Vendor, Money, Dates) {
 	$scope.vendor.address.email = '';
 
 	$scope.currencys = Money.currencys();
+
+	$scope.sortBy = function(orderProp) {
+		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
+		$scope.orderProp = orderProp;
+	}
 
 	$scope.addVendor = function() {
 
@@ -119,7 +125,8 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 		$scope.transferAccounts = transferAccounts;
 	});
 
-	$scope.orderProp = "id";
+	$scope.orderProp = 'id';
+	$scope.reverseProp = 'false';
 
 	$scope.bill = {};
 	$scope.bill.id = '';
@@ -164,6 +171,11 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 			}
 		});
 	});
+
+	$scope.sortBy = function(orderProp) {
+		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
+		$scope.orderProp = orderProp;
+	}
 
 	$scope.addBill = function() {
 
