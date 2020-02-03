@@ -1,12 +1,4 @@
-function InvoiceListCtrl($scope, Invoice, Customer, Account, Dates) {
-
-	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_RECEIVABLE]).then(function(accounts) {
-		$scope.accounts = accounts;
-	});
-
-	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_ASSET, ACCT_TYPE_CASH, ACCT_TYPE_BANK, ACCT_TYPE_LIABILITY, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
-		$scope.transferAccounts = transferAccounts;
-	});
+function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 
 	$scope.invoices = [];
 
@@ -19,13 +11,13 @@ function InvoiceListCtrl($scope, Invoice, Customer, Account, Dates) {
 	$scope.is_posted = '';
 	$scope.is_active = '1'; // needs to be a string or isn't picked up by Angular...
 
-	var lastParams = {};
-
 	$scope.invoice = {};
 	$scope.invoice.id = '';
 	$scope.invoice.customer_id = '';
 	$scope.invoice.date_opened = '';
 	$scope.invoice.notes = '';
+
+	var lastParams = {};
 
 	Customer.query().then(function(customers) {
 		$scope.customers = customers;
@@ -89,87 +81,6 @@ function InvoiceListCtrl($scope, Invoice, Customer, Account, Dates) {
 
 	$scope.change();
 
-	// all these functions are identical to those in customer.js - CustomerDetailCtrl
-	$scope.postInvoice = function(id) {
-
-		Invoice.get($scope.invoice.id).then(function(invoice) {
-			
-			var params = {
-				customer_id: invoice.owner.id,
-				currency: invoice.currency,
-				date_opened: invoice.date_opened,
-				notes: invoice.notes,
-				posted: 1,
-				posted_account_guid: $scope.invoice.posted_account,
-				posted_date: $scope.invoice.date_posted,
-				due_date: $scope.invoice.date_due,
-				posted_memo: $scope.invoice.posted_memo,
-				posted_accumulatesplits: $scope.invoice.posted_accumulatesplits, // this is True but should be 1
-				posted_autopay: 0
-			};
-
-			Invoice.update($scope.invoice.id, params).then(function(invoice) {
-			
-				$('#invoicePostForm').modal('hide');
-				$('#invoicePostAlert').hide();
-
-				$scope.invoice = invoice;
-			
-				for (var i in $scope.invoices) {
-					if ($scope.invoices[i].id == $scope.invoice.id) {
-						$scope.invoices[i] = $scope.invoice;
-					}
-				}
-
-			}, function(data) {
-				if(typeof data.errors != 'undefined') {
-					$('#invoicePostAlert').show();
-					$scope.invoiceError = data.errors[0].message;
-				} else {
-					console.log(data);
-					console.log(status);	
-				}
-			});
-
-		});
-
-	}
-
-	$scope.unpostInvoice = function(id) {
-
-		Invoice.get($scope.invoice.id).then(function(invoice) {
-			
-			var params = {
-				reset_tax_tables: $scope.invoice.reset_tax_tables,
-			};
-
-			Invoice.unpost($scope.invoice.id, params).then(function(invoice) {
-			
-				$('#invoiceUnpostForm').modal('hide');
-				$('#invoiceUnpostAlert').hide();
-
-				$scope.invoice = invoice;
-			
-				for (var i in $scope.invoices) {
-					if ($scope.invoices[i].id == $scope.invoice.id) {
-						$scope.invoices[i] = $scope.invoice;
-					}
-				}
-
-			}, function(data) {
-				if(typeof data.errors != 'undefined') {
-					$('#invoiceUnpostAlert').show();
-					$scope.invoiceError = data.errors[0].message;
-				} else {
-					console.log(data);
-					console.log(status);	
-				}
-			});
-
-		});
-
-	}
-
 	// id is unused here as it's undefined when passed though
 	$scope.payInvoice = function(id) {
 
@@ -214,16 +125,49 @@ function InvoiceListCtrl($scope, Invoice, Customer, Account, Dates) {
 		$scope.invoice.date_due = Dates.format_todays_date();
 		$scope.invoice.posted_accumulatesplits = true;
 
-		$('#invoicePostForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/postform.html',
+			controller: 'modalPostInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+					return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			for (var i in $scope.invoices) {
+				if ($scope.invoices[i].id == $scope.invoice.id) {
+					$scope.invoices[i] = invoice;
+				}
+			}
+		});
 
 	}
 
 	$scope.emptyUnpostInvoice = function(id) {
 
 		$scope.invoice.id = id;
-		$scope.invoice.reset_tax_tables = true;
 
-		$('#invoiceUnpostForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/unpostform.html',
+			controller: 'modalUnpostInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+					return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			for (var i in $scope.invoices) {
+				if ($scope.invoices[i].id == $scope.invoice.id) {
+					$scope.invoices[i] = invoice;
+				}
+			}
+		});
 
 	}
 
@@ -234,7 +178,24 @@ function InvoiceListCtrl($scope, Invoice, Customer, Account, Dates) {
 		//$scope.invoice.date_due = Dates.format_todays_date();
 		//$scope.invoice.posted_accumulatesplits = true;
 
-		$('#invoicePayForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/payform.html',
+			controller: 'modalPayInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+				  return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			for (var i in $scope.invoices) {
+				if ($scope.invoices[i].id == $scope.invoice.id) {
+					$scope.invoices[i] = invoice;
+				}
+			}
+		});
 
 	}
 
@@ -537,3 +498,162 @@ function InvoiceDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Ent
 	}
 
 }
+
+// this is bad due to the case...
+app.controller('modalPostInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance', 'Account', 'Invoice', 'Dates', function(invoice, $scope, $uibModalInstance, Account, Invoice, Dates) {
+
+	$scope.invoice = {}
+	$scope.invoice.date_posted = Dates.todays_date();
+	$scope.invoice.date_due = Dates.todays_date();
+	$scope.invoice.posted_accumulatesplits = true;
+
+	$scope.picker = {
+		invoiceDatePosted: { opened: false },
+		invoiceDateDue: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_RECEIVABLE]).then(function(accounts) {
+		$scope.accounts = accounts;
+		// fill in default posting account
+		$scope.invoice.posted_account = accounts[0].guid;
+	});
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	// all these functions are identical to those in customer.js - CustomerDetailCtrl
+	$scope.postInvoice = function(id) {
+
+		Invoice.get(invoice.id).then(function(invoice) {
+			
+			var params = {
+				customer_id: invoice.owner.id,
+				currency: invoice.currency,
+				date_opened: invoice.date_opened,
+				notes: invoice.notes,
+				posted: 1,
+				posted_account_guid: $scope.invoice.posted_account,
+				posted_date: Dates.dateInput($scope.invoice.date_posted),
+				due_date: Dates.dateInput($scope.invoice.date_due),
+				posted_memo: $scope.invoice.posted_memo,
+				posted_accumulatesplits: $scope.invoice.posted_accumulatesplits, // this is True but should be 1
+				posted_autopay: 0
+			};
+
+			Invoice.update(invoice.id, params).then(function(invoice) {
+			
+				$('#invoicePostAlert').hide();
+				$uibModalInstance.close(invoice);	
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#invoicePostAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
+
+	}
+
+}]);
+
+// do we need all these bits
+app.controller('modalUnpostInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance', 'Invoice', function(invoice, $scope, $uibModalInstance, Invoice) {
+
+	$scope.invoice = {};
+	$scope.invoice.reset_tax_tables = true;
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.unpostInvoice = function(id) {
+
+		Invoice.get(invoice.id).then(function(invoice) {
+			
+			var params = {
+				reset_tax_tables: $scope.invoice.reset_tax_tables,
+			};
+
+			Invoice.unpost(invoice.id, params).then(function(invoice) {
+			
+				$('#invoicePostAlert').hide();
+				$uibModalInstance.close(invoice);	
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#invoiceUnpostAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
+
+	}
+
+}]);
+
+app.controller('modalPayInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance', 'Account', 'Invoice', 'Dates', function(invoice, $scope, $uibModalInstance, Account, Invoice, Dates) {
+
+	$scope.invoice = invoice;
+
+	$scope.picker = {
+		invoiceDatePaid: { opened: false },
+		invoiceDateDue: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+	
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_RECEIVABLE]).then(function(accounts) {
+		$scope.accounts = accounts;
+		// fill in default posting account
+		$scope.invoice.post_account = accounts[0].guid;
+	});
+
+	Account.getAccountsOfTypesForDropdown([ACCT_TYPE_ASSET, ACCT_TYPE_CASH, ACCT_TYPE_BANK, ACCT_TYPE_LIABILITY, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
+		$scope.transferAccounts = transferAccounts;
+	});
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.payInvoice = function() {
+			
+		var params = {
+			posted_account_guid: invoice.post_account,
+			transfer_account_guid: invoice.transfer_account,
+			payment_date: Dates.dateInput(invoice.date_paid),
+			num: '',
+			memo: '',
+			auto_pay: 0,
+		};
+
+		Invoice.pay(invoice.id, params).then(function(invoice) {
+			
+			$('#invoicePostAlert').hide();
+			$uibModalInstance.close(invoice);	
+
+		}, function(data) {
+			if(typeof data.errors != 'undefined') {
+				$('#invoicePayAlert').show();
+				$scope.invoiceError = data.errors[0].message;
+			} else {
+				console.log(data);
+				console.log(status);	
+			}
+		});
+
+	}
+	
+}]);

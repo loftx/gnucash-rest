@@ -9,7 +9,6 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 	$scope.is_posted = '';
 	$scope.is_active = '1'; // needs to be a string or isn't picked up by Angular...
 
-
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
 	});
@@ -131,7 +130,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 			size: 'sm',
 			resolve: {
 				bill: function () {
-				  return $scope.bill;
+					return $scope.bill;
 				}
 			}
 		});
@@ -146,7 +145,6 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	}
 
-	
 	$scope.emptyPayBill = function(id) {
 
 		$scope.bill.id = id;

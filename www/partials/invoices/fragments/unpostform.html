@@ -1,31 +1,29 @@
-<div id="invoiceUnpostForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel">Unpost invoice</h3>
-  </div>
-  <div class="modal-body">
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+  <h3 id="myModalLabel">Unpost invoice</h3>
+</div>
+<div class="modal-body">
 
-  <div id="invoiceUnpostAlert" class="alert  alert-error" style="display: none;">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-    <strong>Error</strong> {{invoiceError}}
-  </div>
+<div id="invoiceUnpostAlert" class="alert  alert-error" style="display: none;">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  <strong>Error</strong> {{invoiceError}}
+</div>
 
-    <form class="form-horizontal" style="margin: 0px;">
-      <fieldset>
+  <form class="form-horizontal" style="margin: 0px;">
+    <fieldset>
 
-        <div class="control-group">
-          <label class="control-label" for="invoiceResetTaxTables">Reset tax tables</label>
-          <div class="controls">
-            <input id="invoiceResetTaxTables" ng-model="invoice.reset_tax_tables" name="invoiceResetTaxTables" class="input-xlarge" type="checkbox">
-          </div>
+      <div class="control-group">
+        <label class="control-label" for="invoiceResetTaxTables">Reset tax tables</label>
+        <div class="controls">
+          <input id="invoiceResetTaxTables" ng-model="invoice.reset_tax_tables" name="invoiceResetTaxTables" class="input-xlarge" type="checkbox">
         </div>
+      </div>
 
-      </fieldset>
-    </form>
-    
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" ng-click="unpostInvoice()">Unpost</button>
-  </div>
+    </fieldset>
+  </form>
+  
+</div>
+<div class="modal-footer">
+  <button class="btn" ng-click="close()" aria-hidden="true">Close</button>
+  <button class="btn btn-primary" ng-click="unpostInvoice()">Unpost</button>
 </div>
