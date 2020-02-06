@@ -1805,6 +1805,10 @@ def get_bill(book, id):
 def add_vendor(book, id, currency_mnumonic, name, contact, address_line_1,
                address_line_2, address_line_3, address_line_4, phone, fax, email):
 
+    if get_vendor(book, id) is not None:
+        raise Error('IdExists',
+                    'This customer ID already exists', {'field': 'id'})
+
     if name == '':
         raise Error('NoVendorName', 'A name must be entered for this company',
                     {'field': 'name'})
@@ -1845,6 +1849,10 @@ def add_vendor(book, id, currency_mnumonic, name, contact, address_line_1,
 
 def add_customer(book, id, currency_mnumonic, name, contact, address_line_1,
                  address_line_2, address_line_3, address_line_4, phone, fax, email):
+    
+    if get_customer(book, id) is not None:
+        raise Error('IdExists',
+                    'This customer ID already exists', {'field': 'id'})
 
     if name == '':
         raise Error('NoCustomerName',
@@ -1922,17 +1930,21 @@ def update_customer(book, id, name, contact, address_line_1, address_line_2,
 
 def add_invoice(book, id, customer_id, currency_mnumonic, date_opened, notes):
 
+    if get_gnucash_invoice(book, id) is not None:
+        raise Error('IdExists',
+                    'This invoice ID already exists', {'field': 'id'})
+
     # Check customer ID is provided to avoid "CRIT <qof>
     # qof_query_string_predicate: assertion '*str != '\0'' failed" error
     if customer_id == '':
         raise Error('NoCustomer',
-                    'A customer ID must be provided', {'field': 'id'})
+                    'A customer ID must be provided', {'field': 'customer_id'})
 
     customer = book.CustomerLookupByID(customer_id)
 
     if customer is None:
         raise Error('NoCustomer',
-                    'A customer with this ID does not exist', {'field': 'id'})
+                    'A customer with this ID does not exist', {'field': 'customer_id'})
 
     try:
         date_opened = datetime.datetime.strptime(date_opened, "%Y-%m-%d")
@@ -2398,6 +2410,10 @@ def delete_transaction(book, transaction_guid):
 
 
 def add_bill(book, id, vendor_id, currency_mnumonic, date_opened, notes):
+
+    if get_gnucash_bill(book, id) is not None:
+        raise Error('IdExists',
+                    'This bill ID already exists', {'field': 'id'})
 
     vendor = book.VendorLookupByID(vendor_id)
 
