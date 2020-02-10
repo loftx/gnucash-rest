@@ -459,7 +459,7 @@ def api_bills():
                             mimetype='application/json')
 
 
-@app.route('/bills/<id>', methods=['GET', 'POST', 'PAY'])
+@app.route('/bills/<id>', methods=['GET', 'POST', 'UNPOST', 'PAY'])
 def api_bill(id):
 
     try:
@@ -540,6 +540,35 @@ def api_bill(id):
         else:
             return Response(json.dumps(bill),
                             mimetype='application/json')
+
+    elif request.method == 'UNPOST':
+
+        bill = get_bill(session.book, id)
+
+        if bill is None:
+            abort(404)
+        else:
+            try:
+
+                reset_tax_tables = request.form.get('reset_tax_tables', '')
+
+                if (reset_tax_tables == '0'
+                        or reset_tax_tables == 'false'
+                        or reset_tax_tables == 'False'
+                        or reset_tax_tables is False):
+                    reset_tax_tables = False
+                else:
+                    reset_tax_tables = True
+
+                bill = unpost_bill(session.book, id, reset_tax_tables)
+            except Error as error:
+                return Response(json.dumps({'errors': [{'type': error.type,
+                                                        'message': error.message,
+                                                        'data': error.data}]}),
+                                status=400, mimetype='application/json')
+            else:
+                return Response(json.dumps(bill), status=200,
+                                mimetype='application/json')
 
     elif request.method == 'PAY':
 
@@ -2049,6 +2078,13 @@ def update_invoice(book, id, active, customer_id, currency_mnumonic, date_opened
                         'No account exists with the posted account GUID',
                         {'field': 'posted_account_guid'})
 
+    if (not(invoice.GetDatePosted() is None or
+            invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') 
+            and posted == 1):
+        raise Error('IsPosted',
+                        'This invoice has already been posted',
+                        {'field': 'posted'})
+
     invoice.SetActive(active)
     invoice.SetOwner(customer)
     invoice.SetDateOpened(date_opened)
@@ -2075,6 +2111,12 @@ def unpost_invoice(book, id, reset_tax_tables):
         raise Error('NoInvoice',
                     'An invoice with this ID does not exist',
                     {'field': 'id'})
+
+    if (invoice.GetDatePosted() is None or
+            invoice.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01'):
+        raise Error('IsUnposted',
+                        'This invoice has not yet been posted',
+                        {'field': 'posted'})
 
     invoice.Unpost(reset_tax_tables)
 
@@ -2147,6 +2189,13 @@ def update_bill(book, id, active, vendor_id, currency_mnumonic, date_opened, not
                         'No account exists with the posted account GUID',
                         {'field': 'posted_account_guid'})
 
+    if (not(bill.GetDatePosted() is None or
+            bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01') 
+            and posted == 1):
+        raise Error('IsPosted',
+                        'This bill has already been posted',
+                        {'field': 'posted'})
+
     bill.SetActive(active)
     bill.SetOwner(vendor)
     bill.SetDateOpened(date_opened)
@@ -2160,6 +2209,26 @@ def update_bill(book, id, active, vendor_id, currency_mnumonic, date_opened, not
             and posted == 1):
         bill.PostToAccount(posted_account, posted_date, due_date, posted_memo,
                            posted_accumulatesplits, posted_autopay)
+
+    return gnucash_simple.billToDict(bill)
+
+
+def unpost_bill(book, id, reset_tax_tables):
+
+    bill = get_gnucash_bill(book, id)
+
+    if bill is None:
+        raise Error('NoBill',
+                    'An bill with this ID does not exist',
+                    {'field': 'id'})
+
+    if (bill.GetDatePosted() is None or
+            bill.GetDatePosted().strftime('%Y-%m-%d') == '1970-01-01'):
+        raise Error('IsUnposted',
+                        'This bill has not yet been posted',
+                        {'field': 'posted'})
+
+    bill.Unpost(reset_tax_tables)
 
     return gnucash_simple.billToDict(bill)
 

@@ -84,6 +84,8 @@ class ApiTestCase(unittest.TestCase):
             response = self.app.delete(url, data=data)
         elif method is 'pay':
             response = self.app.open(url, data=data, method='pay')
+        elif method is 'unpost':
+            response = self.app.open(url, data=data, method='unpost')
         else:
             raise ValueError('unknown method in assert_error_type')
 
@@ -1591,6 +1593,25 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
         assert json.loads(self.clean(self.app.post(
             '/invoices/999999', data=data).data))['posted'] == True
 
+    def test_double_post_invoice(self):
+        invoice = self.createInvoice('999999')
+        account = self.createAccount()
+
+        data = dict(
+            customer_id=invoice['owner']['id'],
+            date_opened='2010-01-01',
+            posted='1',
+            posted_date='2010-01-01',
+            due_date='2010-01-01',
+            posted_account_guid=account['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post(
+            '/invoices/999999', data=data).data))['posted'] == True
+
+        assert self.get_error_type(
+            'post', '/invoices/999999', data=data) == 'IsPosted'
+
     def test_unpost_invoice(self):
         invoice = self.createInvoice('999999')
         account = self.createAccount()
@@ -1610,6 +1631,29 @@ class InvoicesSessionTestCase(ApiSessionTestCase):
         assert json.loads(self.clean(self.app.open(
             '/invoices/999999', data=dict(),
             method='unpost').data))['posted'] == False
+
+    def test_double_unpost_invoice(self):
+        invoice = self.createInvoice('999999')
+        account = self.createAccount()
+
+        data = dict(
+            customer_id=invoice['owner']['id'],
+            date_opened='2010-01-01',
+            posted='1',
+            posted_date='2010-01-01',
+            due_date='2010-01-01',
+            posted_account_guid=account['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post(
+            '/invoices/999999', data=data).data))['posted'] == True
+
+        assert json.loads(self.clean(self.app.open(
+            '/invoices/999999', data=dict(),
+            method='unpost').data))['posted'] == False
+
+        assert self.get_error_type(
+            'unpost', '/invoices/999999', data=dict()) == 'IsUnposted'
 
     def test_update_invoice(self):
         invoice = self.createInvoice('999999')
@@ -2010,6 +2054,49 @@ class BillsSessionTestCase(ApiSessionTestCase):
 
         assert json.loads(self.clean(self.app.post(
             '/bills/999999', data=data).data))['posted'] == True
+
+    def test_unpost_bill(self):
+        bill = self.createBill('999999')
+        account = self.createAccount()
+
+        data = dict(
+            vendor_id=bill['owner']['id'],
+            date_opened='2010-01-01',
+            posted='1',
+            posted_date='2010-01-01',
+            due_date='2010-01-01',
+            posted_account_guid=account['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post(
+            '/bills/999999', data=data).data))['posted'] == True
+
+        assert json.loads(self.clean(self.app.open(
+            '/bills/999999', data=dict(),
+            method='unpost').data))['posted'] == False
+
+    def test_double_unpost_bill(self):
+        bill = self.createBill('999999')
+        account = self.createAccount()
+
+        data = dict(
+            vendor_id=bill['owner']['id'],
+            date_opened='2010-01-01',
+            posted='1',
+            posted_date='2010-01-01',
+            due_date='2010-01-01',
+            posted_account_guid=account['guid']
+        )
+
+        assert json.loads(self.clean(self.app.post(
+            '/bills/999999', data=data).data))['posted'] == True
+
+        assert json.loads(self.clean(self.app.open(
+            '/bills/999999', data=dict(),
+            method='unpost').data))['posted'] == False
+
+        assert self.get_error_type(
+            'unpost', '/bills/999999', data=dict()) == 'IsUnposted'
 
     def test_update_bill(self):
         bill = self.createBill('999999')
