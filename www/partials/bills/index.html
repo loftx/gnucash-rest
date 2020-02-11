@@ -63,12 +63,12 @@
           <span ng-show="!bill.paid">No</span>
         </td>
         <td>
-        <span ng-switch on="bill.date_posted">
-            <span ng-switch-when="null">
+        <span ng-switch on="bill.posted">
+            <span ng-switch-when="false">
                 <a ng-click="emptyPostBill(bill.id)">post</a>
             </span>
             <span ng-switch-when="true">
-                <a ng-click="emptyUnpostInvoice(invoice.id)">unpost</a>
+                <a ng-click="emptyUnpostBill(bill.id)">unpost</a>
             </span>
         </span>
         <span ng-switch on="bill.paid">

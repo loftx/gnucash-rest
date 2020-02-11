@@ -145,6 +145,31 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	}
 
+	$scope.emptyUnpostBill = function(id) {
+
+		$scope.bill.id = id;
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/unpostform.html',
+			controller: 'modalUnpostBillCtrl',
+			size: 'sm',
+			resolve: {
+				bill: function () {
+					return $scope.bill;
+				}
+			}
+		});
+
+		popup.result.then(function(bill) {
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == $scope.bill.id) {
+					$scope.bills[i] = bill;
+				}
+			}
+		});
+
+	}
+
 	$scope.emptyPayBill = function(id) {
 
 		$scope.bill.id = id;
@@ -505,6 +530,45 @@ app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acc
 			}, function(data) {
 				if(typeof data.errors != 'undefined') {
 					$('#billPostAlert').show();
+					$scope.billError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		});
+
+	}
+
+}]);
+
+// do we need all these bits
+app.controller('modalUnpostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Bill', function(bill, $scope, $uibModalInstance, Bill) {
+
+	$scope.bill = {};
+	$scope.bill.reset_tax_tables = true;
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.unpostBill = function(id) {
+
+		Bill.get(bill.id).then(function(bill) {
+			
+			var params = {
+				reset_tax_tables: $scope.bill.reset_tax_tables,
+			};
+
+			Bill.unpost(bill.id, params).then(function(bill) {
+			
+				$('#billPostAlert').hide();
+				$uibModalInstance.close(bill);	
+
+			}, function(data) {
+				if(typeof data.errors != 'undefined') {
+					$('#billUnpostAlert').show();
 					$scope.billError = data.errors[0].message;
 				} else {
 					console.log(data);
