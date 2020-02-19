@@ -296,6 +296,30 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 
 	}
 
+	$scope.emptyUnpostBill = function(id) {
+
+		$scope.bill.id = id;
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/unpostform.html',
+			controller: 'modalUnpostBillCtrl',
+			size: 'sm',
+			resolve: {
+				bill: function () {
+					return $scope.bill;
+				}
+			}
+		});
+
+		popup.result.then(function(bill) {
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == $scope.bill.id) {
+					$scope.bills[i] = bill;
+				}
+			}
+		});
+
+	}
 
 	$scope.emptyPayBill = function() {
 

@@ -321,27 +321,6 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 	}
 
-	$scope.emptyPayBill = function() {
-
-		$scope.bill.date_paid = Dates.todays_date();
-
-		var popup = $uibModal.open({
-			templateUrl: 'partials/bills/fragments/payform.html',
-			controller: 'modalPayBillCtrl',
-			size: 'sm',
-			resolve: {
-				bill: function () {
-				  return $scope.bill;
-				}
-			}
-		});
-
-		popup.result.then(function(bill) {
-			$scope.bill = bill;
-		});
-
-	}
-
 	$scope.addEntry = function() {
 
 		var params = {

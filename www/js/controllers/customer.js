@@ -163,7 +163,7 @@ function CustomerListCtrl($scope, Customer, Money) {
 	}
 }
 
-function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Dates) {
+function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, Invoice, Dates) {
 
 	Customer.get($routeParams.customerId).then(function(customer) {
 		$scope.customer = customer;
@@ -400,6 +400,7 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 
 	}
 
+	// duplicate of invoice.js
 	$scope.emptyPostInvoice = function(id) {
 
 		$scope.invoice.id = id;
@@ -407,16 +408,49 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 		$scope.invoice.date_due = Dates.format_todays_date();
 		$scope.invoice.posted_accumulatesplits = true;
 
-		$('#invoicePostForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/postform.html',
+			controller: 'modalPostInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+					return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			for (var i in $scope.invoices) {
+				if ($scope.invoices[i].id == $scope.invoice.id) {
+					$scope.invoices[i] = invoice;
+				}
+			}
+		});
 
 	}
 
 	$scope.emptyUnpostInvoice = function(id) {
 
 		$scope.invoice.id = id;
-		$scope.invoice.reset_tax_tables = true;
 
-		$('#invoiceUnpostForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/unpostform.html',
+			controller: 'modalUnpostInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+					return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			for (var i in $scope.invoices) {
+				if ($scope.invoices[i].id == $scope.invoice.id) {
+					$scope.invoices[i] = invoice;
+				}
+			}
+		});
 
 	}
 
@@ -424,10 +458,25 @@ function CustomerDetailCtrl($scope, $routeParams, Customer, Account, Invoice, Da
 
 		$scope.invoice.id = id;
 		$scope.invoice.date_paid = Dates.format_todays_date();
-		//$scope.invoice.date_due = Dates.format_todays_date();
-		//$scope.invoice.posted_accumulatesplits = true;
 
-		$('#invoicePayForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/payform.html',
+			controller: 'modalPayInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+				  return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			for (var i in $scope.invoices) {
+				if ($scope.invoices[i].id == $scope.invoice.id) {
+					$scope.invoices[i] = invoice;
+				}
+			}
+		});
 
 	}
 

@@ -175,8 +175,6 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 
 		$scope.invoice.id = id;
 		$scope.invoice.date_paid = Dates.format_todays_date();
-		//$scope.invoice.date_due = Dates.format_todays_date();
-		//$scope.invoice.posted_accumulatesplits = true;
 
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/payform.html',
