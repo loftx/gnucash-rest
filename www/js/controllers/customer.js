@@ -1,4 +1,4 @@
-function CustomerListCtrl($scope, Customer, Money) {
+function CustomerListCtrl($scope, $uibModal, Customer) {
 	
 	Customer.query().then(function(customers) {
 		$scope.customers = customers;
@@ -20,147 +20,51 @@ function CustomerListCtrl($scope, Customer, Money) {
 	$scope.customer.address.fax = '';
 	$scope.customer.address.email = '';
 
-	$scope.currencys = Money.currencys();
-
 	$scope.sortBy = function(orderProp) {
 		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
 		$scope.orderProp = orderProp;
 	}
 
-	$scope.addCustomer = function() {
+	$scope.emptyCustomer = function() {
 
-		var params = {
-			id: '',
-			currency: $scope.customer.currency,
-			name: $scope.customer.name,
-			contact: $scope.customer.address.name,
-			address_line_1: $scope.customer.address.line_1,
-			address_line_2: $scope.customer.address.line_3,
-			address_line_3: $scope.customer.address.line_3,
-			address_line_4: $scope.customer.address.line_4,
-			phone: $scope.customer.address.phone,
-			fax: $scope.customer.address.fax,
-			email: $scope.customer.address.email
-		};
+		id = 0;
 
-		Customer.add(params).then(function(customer) {
-			$scope.customers.push(customer);
-			$('#customerForm').modal('hide');
-			$('#customerAlert').hide();
-
-			$scope.customer.id = '';
-			$scope.customer.name = '';
-			$scope.customer.address.name = '';
-			$scope.customer.address.line_1 = '';
-			$scope.customer.address.line_2 = '';
-			$scope.customer.address.line_3 = '';
-			$scope.customer.address.line_4 = '';
-			$scope.customer.address.phone = '';
-			$scope.customer.address.fax = '';
-			$scope.customer.address.email = '';
-
-		}, function(data) {
-			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
-			if(typeof data.errors != 'undefined') {
-				$('#customerAlert').show();
-				$scope.customerError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
+		var popup = $uibModal.open({
+			templateUrl: 'partials/customers/fragments/form.html',
+			controller: 'modalEditCustomerCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; }
 			}
 		});
 
-	}
-
-	$scope.saveCustomer = function() {
-		if ($scope.customerNew == 1) {
-			$scope.addCustomer();
-		} else {
-			// This may fail as it's possible to update the ID
-			$scope.updateCustomer($scope.customer.id);
-		}
-	}
-
-	$scope.emptyCustomer = function() {
-
-		$scope.customerTitle = 'Add customer';
-
-		$scope.customerNew = 1;
-
-		$scope.customer.id = '';
-		$scope.customer.name = '';
-		$scope.customer.address.name = '';
-		$scope.customer.address.line_1 = '';
-		$scope.customer.address.line_2 = '';
-		$scope.customer.address.line_3 = '';
-		$scope.customer.address.line_4 = '';
-		$scope.customer.address.phone = '';
-		$scope.customer.address.fax = '';
-		$scope.customer.address.email = '';
-
-		$('#customerForm').modal('show');
+		popup.result.then(function(customer) {
+			$scope.customers.push(customer);
+		});
 
 	}
 
 	$scope.populateCustomer = function(id) {
 
-		Customer.get(id).then(function(customer) {
-			$scope.customerTitle = 'Edit customer';
-			$scope.customerNew = 0;
-			$scope.customer = customer;
-			$('#customerForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/customers/fragments/form.html',
+			controller: 'modalEditCustomerCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; }
+			}
 		});
 
-	}
-
-	$scope.updateCustomer = function(id) {
-
-		var params = {
-			id: id,
-			name: $scope.customer.name,
-			contact: $scope.customer.address.name,
-			address_line_1: $scope.customer.address.line_1,
-			address_line_2: $scope.customer.address.line_2,
-			address_line_3: $scope.customer.address.line_3,
-			address_line_4: $scope.customer.address.line_4,
-			phone: $scope.customer.address.phone,
-			fax: $scope.customer.address.fax,
-			email: $scope.customer.address.email
-		};
-
-		Customer.update(id, params).then(function(customer) {
-			for (var i = 0; i < $scope.customers.length; i++) {
-				if ($scope.customers[i].id == customer.id) {
+		popup.result.then(function(customer) {
+			for (var i in $scope.customers) {
+				if ($scope.customers[i].id == id) {
 					$scope.customers[i] = customer;
 				}
 			}
-
-			$('#customerForm').modal('hide');
-			$('#customerAlert').hide();
-
-			$scope.customer.id = '';
-			$scope.customer.name = '';
-			$scope.customer.address.name = '';
-			$scope.customer.address.line_1 = '';
-			$scope.customer.address.line_2 = '';
-			$scope.customer.address.line_3 = '';
-			$scope.customer.address.line_4 = '';
-			$scope.customer.address.phone = '';
-			$scope.customer.address.fax = '';
-			$scope.customer.address.email = '';
-
-		}, function(data) {
-			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
-			if(typeof data.errors != 'undefined') {
-				$('#customerAlert').show();
-				$scope.customerError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
 		});
 
 	}
+
 }
 
 function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, Invoice, Dates) {
@@ -556,3 +460,109 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 	}
 
 }
+
+// this is bad due to the case...
+//app.controller('modalEditCustomerCtrl', ['customer', '$scope', '$uibModalInstance', 'Customer', 'Money', function(customer, $scope, $uibModalInstance, Customer, Money) {
+app.controller('modalEditCustomerCtrl', ['id', '$scope', '$uibModalInstance', 'Customer', 'Money', function(id, $scope, $uibModalInstance, Customer, Money) {
+
+	$scope.currencys = Money.currencys();
+	//$scope.customer = customer;
+
+	if (id == 0) {
+		$scope.customerTitle = 'Add customer';
+		$scope.customerNew = 1;
+
+		$scope.customer = {};
+		$scope.customer.id = '';
+		$scope.customer.name = '';
+		$scope.customer.address = {};
+		$scope.customer.address.name = '';
+		$scope.customer.address.line_1 = '';
+		$scope.customer.address.line_2 = '';
+		$scope.customer.address.line_3 = '';
+		$scope.customer.address.line_4 = '';
+		$scope.customer.address.phone = '';
+		$scope.customer.address.fax = '';
+		$scope.customer.address.email = '';
+
+	} else {
+		Customer.get(id).then(function(customer) {
+			$scope.customerTitle = 'Edit customer';
+			$scope.customerNew = 0;
+			$scope.customer = customer;
+		});
+	}
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.saveCustomer = function() {
+
+		if ($scope.customerNew == 1) {
+			
+			var params = {
+				id: '',
+				currency: $scope.customer.currency,
+				name: $scope.customer.name,
+				contact: $scope.customer.address.name,
+				address_line_1: $scope.customer.address.line_1,
+				address_line_2: $scope.customer.address.line_3,
+				address_line_3: $scope.customer.address.line_3,
+				address_line_4: $scope.customer.address.line_4,
+				phone: $scope.customer.address.phone,
+				fax: $scope.customer.address.fax,
+				email: $scope.customer.address.email
+			};
+
+			Customer.add(params).then(function(customer) {
+
+				$('#customerAlert').hide();
+	 			$uibModalInstance.close(customer);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#customerAlert').show();
+					$scope.customerError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		} else {			
+
+			var params = {
+				id: id,
+				name: $scope.customer.name,
+				contact: $scope.customer.address.name,
+				address_line_1: $scope.customer.address.line_1,
+				address_line_2: $scope.customer.address.line_2,
+				address_line_3: $scope.customer.address.line_3,
+				address_line_4: $scope.customer.address.line_4,
+				phone: $scope.customer.address.phone,
+				fax: $scope.customer.address.fax,
+				email: $scope.customer.address.email
+			};
+
+			Customer.update(id, params).then(function(customer) {
+
+				$('#customerAlert').hide();
+	 			$uibModalInstance.close(customer);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#customerAlert').show();
+					$scope.customerError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		}
+	}
+
+}]);
