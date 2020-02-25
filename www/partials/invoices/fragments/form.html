@@ -1,59 +1,57 @@
-<div id="invoiceForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel">{{invoiceTitle}}</h3>
+<div class="modal-header">
+  <button type="button" class="close" ng-click="close()" aria-hidden="true">×</button>
+  <h3 id="myModalLabel">{{invoiceTitle}}</h3>
+</div>
+<div class="modal-body">
+
+  <div id="invoiceAlert" class="alert  alert-error" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>Error</strong> {{invoiceError}}
   </div>
-  <div class="modal-body">
 
-    <div id="invoiceAlert" class="alert  alert-error" style="display: none;">
-      <button type="button" class="close" data-dismiss="alert">&times;</button>
-      <strong>Error</strong> {{invoiceError}}
-    </div>
+  <form class="form-horizontal" style="margin: 0px;">
+      <fieldset>
 
-    <form class="form-horizontal" style="margin: 0px;">
-        <fieldset>
-
-          <div class="control-group">
-            <label class="control-label" for="invoiceId">Invoice ID</label>
-            <div class="controls">
-              <input id="invoiceId" ng-model="invoice.id" name="invoiceId" class="input-xlarge" type="text" ng-disabled="invoiceNew != 1">
-            </div>
+        <div class="control-group">
+          <label class="control-label" for="invoiceId">Invoice ID</label>
+          <div class="controls">
+            <input id="invoiceId" ng-model="invoice.id" name="invoiceId" class="input-xlarge" type="text" ng-disabled="invoiceNew != 1">
           </div>
+        </div>
 
-          <div class="control-group" ng-show="!invoiceNew">
-            <label class="control-label" for="invoiceActive">Active</label>
-            <div class="controls">
-              <input id="invoiceActive" ng-model="invoice.active" name="invoiceActive" class="input-xlarge" type="checkbox">
-            </div>
+        <div class="control-group" ng-show="!invoiceNew">
+          <label class="control-label" for="invoiceActive">Active</label>
+          <div class="controls">
+            <input id="invoiceActive" ng-model="invoice.active" name="invoiceActive" class="input-xlarge" type="checkbox">
           </div>
+        </div>
 
-          <div class="control-group">
-            <label class="control-label" for="invoiceDateOpened">Date opened</label>
-            <div class="controls">
-              <input id="invoiceDateOpened" ng-model="invoice.date_opened" name="invoiceDateOpened" class="input-xlarge" type="text" ng-disabled="invoice.posted">
-            </div>
+        <div class="control-group">
+          <label class="control-label" for="invoiceDateOpened">Date opened</label>
+          <div class="controls">
+            <input id="invoiceDateOpened" ng-model="invoice.date_opened" name="invoiceDateOpened" class="input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.invoiceDateOpened.opened" ng-click="picker.open('invoiceDateOpened')" ng-disabled="invoice.posted">
           </div>
+        </div>
 
-          <div class="control-group">
-            <label class="control-label" for="invoiceCompany">Company</label>
-            <div class="controls">
-              <select data-ng-model="invoice.customer_id" data-ng-options="customer.id as customer.name for customer in customers" class="input-xlarge" type="text" ng-disabled="invoice.posted"></select>
-            </div>
+        <div class="control-group">
+          <label class="control-label" for="invoiceCompany">Company</label>
+          <div class="controls">
+            <select data-ng-model="invoice.customer_id" data-ng-options="customer.id as customer.name for customer in customers" class="input-xlarge" type="text" ng-disabled="invoice.posted"></select>
           </div>
+        </div>
 
-          <div class="control-group">
-            <label class="control-label" for="invoiceNotes">Notes</label>
-            <div class="controls">
-              <textarea id="invoiceNotes" ng-model="invoice.notes" name="invoiceNotes" class="input-xlarge"></textarea>
-            </div>
+        <div class="control-group">
+          <label class="control-label" for="invoiceNotes">Notes</label>
+          <div class="controls">
+            <textarea id="invoiceNotes" ng-model="invoice.notes" name="invoiceNotes" class="input-xlarge"></textarea>
           </div>
+        </div>
 
-        </fieldset>
-      </form>
-      
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" ng-click="saveInvoice()">Save changes</button>
-  </div>
+      </fieldset>
+    </form>
+    
+</div>
+<div class="modal-footer">
+  <button class="btn" ng-click="close()" aria-hidden="true">Close</button>
+  <button class="btn btn-primary" ng-click="saveInvoice()">Save changes</button>
 </div>

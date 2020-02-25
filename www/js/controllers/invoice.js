@@ -11,17 +11,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 	$scope.is_posted = '';
 	$scope.is_active = '1'; // needs to be a string or isn't picked up by Angular...
 
-	$scope.invoice = {};
-	$scope.invoice.id = '';
-	$scope.invoice.customer_id = '';
-	$scope.invoice.date_opened = '';
-	$scope.invoice.notes = '';
-
 	var lastParams = {};
-
-	Customer.query().then(function(customers) {
-		$scope.customers = customers;
-	});
 
 	$scope.$on('$viewContentLoaded', function() {
 		$('#invoiceDateFrom').datepicker({
@@ -199,19 +189,45 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 
 	$scope.emptyInvoice = function() {
 
-		$scope.invoiceTitle = 'Add invoice';
+		id = 0;
 
-		$scope.invoiceNew = 1;
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/form.html',
+			controller: 'modalEditInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; }
+			}
+		});
 
-		$scope.invoice.id = '';
-		$scope.invoice.date_opened = Dates.format_todays_date();
-		$scope.invoice.notes = '';
-
-		$('#invoiceForm').modal('show');
+		popup.result.then(function(invoice) {
+			$scope.invoices.push(invoice);
+		});
 
 	}
 
-	$scope.addInvoice = function() {
+	$scope.populateInvoice = function(id) {
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/form.html',
+			controller: 'modalEditInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; }
+			}
+		});
+
+		popup.result.then(function(invoices) {
+			for (var i in $scope.invoicess) {
+				if ($scope.invoicess[i].id == id) {
+					$scope.invoicess[i] = invoices;
+				}
+			}
+		});
+
+	}
+
+	/*$scope.addInvoice = function() {
 
 		for (var i = 0; i < $scope.customers.length; i++) {
 			if ($scope.customers[i].id == $scope.invoice.customer_id) {
@@ -249,16 +265,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 			}
 		});
 				
-	}
-
-	$scope.saveInvoice = function() {
-		if ($scope.invoiceNew == 1) {
-			$scope.addInvoice();
-		} else {
-			// This may fail as it's possible to update the ID
-			//$scope.updateInvoice($scope.invoice.id);
-		}
-	}
+	}*/
 
 }
 
@@ -654,4 +661,98 @@ app.controller('modalPayInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance',
 
 	}
 	
+}]);
+
+// this is bad due to the case...
+app.controller('modalEditInvoiceCtrl', ['id', '$scope', '$uibModalInstance', 'Invoice', 'Customer', 'Dates', function(id, $scope, $uibModalInstance, Invoice, Customer, Dates) {
+
+	Customer.query().then(function(customers) {
+		$scope.customers = customers;
+	});
+
+	$scope.picker = {
+		invoiceDateOpened: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+
+	if (id == 0) {
+		$scope.invoiceTitle = 'Add invoice';
+		$scope.invoiceNew = 1;
+
+		$scope.invoice = {};
+		$scope.invoice.id = '';
+		$scope.invoice.active = '';
+		$scope.invoice.date_opened = Dates.format_todays_date();
+		$scope.invoice.notes = '';
+	} else {
+		Invoice.get(id).then(function(invoice) {
+			$scope.invoiceTitle = 'Edit invoice';
+			$scope.invoiceNew = 0;
+			$scope.invoice = invoice;
+		});
+	}
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.saveInvoice = function() {
+
+		if ($scope.invoiceNew == 1) {
+			
+			var params = {
+				active: $scope.invoice.active,
+				customer_id: $scope.invoice.customer_id,
+				currency: $scope.invoice.currency,
+				date_opened: $scope.invoice.date_opened,
+				notes: $scope.invoice.notes
+			};
+
+			Invoice.add(params).then(function(invoice) {
+
+				$('#invoiceAlert').hide();
+	 			$uibModalInstance.close(invoice);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#invoiceAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		} else {			
+
+			var params = {
+				id: id,
+				active: $scope.invoice.active,
+				customer_id: $scope.invoice.customer_id,
+				currency: $scope.invoice.currency,
+				date_opened: $scope.invoice.date_opened,
+				notes: $scope.invoice.notes
+			};
+
+			Invoice.update(id, params).then(function(invoice) {
+
+				$('#invoiceAlert').hide();
+	 			$uibModalInstance.close(invoice);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#invoiceAlert').show();
+					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		}
+	}
+
 }]);

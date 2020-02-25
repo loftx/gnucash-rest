@@ -462,11 +462,9 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 }
 
 // this is bad due to the case...
-//app.controller('modalEditCustomerCtrl', ['customer', '$scope', '$uibModalInstance', 'Customer', 'Money', function(customer, $scope, $uibModalInstance, Customer, Money) {
 app.controller('modalEditCustomerCtrl', ['id', '$scope', '$uibModalInstance', 'Customer', 'Money', function(id, $scope, $uibModalInstance, Customer, Money) {
 
 	$scope.currencys = Money.currencys();
-	//$scope.customer = customer;
 
 	if (id == 0) {
 		$scope.customerTitle = 'Add customer';
