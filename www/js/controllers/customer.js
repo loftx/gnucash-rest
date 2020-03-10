@@ -386,16 +386,21 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 
 	$scope.emptyInvoice = function() {
 
-		$scope.invoiceTitle = 'Add invoice';
+		id = 0;
 
-		$scope.invoiceNew = 1;
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/form.html',
+			controller: 'modalEditInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; },
+				customer_id: function () { return $scope.customer.id; }
+			}
+		});
 
-		$scope.invoice.id = '';
-		$scope.invoice.customer_id = $scope.customer.id;
-		$scope.invoice.date_opened = Dates.format_todays_date();
-		$scope.invoice.notes = '';
-
-		$('#invoiceForm').modal('show');
+		popup.result.then(function(invoice) {
+			$scope.invoices.push(invoice);
+		});
 
 	}
 
