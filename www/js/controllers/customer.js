@@ -404,17 +404,6 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 
 	}
 
-	$scope.populateCustomer = function(id) {
-
-		Customer.get(id).then(function(customer) {
-			$scope.customerTitle = 'Edit customer';
-			$scope.customerNew = 0;
-			$scope.customer = customer;
-			$('#customerForm').modal('show');
-		});
-
-	}
-
 	$scope.updateCustomer = function(id) {
 
 		var params = {

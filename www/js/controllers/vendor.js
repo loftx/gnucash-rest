@@ -1,4 +1,4 @@
-function VendorListCtrl($scope, Vendor, Money, Dates) {
+function VendorListCtrl($scope, Vendor) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -20,90 +20,54 @@ function VendorListCtrl($scope, Vendor, Money, Dates) {
 	$scope.vendor.address.fax = '';
 	$scope.vendor.address.email = '';
 
-	$scope.currencys = Money.currencys();
-
 	$scope.sortBy = function(orderProp) {
 		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
 		$scope.orderProp = orderProp;
 	}
 
-	$scope.addVendor = function() {
-
-		var params = {
-			id: '',
-			currency: $scope.vendor.currency,
-			name: $scope.vendor.name,
-			contact: $scope.vendor.address.name,
-			address_line_1: $scope.vendor.address.line_1,
-			address_line_2: $scope.vendor.address.line_3,
-			address_line_3: $scope.vendor.address.line_3,
-			address_line_4: $scope.vendor.address.line_4,
-			phone: $scope.vendor.address.phone,
-			fax: $scope.vendor.address.fax,
-			email: $scope.vendor.address.email
-		};
-
-		Vendor.add(params).then(function(vendor) {
-			$scope.vendors.push(vendor);
-			$('#vendorForm').modal('hide');
-			$('#vendorAlert').hide();
-
-			$scope.vendor.id = '';
-			$scope.vendor.name = '';
-			$scope.vendor.address.name = '';
-			$scope.vendor.address.line_1 = '';
-			$scope.vendor.address.line_2 = '';
-			$scope.vendor.address.line_3 = '';
-			$scope.vendor.address.line_4 = '';
-			$scope.vendor.address.phone = '';
-			$scope.vendor.address.fax = '';
-			$scope.vendor.address.email = '';
-
-		}, function(data) {
-			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
-			if(typeof data.errors != 'undefined') {
-				$('#vendorAlert').show();
-				$scope.vendorError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-	}
-
-	$scope.saveVendor = function() {
-		if ($scope.vendorNew == 1) {
-			$scope.addVendor();
-		} else {
-			// This may fail as it's possible to update the ID
-			//$scope.updateVendor($scope.vendir.id);
-		}
-	}
-
 	$scope.emptyVendor = function() {
 
-		$scope.vendorTitle = 'Add vendor';
+		id = 0;
 
-		$scope.vendorNew = 1;
+		var popup = $uibModal.open({
+			templateUrl: 'partials/vendors/fragments/form.html',
+			controller: 'modalEditVendorCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; }
+			}
+		});
 
-		$scope.vendor.id = '';
-		$scope.vendor.name = '';
-		$scope.vendor.address.name = '';
-		$scope.vendor.address.line_1 = '';
-		$scope.vendor.address.line_2 = '';
-		$scope.vendor.address.line_3 = '';
-		$scope.vendor.address.line_4 = '';
-		$scope.vendor.address.phone = '';
-		$scope.vendor.address.fax = '';
-		$scope.vendor.address.email = '';
+		popup.result.then(function(vendor) {
+			$scope.vendors.push(vendor);
+		});
 
-		$('#vendorForm').modal('show');
+	}
+
+	$scope.populateVendor = function(id) {
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/vendors/fragments/form.html',
+			controller: 'modalEditVendorCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; }
+			}
+		});
+
+		popup.result.then(function(vendor) {
+			for (var i in $scope.vendors) {
+				if ($scope.vendors[i].id == id) {
+					$scope.vendors[i] = vendor;
+				}
+			}
+		});
 
 	}
 
 }
 
-function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account, Dates) {
+function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill, Dates) {
 
 	Vendor.get($routeParams.vendorId).then(function(vendor) {
 		$scope.vendor = vendor;
@@ -323,6 +287,7 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 
 	$scope.emptyPayBill = function() {
 
+		$scope.bill.id = id;
 		$scope.bill.date_paid = Dates.todays_date();
 
 		var popup = $uibModal.open({
@@ -346,21 +311,128 @@ function VendorDetailCtrl($scope, $routeParams, $uibModal, Vendor, Bill, Account
 
 	}
 
-
-
 	$scope.emptyBill = function() {
 
-		$scope.billTitle = 'Add bill';
+		id = 0;
 
-		$scope.billNew = 1;
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/form.html',
+			controller: 'modalEditBillCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; },
+				customer_id: function () { return $scope.customer.id; }
+			}
+		});
 
-		$scope.bill.id = '';
-		$scope.bill.vendor_id = $scope.vendor.id;
-		$scope.bill.date_opened = Dates.format_todays_date();
-		$scope.bill.notes = '';
-
-		$('#billForm').modal('show');
+		popup.result.then(function(bill) {
+			$scope.bills.push(bill);
+		});
 
 	}
 
 }
+
+// this is bad due to the case...
+app.controller('modalEditVendorCtrl', ['id', '$scope', '$uibModalInstance', 'Vendor', 'Money', function(id, $scope, $uibModalInstance, Vendor, Money) {
+
+	$scope.currencys = Money.currencys();
+
+	if (id == 0) {
+		$scope.vendorTitle = 'Add vendor';
+		$scope.vendorNew = 1;
+
+		$scope.vendor = {};
+		$scope.vendor.id = '';
+		$scope.vendor.name = '';
+		$scope.vendor.address = {};
+		$scope.vendor.address.name = '';
+		$scope.vendor.address.line_1 = '';
+		$scope.vendor.address.line_2 = '';
+		$scope.vendor.address.line_3 = '';
+		$scope.vendor.address.line_4 = '';
+		$scope.vendor.address.phone = '';
+		$scope.vendor.address.fax = '';
+		$scope.vendor.address.email = '';
+
+	} else {
+		Vendor.get(id).then(function(vendor) {
+			$scope.vendorTitle = 'Edit vendor';
+			$scope.vendorNew = 0;
+			$scope.vendor = vendor;
+		});
+	}
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.saveVendor = function() {
+
+		if ($scope.vendorNew == 1) {
+			
+			var params = {
+				id: '',
+				currency: $scope.vendor.currency,
+				name: $scope.vendor.name,
+				contact: $scope.vendor.address.name,
+				address_line_1: $scope.vendor.address.line_1,
+				address_line_2: $scope.vendor.address.line_3,
+				address_line_3: $scope.vendor.address.line_3,
+				address_line_4: $scope.vendor.address.line_4,
+				phone: $scope.vendor.address.phone,
+				fax: $scope.vendor.address.fax,
+				email: $scope.vendor.address.email
+			};
+
+			Vendor.add(params).then(function(vendor) {
+
+				$('#vendorAlert').hide();
+	 			$uibModalInstance.close(vendor);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#vendorAlert').show();
+					$scope.vendorError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		} else {			
+
+			var params = {
+				id: id,
+				name: $scope.vendor.name,
+				contact: $scope.vendor.address.name,
+				address_line_1: $scope.vendor.address.line_1,
+				address_line_2: $scope.vendor.address.line_2,
+				address_line_3: $scope.vendor.address.line_3,
+				address_line_4: $scope.vendor.address.line_4,
+				phone: $scope.vendor.address.phone,
+				fax: $scope.vendor.address.fax,
+				email: $scope.vendor.address.email
+			};
+
+			Vendor.update(id, params).then(function(vendor) {
+
+				$('#vendorAlert').hide();
+	 			$uibModalInstance.close(vendor);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#vendorAlert').show();
+					$scope.vendorError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		}
+	}
+
+}]);

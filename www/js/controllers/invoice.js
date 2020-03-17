@@ -69,8 +69,6 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 		}
 	}
 
-	$scope.change();
-
 	// id is unused here as it's undefined when passed though
 	$scope.payInvoice = function(id) {
 
@@ -222,15 +220,17 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 			}
 		});
 
-		popup.result.then(function(invoices) {
-			for (var i in $scope.invoicess) {
-				if ($scope.invoicess[i].id == id) {
-					$scope.invoicess[i] = invoices;
+		popup.result.then(function(invoice) {
+			for (var i in $scope.invoices) {
+				if ($scope.invoicss[i].id == id) {
+					$scope.invoices[i] = invoice;
 				}
 			}
 		});
 
 	}
+
+	$scope.change();
 
 }
 

@@ -1,5 +1,7 @@
 function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
+	$scope.bills = [];
+
 	$scope.orderProp = 'id';
 	$scope.reverseProp = 'false';
 	$scope.date_type = 'opened';
@@ -9,17 +11,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 	$scope.is_posted = '';
 	$scope.is_active = '1'; // needs to be a string or isn't picked up by Angular...
 
-	Vendor.query().then(function(vendors) {
-		$scope.vendors = vendors;
-	});
-
-	$scope.bill = {};
-	$scope.bill.id = '';
-	$scope.bill.vendor_id = '';
-	$scope.bill.date_opened = '';
-	$scope.bill.notes = '';
-
-	var lastParams = '';
+	var lastParams = {};
 
 	$scope.$on('$viewContentLoaded', function() {
 		$('#billDateFrom').datepicker({
@@ -52,6 +44,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 			'date_from': $scope.date_from,
 			'date_to': $scope.date_to,
 			'date_type': $scope.date_type,
+			'is_posted': $scope.is_posted,
 			'is_paid': $scope.is_paid,
 			'is_active': $scope.is_active
 		};
@@ -68,57 +61,10 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 		
 	}
 
-	// copied from vendor.js
-	$scope.addBill = function() {
-
-		for (var i = 0; i < $scope.vendors.length; i++) {
-			if ($scope.vendors[i].id == $scope.bill.vendor_id) {
-				$scope.bill.vendor_currency = $scope.vendors[i].currency;
-			}
-		}
-
-		var params = {
-			id: '',
-			vendor_id: $scope.bill.vendor_id,
-			currency: $scope.bill.vendor_currency,
-			date_opened: $scope.bill.date_opened,
-			notes: $scope.bill.notes
-		};
-
-		Bill.add(params).then(function(bill) {
-			$scope.bills.push(bill);
-			$('#billForm').modal('hide');
-			$('#billAlert').hide();
-
-			$scope.bill.id = '';
-			$scope.bill.vendor_id = '';
-			$scope.bill.date_opened = '';
-			$scope.bill.notes = '';
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#billAlert').show();
-				$scope.billError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-
-	}
-
-	// copied from vendor.js
-	$scope.saveBill = function() {
-		if ($scope.billNew == 1) {
-			$scope.addBill();
-		} else {
-			// This may fail as it's possible to update the ID
-			//$scope.updateBill($scope.bill.id);
-		}
-	}
-
 	// copied from bill.js
 	$scope.emptyPostBill = function(id) {
 
+		$scope.bill = {};
 		$scope.bill.id = id;
 		$scope.bill.date_posted = Dates.format_todays_date();
 		$scope.bill.date_due = Dates.format_todays_date();
@@ -147,6 +93,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	$scope.emptyUnpostBill = function(id) {
 
+		$scope.bill = {};
 		$scope.bill.id = id;
 
 		var popup = $uibModal.open({
@@ -196,18 +143,45 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	}
 
-	// copied from vendor.js - but removed vendor line
 	$scope.emptyBill = function() {
 
-		$scope.billTitle = 'Add bill';
+		id = 0;
 
-		$scope.billNew = 1;
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/form.html',
+			controller: 'modalEditBillCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; },
+				vendor_id: function () { return ''; }
+			}
+		});
 
-		$scope.bill.id = '';
-		$scope.bill.date_opened = Dates.format_todays_date();
-		$scope.bill.notes = '';
+		popup.result.then(function(bill) {
+			$scope.bills.push(bill);
+		});
 
-		$('#billForm').modal('show');
+	}
+
+	$scope.populateBill = function(id) {
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/form.html',
+			controller: 'modalEditBillCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; },
+				vendor_id: function () { return ''; }
+			}
+		});
+
+		popup.result.then(function(bill) {
+			for (var i in $scope.bills) {
+				if ($scope.bills[i].id == id) {
+					$scope.bills[i] = bill;
+				}
+			}
+		});
 
 	}
 
@@ -263,37 +237,18 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 	$scope.populateBill = function(id) {
 
-		$scope.billTitle = 'Edit bill';
-		$('#billForm').modal('show');
-
-	}
-
-	$scope.saveBill = function() {
-
-		var params = {
-			id: $scope.bill.id,
-			active: $scope.bill.active,
-			vendor_id: $scope.bill.owner.id,
-			currency: $scope.bill.currency,
-			date_opened: $scope.bill.date_opened,
-			notes: $scope.bill.notes
-		};
-
-		Bill.update($scope.bill.id, params).then(function(bill) {
-			
-			$scope.bill = bill;
-
-			$('#billForm').modal('hide');
-			$('#billAlert').hide();
-
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#billAlert').show();
-				$scope.billError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/form.html',
+			controller: 'modalEditBillCtrl',
+			size: 'sm',
+			resolve: {
+				id: function () { return id; },
+				vendor_id: function () { return ''; }
 			}
+		});
+
+		popup.result.then(function(bill) {
+			$scope.bill = bill;
 		});
 
 	}
@@ -616,4 +571,113 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 
 	}
 	
+}]);
+
+// this is bad due to the case...
+app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInstance', 'Bill', 'Vendor', 'Dates', function(id, vendor_id, $scope, $uibModalInstance, Bill, Vendor, Dates) {
+
+	Vendor.query().then(function(vendors) {
+		$scope.vendors = vendors;
+	});
+
+	// this doesn't seem to show the date on opening (even though it's there...)
+	$scope.picker = {
+		billDateOpened: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+
+	if (id == 0) {
+		$scope.billTitle = 'Add bill';
+		$scope.billNew = 1;
+
+		$scope.bill = {};
+		$scope.bill.id = '';
+		$scope.bill.vendor_id = vendor_id;
+		$scope.bill.currency = '';
+		$scope.bill.active = '';
+		$scope.bill.date_opened = Dates.todays_date();
+		$scope.bill.notes = '';
+	} else {
+		Bill.get(id).then(function(bill) {
+			$scope.billTitle = 'Edit bill';
+			$scope.billNew = 0;
+
+			$scope.bill = bill;
+			// date opened and vendor_id don't map directly to the bill object
+			$scope.bill.vendor_id = bill.owner.id;
+			$scope.bill.date_opened = Dates.dateOutput(bill.date_opened);
+
+		});
+	}
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.saveBill = function() {
+
+		if ($scope.billNew == 1) {
+			
+			for (var i = 0; i < $scope.vendors.length; i++) {
+				if ($scope.vendors[i].id == $scope.bill.vendor_id) {
+					$scope.bill.vendor_currency = $scope.vendors[i].currency;
+				}
+			}
+
+			var params = {
+				id: $scope.bill.id,
+				active: $scope.bill.active,
+				vendor_id: $scope.bill.vendor_id,
+				currency: $scope.bill.vendor_currency,
+				date_opened: Dates.dateInput($scope.bill.date_opened),
+				notes: $scope.bill.notes
+			};
+
+			Bill.add(params).then(function(vendor) {
+
+				$('#vendorAlert').hide();
+				$uibModalInstance.close(vendor);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#vendorAlert').show();
+					$scope.vendorError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		} else {			
+
+			var params = {
+				id: id,
+				active: $scope.bill.active,
+				vendor_id: $scope.bill.vendor_id,
+				currency: $scope.bill.currency,
+				date_opened: Dates.dateInput($scope.bill.date_opened),
+				notes: $scope.bill.notes
+			};
+
+			Bill.update(id, params).then(function(bill) {
+
+				$('#billAlert').hide();
+				$uibModalInstance.close(bill);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#billAlert').show();
+					$scope.billError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		}
+	}
+
 }]);
