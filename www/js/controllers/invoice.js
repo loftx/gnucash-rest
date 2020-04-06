@@ -69,43 +69,6 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 		}
 	}
 
-	// id is unused here as it's undefined when passed though
-	$scope.payInvoice = function(id) {
-
-		var params = {
-			posted_account_guid: $scope.invoice.post_account,
-			transfer_account_guid: $scope.invoice.transfer_account,
-			payment_date: $scope.invoice.date_paid,
-			num: '',
-			memo: '',
-			auto_pay: 0,
-		};
-
-		Invoice.pay($scope.invoice.id, params).then(function(invoice) {
-			
-			$('#invoicePayForm').modal('hide');
-			$('#invoicePayAlert').hide();
-
-			$scope.invoice = invoice;
-
-			for (var i in $scope.invoices) {
-				if ($scope.invoices[i].id == $scope.invoice.id) {
-					$scope.invoices[i] = $scope.invoice;
-				}
-			}
-
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#invoicePayAlert').show();
-				$scope.invoiceError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-
-	}
-
 	$scope.emptyPostInvoice = function(id) {
 
 		// not sure this is required - just use an id?

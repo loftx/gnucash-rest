@@ -119,6 +119,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	$scope.emptyPayBill = function(id) {
 
+		$scope.bill = [];
 		$scope.bill.id = id;
 		$scope.bill.date_paid = Dates.todays_date();
 
