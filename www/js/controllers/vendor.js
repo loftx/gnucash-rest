@@ -285,8 +285,9 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 
 	}
 
-	$scope.emptyPayBill = function() {
+	$scope.emptyPayBill = function(id) {
 
+		$scope.bill = [];
 		$scope.bill.id = id;
 		$scope.bill.date_paid = Dates.todays_date();
 
