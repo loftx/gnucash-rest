@@ -322,7 +322,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 			size: 'sm',
 			resolve: {
 				id: function () { return id; },
-				customer_id: function () { return $scope.customer.id; }
+				vendor_id: function () { return $scope.vendor.id; }
 			}
 		});
 
