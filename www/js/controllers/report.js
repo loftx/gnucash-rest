@@ -12,8 +12,8 @@ function ReportIncomeStatementCtrl($scope, Account, Money) {
 		
 		$scope.months.unshift({
 				'id': -i,
-				'date_from': date_from.getFullYear() + '-' + pad(date_from.getMonth() + 1) + '-01',
-				'date_to': date_to.getFullYear() + '-' + pad(date_to.getMonth() + 1) + '-01',
+				'date_from': date_from.getFullYear() + '-' + (date_from.getMonth() + 1).toString().padStart(2, 0) + '-01',
+				'date_to': date_to.getFullYear() + '-' + (date_to.getMonth() + 1).toString().padStart(2, 0) + '-01',
 				'name': monthNames[date_from.getMonth()]
 		});
 	}
@@ -28,6 +28,8 @@ function ReportIncomeStatementCtrl($scope, Account, Money) {
 }
 
 function generateIncomeAccounts($scope, Account, Money) {
+
+	console.log($scope.months);
 
 	$scope.incomeTotal = 0;
 	$scope.displayIncomeTotal = '';
