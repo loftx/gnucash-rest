@@ -15,14 +15,14 @@
       </tr>
       <tr ng-repeat="account in incomeAccounts">
         <td style="padding-left: {{account.level*50+8}}px;">{{account.name}}</td>
-        <td ng-bind-html-unsafe="account.total" style="text-align: right;"></td>
+        <td style="text-align: right;">{{account.total}}</td>
       </tr>
 
       <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
       
       <tr>
         <td>Total Revenue</td>
-        <td ng-bind-html-unsafe="displayIncomeTotal" style="text-align: right;"></td>
+        <td style="text-align: right;">{{displayIncomeTotal}}</td>
       </tr>
 
       <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
@@ -33,21 +33,21 @@
       </tr>
       <tr ng-repeat="account in expensesAccounts">
         <td style="padding-left: {{account.level*50+8}}px;">{{account.name}}</td>
-        <td ng-bind-html-unsafe="account.total" style="text-align: right;"></td>
+        <td style="text-align: right;">{{account.total}}</td>
       </tr>
 
       <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
 
       <tr>
         <td>Total Expenses</td>
-        <td ng-bind-html-unsafe="displayExpensesTotal" style="text-align: right;"></td>
+        <td style="text-align: right;">{{displayExpensesTotal}}</td>
       </tr>
 
       <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
 
       <tr>
         <td>Net income for period</td>
-        <td ng-bind-html-unsafe="displayGrandTotal" style="text-align: right;"></td>
+        <td style="text-align: right;">{{displayGrandTotal}}</td>
       </tr>
 
     </table>

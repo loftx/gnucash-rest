@@ -29,16 +29,14 @@ function ReportIncomeStatementCtrl($scope, Account, Money) {
 
 function generateIncomeAccounts($scope, Account, Money) {
 
-	console.log($scope.months);
-
 	$scope.incomeTotal = 0;
-	$scope.displayIncomeTotal = '';
+	$scope.displayIncomeTotal = '£0.00';
 
 	$scope.expensesTotal = 0;
-	$scope.displayExpensesTotal = '';
+	$scope.displayExpensesTotal = '£0.00';
 
 	$scope.grandTotal = 0;
-	$scope.displayGrandTotal = '';
+	$scope.displayGrandTotal = '£0.00';
 
 	Account.query().then(function(accounts) {
 		
@@ -78,11 +76,13 @@ function generateIncomeAccounts($scope, Account, Money) {
 						if (splits.length != 0 && $scope.incomeAccounts[j].guid == splits[0].account.guid) {
 							$scope.incomeAccounts[j].total = Money.format_currency($scope.incomeAccounts[j].type_id, $scope.incomeAccounts[j].currency, accountAmount);
 							$scope.incomeTotal =  $scope.incomeTotal + accountAmount;
-							$scope.displayIncomeTotal = Money.format_currency(8, 'GBP', $scope.incomeTotal);
 							$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
-							$scope.displayGrandTotal = Money.format_currency(8, 'GBP', $scope.grandTotal);
+							
 						}
 					}
+
+					$scope.displayIncomeTotal = Money.format_currency(8, 'GBP', $scope.incomeTotal);
+					$scope.displayGrandTotal = Money.format_currency(8, 'GBP', $scope.grandTotal);
 				});
 			}
 		});
@@ -97,6 +97,7 @@ function generateIncomeAccounts($scope, Account, Money) {
 			};
 
 			for (var i in $scope.expensesAccounts) {
+
 
 				$scope.expensesAccounts[i].total = Money.format_currency($scope.expensesAccounts[i].type_id, $scope.expensesAccounts[i].currency, 0);
 
@@ -113,11 +114,13 @@ function generateIncomeAccounts($scope, Account, Money) {
 
 							$scope.expensesAccounts[j].total = Money.format_currency($scope.expensesAccounts[j].type_id, $scope.expensesAccounts[j].currency, accountAmount);
 							$scope.expensesTotal =  $scope.expensesTotal + accountAmount;
-							$scope.displayExpensesTotal = Money.format_currency(0, 'GBP', $scope.expensesTotal);
 							$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
-							$scope.displayGrandTotal = Money.format_currency(8, 'GBP', $scope.grandTotal);
+							
 						}
 					}
+
+					$scope.displayExpensesTotal = Money.format_currency(0, 'GBP', $scope.expensesTotal);
+					$scope.displayGrandTotal = Money.format_currency(8, 'GBP', $scope.grandTotal);
 
 				});
 
