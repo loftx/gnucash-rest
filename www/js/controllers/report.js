@@ -76,7 +76,7 @@ function generateIncomeAccounts($scope, Account, Money) {
 						if (splits.length != 0 && $scope.incomeAccounts[j].guid == splits[0].account.guid) {
 							$scope.incomeAccounts[j].total = Money.format_currency($scope.incomeAccounts[j].type_id, $scope.incomeAccounts[j].currency, accountAmount);
 							$scope.incomeTotal =  $scope.incomeTotal + accountAmount;
-							$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
+							$scope.grandTotal = $scope.incomeTotal - $scope.expensesTotal;
 							
 						}
 					}
@@ -114,7 +114,7 @@ function generateIncomeAccounts($scope, Account, Money) {
 
 							$scope.expensesAccounts[j].total = Money.format_currency($scope.expensesAccounts[j].type_id, $scope.expensesAccounts[j].currency, accountAmount);
 							$scope.expensesTotal =  $scope.expensesTotal + accountAmount;
-							$scope.grandTotal = $scope.incomeTotal + $scope.expensesTotal;
+							$scope.grandTotal = $scope.incomeTotal - $scope.expensesTotal;
 							
 						}
 					}
