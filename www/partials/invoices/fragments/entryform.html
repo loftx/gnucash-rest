@@ -16,7 +16,7 @@
         <div class="control-group">
           <label class="control-label" for="entryDate">Date</label>
           <div class="controls">
-            <input id="entryDate" ng-model="entry.date" name="entryDate" class="input-xlarge" type="text">
+            <input id="entryDate" ng-model="entry.date" name="entryDate" class="input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.entryDate.opened" ng-click="picker.open('entryDate')">
           </div>
         </div>
 

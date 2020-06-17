@@ -241,55 +241,6 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 
 	}
 
-	$scope.updateCustomer = function(id) {
-
-		var params = {
-			id: id,
-			name: $scope.customer.name,
-			contact: $scope.customer.address.name,
-			address_line_1: $scope.customer.address.line_1,
-			address_line_2: $scope.customer.address.line_2,
-			address_line_3: $scope.customer.address.line_3,
-			address_line_4: $scope.customer.address.line_4,
-			phone: $scope.customer.address.phone,
-			fax: $scope.customer.address.fax,
-			email: $scope.customer.address.email
-		};
-
-		Customer.update(id, params).then(function(customer) {
-			for (var i = 0; i < $scope.customers.length; i++) {
-				if ($scope.customers[i].id == data.id) {
-					$scope.customers[i] = data;
-				}
-			}
-
-			$('#customerForm').modal('hide');
-			$('#customerAlert').hide();
-
-			$scope.customer.id = '';
-			$scope.customer.name = '';
-			$scope.customer.address.name = '';
-			$scope.customer.address.line_1 = '';
-			$scope.customer.address.line_2 = '';
-			$scope.customer.address.line_3 = '';
-			$scope.customer.address.line_4 = '';
-			$scope.customer.address.phone = '';
-			$scope.customer.address.fax = '';
-			$scope.customer.address.email = '';
-
-		}, function(data) {
-			// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
-			if(typeof data.errors != 'undefined') {
-				$('#customerAlert').show();
-				$scope.customerError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-
-	}
-
 }
 
 // this is bad due to the case...

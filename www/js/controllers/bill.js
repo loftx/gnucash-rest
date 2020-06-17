@@ -206,6 +206,17 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		$scope.bill.vendor_id = $scope.bill.owner.id;
 	});
 
+	$scope.$on('$viewContentLoaded', function() { console.log($('#entryDate'));
+		$('#entryDate').datepicker({
+			'dateFormat': 'yy-mm-dd',
+			'onSelect': function(dateText) {
+				if (window.angular && angular.element) {
+					angular.element(this).controller("ngModel").$setViewValue(dateText);
+				}
+			}
+		});
+	});
+
 	$scope.entry = {};
 	$scope.entry.bill_account = {};
 
@@ -555,9 +566,7 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 		$scope.bill.post_account = accounts[0].guid;
 	});
 
-	// needs placeholders
 	Account.getAccountsOfTypesAndPlaceholdersForDropdown([ACCT_TYPE_BANK, ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
-
 		$scope.transferAccounts = transferAccounts;
 	}); 
 
