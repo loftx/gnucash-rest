@@ -101,6 +101,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 
 	$scope.emptyUnpostInvoice = function(id) {
 
+		$scope.invoice = {};
 		$scope.invoice.id = id;
 
 		var popup = $uibModal.open({
@@ -203,46 +204,10 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 		$scope.customers = customers;
 	});
 
-	Account.getInvoiceAccountsForDropdown().then(function(accounts) {
-		$scope.accounts = accounts;
-	});
-
 	Invoice.get($routeParams.invoiceId).then(function(invoice) {
 		$scope.invoice = invoice;
 		// used to set customer on edit form
 		$scope.invoice.customer_id = $scope.invoice.owner.id;
-	});
-
-	$scope.entry = {};
-	$scope.entry.inv_account = {};
-
-	$scope.entry.guid = '';
-	$scope.entry.date = '';
-	$scope.entry.description = '';
-	$scope.entry.inv_account.guid = '';
-	$scope.entry.quantity = '';
-	$scope.entry.inv_price = '';
-	$scope.entry.discount_type = '';
-	$scope.entry.discount = '';
-
-	$scope.$on('$viewContentLoaded', function() {
-		$('#entryDate').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
-
-		$('#invoiceDateOpened').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
 	});
 
 	$scope.populateInvoice = function(id) {
@@ -263,77 +228,23 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 
 	}
 
-	$scope.addEntry = function() {
+	$scope.emptyEntry = function() {
 
-		var params = {
-			date: $scope.entry.date,
-			description: $scope.entry.description,
-			account_guid: $scope.entry.inv_account.guid,
-			quantity: $scope.entry.quantity,
-			price: $scope.entry.inv_price,
-			discount_type: $scope.entry.discount_type,
-			discount: (($scope.entry.discount == '') ? 0 : $scope.entry.discount) // allow discount to be left blank for easy entry
-		};
+		guid = '';
 
-		Entry.add('invoice', $scope.invoice.id, params).then(function(entry) {
-			
-			$scope.invoice.entries.push(entry);
-
-			$scope.invoice = Invoice.recalculate($scope.invoice);
-
-			$('#entryForm').modal('hide');
-			$('#entryAlert').hide();
-
-			$scope.entry.guid = '';
-			$scope.entry.date = '';
-			$scope.entry.description = '';
-			$scope.entry.inv_account.guid = '';
-			$scope.entry.quantity = '';
-			$scope.entry.inv_price = '';
-			$scope.entry.discount_type = '';
-			$scope.entry.discount = '';
-
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#entryAlert').show();
-				$scope.entryError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/entryform.html',
+			controller: 'modalEditEntryCtrl',
+			size: 'sm',
+			resolve: {
+				guid: function () { return guid; },
+				invoice: function () { return $scope.invoice; }
 			}
 		});
 
-	}
-
-	$scope.saveEntry = function() {
-		if ($scope.entryNew == 1) {
-			$scope.addEntry();
-		} else {
-			// This may fail as it's possible to update the ID
-			$scope.updateEntry($scope.entry.guid);
-		}
-	}
-
-	$scope.emptyEntry = function() {
-
-		$scope.entryTitle = 'Add entry';
-
-		$scope.entryNew = 1;
-
-		$scope.discount_types = [{
-			key: 1, value: '£'
-		}];
-
-		$scope.entry.guid = '';
-		$scope.entry.date = Dates.format_todays_date(); // this should probably default to the invoice date - not today's
-		$scope.entry.description = '';
-		$scope.entry.inv_account.guid = '';
-		$scope.entry.quantity = '';
-		$scope.entry.inv_price = '';
-		$scope.entry.discount_type = 1;
-		$scope.entry.discount = '';
-
-		$('#entryForm').modal('show');
+		popup.result.then(function(invoice) {
+			$scope.invoice = invoice;
+		});
 
 	}
 
@@ -355,58 +266,18 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 
 	$scope.populateEntry = function(guid) {
 
-		Entry.get(guid).then(function(entry) {
-			$scope.entryTitle = 'Edit entry';
-			$scope.entryNew = 0;
-			$scope.entry = entry;
-			$('#entryForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/entryform.html',
+			controller: 'modalEditEntryCtrl',
+			size: 'sm',
+			resolve: {
+				guid: function () { return guid; },
+				invoice: function () { return $scope.invoice; }
+			}
 		});
 
-	}
-
-	$scope.updateEntry = function(guid) {
-
-		var params = {
-			guid: $scope.entry.guid,
-			date: $scope.entry.date,
-			description: $scope.entry.description,
-			account_guid: $scope.entry.inv_account.guid,
-			quantity: $scope.entry.quantity,
-			price: $scope.entry.inv_price,
-			discount_type: $scope.entry.discount_type,
-			discount: $scope.entry.discount
-		};
-
-		Entry.update(guid, params).then(function(entry) {
-			
-			for (var i = 0; i < $scope.invoice.entries.length; i++) {
-				if ($scope.invoice.entries[i].guid == entry.guid) {
-					$scope.invoice.entries[i] = entry;
-				}
-			}
-
-			$scope.invoice = Invoice.recalculate($scope.invoice);
-			
-			$('#entryForm').modal('hide');
-			$('#entryAlert').hide();
-
-			$scope.entry.guid = '';
-			$scope.entry.date = '';
-			$scope.entry.description = '';
-			$scope.entry.inv_account.guid = '';
-			$scope.entry.quantity = '';
-			$scope.entry.inv_price = '';
-			$scope.entry.discount_type = 1;
-			$scope.entry.discount = '';
-
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#entryAlert').show();
-				$scope.entryError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
+		popup.result.then(function(invoice) {
+			$scope.invoice = invoice;
 		});
 
 	}
@@ -670,6 +541,144 @@ app.controller('modalEditInvoiceCtrl', ['id', 'customer_id', '$scope', '$uibModa
 				if(typeof data.errors != 'undefined') {
 					$('#invoiceAlert').show();
 					$scope.invoiceError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		}
+	}
+
+}]);
+
+// this is bad due to the case...
+app.controller('modalEditEntryCtrl', ['guid', 'invoice',  '$scope', '$uibModalInstance', 'Account', 'Invoice', 'Entry', 'Dates', function(guid, invoice, $scope, $uibModalInstance, Account, Invoice, Entry, Dates) {
+
+	Account.getInvoiceAccountsForDropdown().then(function(accounts) {
+		$scope.accounts = accounts;
+	});
+
+	$scope.discount_types = [{
+		key: 1, value: '£'
+	}];
+
+	// this doesn't seem to show the date on opening (even though it's there...)
+	$scope.picker = {
+		entryDate: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+
+	if (guid == '') {
+
+		$scope.entryTitle = 'Add entry';
+
+		$scope.entryNew = 1;
+
+		$scope.entry = {};
+		$scope.entry.inv_account = {};
+		
+		$scope.entry.guid = '';
+		$scope.entry.date = Dates.todays_date(); // this should probably default to the invoice date - not today's
+		$scope.entry.description = '';
+
+		$scope.entry.inv_account.guid = '';
+		$scope.entry.quantity = '';
+		$scope.entry.inv_price = '';
+		$scope.entry.discount_type = 1;
+		$scope.entry.discount = '';
+	} else {
+		Entry.get(guid).then(function(entry) {
+			$scope.entryTitle = 'Edit entry';
+			$scope.entryNew = 0;
+
+			$scope.entry = entry;
+
+			// date dosen't map directly to the entry object
+			$scope.entry.date = Dates.dateOutput(entry.date);
+		});
+	}
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.saveEntry = function() {
+
+		if ($scope.entryNew == 1) {
+
+			var params = {
+				date: Dates.dateInput($scope.entry.date),
+				description: $scope.entry.description,
+				account_guid: $scope.entry.inv_account.guid,
+				quantity: $scope.entry.quantity,
+				price: $scope.entry.inv_price,
+				discount_type: $scope.entry.discount_type,
+				discount: (($scope.entry.discount == '') ? 0 : $scope.entry.discount) // allow discount to be left blank for easy entry
+			};
+
+			Entry.add('invoice', invoice.id, params).then(function(entry) {
+				
+				// we need the invoice to come though...
+				invoice.entries.push(entry);
+
+				invoice = Invoice.recalculate(invoice);
+
+				$('#entryAlert').hide();
+				$uibModalInstance.close(invoice);
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#entryAlert').show();
+					$scope.entryError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+			
+		} else {
+
+			var params = {
+				guid: guid,
+				date: Dates.dateInput($scope.entry.date),
+				description: $scope.entry.description,
+				account_guid: $scope.entry.inv_account.guid,
+				quantity: $scope.entry.quantity,
+				price: $scope.entry.inv_price,
+				discount_type: $scope.entry.discount_type,
+				discount: $scope.entry.discount
+			};
+
+			Entry.update(guid, params).then(function(entry) {
+				
+				for (var i = 0; i < invoice.entries.length; i++) {
+					if (invoice.entries[i].guid == entry.guid) {
+						invoice.entries[i] = entry;
+					}
+				}
+
+				invoice = Invoice.recalculate(invoice);
+				
+				$('#entryAlert').hide();
+				$uibModalInstance.close(invoice);	
+
+				$scope.entry.guid = '';
+				$scope.entry.date = '';
+				$scope.entry.description = '';
+				$scope.entry.inv_account.guid = '';
+				$scope.entry.quantity = '';
+				$scope.entry.inv_price = '';
+				$scope.entry.discount_type = 1;
+				$scope.entry.discount = '';
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#entryAlert').show();
+					$scope.entryError = data.errors[0].message;
 				} else {
 					console.log(data);
 					console.log(status);	
