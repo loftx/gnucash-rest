@@ -35,7 +35,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	$scope.sortBy = function(orderProp) {
 		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
-    	$scope.orderProp = orderProp;
+		$scope.orderProp = orderProp;
 	}
 
 	$scope.change = function() {
@@ -119,7 +119,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	$scope.emptyPayBill = function(id) {
 
-		$scope.bill = [];
+		$scope.bill = {};
 		$scope.bill.id = id;
 		$scope.bill.date_paid = Dates.todays_date();
 
@@ -196,55 +196,10 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		$scope.vendors = vendors;
 	});
 
-	Account.getBillAccountsForDropdown().then(function(accounts) {
-		$scope.accounts = accounts;
-	});
-
 	Bill.get($routeParams.billId).then(function(bill) {
 		$scope.bill = bill;
 		// used to set vendor on edit form
 		$scope.bill.vendor_id = $scope.bill.owner.id;
-	});
-
-	$scope.$on('$viewContentLoaded', function() { console.log($('#entryDate'));
-		$('#entryDate').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
-	});
-
-	$scope.entry = {};
-	$scope.entry.bill_account = {};
-
-	$scope.entry.guid = '';
-	$scope.entry.date = '';
-	$scope.entry.description = '';
-	$scope.entry.bill_account.guid = '';
-	$scope.entry.quantity = '';
-	$scope.entry.bill_price = '';
-
-	$scope.$on('$viewContentLoaded', function() {
-		$('#entryDate').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
-
-		$('#billDateOpened').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
 	});
 
 	$scope.populateBill = function(id) {
@@ -272,12 +227,12 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		$scope.bill.posted_accumulatesplits = true;
 
 		var popup = $uibModal.open({
-			templateUrl: 'partials/bills/fragments/postform.html',
+		 	templateUrl: 'partials/bills/fragments/postform.html',
 			controller: 'modalPostBillCtrl',
 			size: 'sm',
 			resolve: {
 				bill: function () {
-				  return $scope.bill;
+					return $scope.bill;
 				}
 			}
 		});
@@ -298,7 +253,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 			size: 'sm',
 			resolve: {
 				bill: function () {
-				  return $scope.bill;
+					return $scope.bill;
 				}
 			}
 		});
@@ -309,67 +264,23 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 	}
 
-	$scope.addEntry = function() {
+	$scope.emptyEntry = function() {
 
-		var params = {
-			date: $scope.entry.date,
-			description: $scope.entry.description,
-			account_guid: $scope.entry.bill_account.guid,
-			quantity: $scope.entry.quantity,
-			price: $scope.entry.bill_price
-		};
+		guid = '';
 
-		Entry.add('bill', $scope.bill.id, params).then(function(entry) {
-			
-			$scope.bill.entries.push(entry);
-
-			$scope.bill = Bill.recalculate($scope.bill);
-
-			$('#entryForm').modal('hide');
-			$('#entryAlert').hide();
-
-			$scope.entry.guid = '';
-			$scope.entry.date = '';
-			$scope.entry.description = '';
-			$scope.entry.bill_account.guid = '';
-			$scope.entry.quantity = '';
-			$scope.entry.bill_price = '';
-
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#entryAlert').show();
-				$scope.entryError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/entryform.html',
+			controller: 'modalEditBillEntryCtrl',
+			size: 'sm',
+			resolve: {
+				guid: function () { return guid; },
+				bill: function () { return $scope.bill; }
 			}
 		});
 
-	}
-
-	$scope.saveEntry = function() {
-		if ($scope.entryNew == 1) {
-			$scope.addEntry();
-		} else {
-			// This may fail as it's possible to update the ID
-			$scope.updateEntry($scope.entry.guid);
-		}
-	}
-
-	$scope.emptyEntry = function() {
-
-		$scope.entryTitle = 'Add entry';
-
-		$scope.entryNew = 1;
-
-		$scope.entry.guid = '';
-		$scope.entry.date = Dates.format_todays_date(); // this should probably default to the bill date - not today's
-		$scope.entry.description = '';
-		$scope.entry.bill_account.guid = '';
-		$scope.entry.quantity = '';
-		$scope.entry.bill_price = '';
-
-		$('#entryForm').modal('show');
+		popup.result.then(function(bill) {
+			$scope.bill = bill;
+		});		
 
 	}
 
@@ -391,54 +302,18 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 	$scope.populateEntry = function(guid) {
 
-		Entry.get(guid).then(function(entry) {
-			$scope.entryTitle = 'Edit entry';
-			$scope.entryNew = 0;
-			$scope.entry = entry;
-			$('#entryForm').modal('show');
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/entryform.html',
+			controller: 'modalEditBillEntryCtrl',
+			size: 'sm',
+			resolve: {
+				guid: function () { return guid; },
+				bill: function () { return $scope.bill; }
+			}
 		});
 
-	}
-
-	$scope.updateEntry = function(guid) {
-
-		var params = {
-			guid: $scope.entry.guid,
-			date: $scope.entry.date,
-			description: $scope.entry.description,
-			account_guid: $scope.entry.bill_account.guid,
-			quantity: $scope.entry.quantity,
-			price: $scope.entry.bill_price,
-		};
-
-		Entry.update(guid, params).then(function(entry) {
-			
-			for (var i = 0; i < $scope.bill.entries.length; i++) {
-				if ($scope.bill.entries[i].guid == entry.guid) {
-					$scope.bill.entries[i] = entry;
-				}
-			}
-
-			$scope.bill = Bill.recalculate($scope.bill);
-			
-			$('#entryForm').modal('hide');
-			$('#entryAlert').hide();
-
-			$scope.entry.guid = '';
-			$scope.entry.date = '';
-			$scope.entry.description = '';
-			$scope.entry.inv_account.guid = '';
-			$scope.entry.quantity = '';
-			$scope.entry.inv_price = '';
-
-		}, function(data) {
-			if(typeof data.errors != 'undefined') {
-				$('#entryAlert').show();
-				$scope.entryError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
+		popup.result.then(function(bill) {
+			$scope.bill = bill;
 		});
 
 	}
@@ -568,7 +443,7 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 
 	Account.getAccountsOfTypesAndPlaceholdersForDropdown([ACCT_TYPE_BANK, ACCT_TYPE_ASSET, ACCT_TYPE_LIABILITY, ACCT_TYPE_CASH, ACCT_TYPE_CREDIT]).then(function(transferAccounts) {
 		$scope.transferAccounts = transferAccounts;
-	}); 
+	});
 
 	$scope.close = function () {
 		$uibModalInstance.dismiss('cancel');
@@ -702,6 +577,139 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 				if(typeof data.errors != 'undefined') {
 					$('#billAlert').show();
 					$scope.billError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		}
+	}
+
+}]);
+
+// conflicts with modalEditEntryCtrl but is very similar - could we change or should we change invoice one?
+app.controller('modalEditBillEntryCtrl', ['guid', 'bill',  '$scope', '$uibModalInstance', 'Account', 'Bill', 'Entry', 'Dates', function(guid, bill, $scope, $uibModalInstance, Account, Bill, Entry, Dates) {
+
+	Account.getBillAccountsForDropdown().then(function(accounts) {
+		$scope.accounts = accounts;
+	});
+
+	$scope.discount_types = [{
+		key: 1, value: '£'
+	}];
+
+	// this doesn't seem to show the date on opening (even though it's there...)
+	$scope.picker = {
+		entryDate: { opened: false },
+		open: function(field) { $scope.picker[field].opened = true; },
+		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+	};
+
+	if (guid == '') {
+
+		$scope.entryTitle = 'Add entry';
+
+		$scope.entryNew = 1;
+
+		$scope.entry = {};
+		$scope.entry.inv_account = {};
+		
+		$scope.entry.guid = '';
+		$scope.entry.date = Dates.todays_date(); // this should probably default to the bill date - not today's
+		$scope.entry.description = '';
+
+		$scope.entry.inv_account.guid = '';
+		$scope.entry.quantity = '';
+		$scope.entry.inv_price = '';
+		$scope.entry.discount_type = 1;
+		$scope.entry.discount = '';
+	} else {
+		Entry.get(guid).then(function(entry) {
+			$scope.entryTitle = 'Edit entry';
+			$scope.entryNew = 0;
+
+			$scope.entry = entry;
+
+			// date dosen't map directly to the entry object
+			$scope.entry.date = Dates.dateOutput(entry.date);
+		});
+	}
+
+	$scope.close = function () {
+		$uibModalInstance.dismiss('cancel');
+	};
+
+	$scope.saveEntry = function() {
+
+		if ($scope.entryNew == 1) {
+
+			var params = {
+				date: Dates.dateInput($scope.entry.date),
+				description: $scope.entry.description,
+				account_guid: $scope.entry.bill_account.guid,
+				quantity: $scope.entry.quantity,
+				price: $scope.entry.bill_price
+			};
+
+			Entry.add('bill', bill.id, params).then(function(entry) {
+				
+				// we need the bill to come though...
+				bill.entries.push(entry);
+
+				bill = Bill.recalculate(bill);
+
+				$('#entryAlert').hide();
+				$uibModalInstance.close(bill);
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#entryAlert').show();
+					$scope.entryError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+			
+		} else {
+
+			var params = {
+				guid: guid,
+				date: Dates.dateInput($scope.entry.date),
+				description: $scope.entry.description,
+				account_guid: $scope.entry.bill_account.guid,
+				quantity: $scope.entry.quantity,
+				price: $scope.entry.bill_price,
+			};
+
+			Entry.update(guid, params).then(function(entry) {
+				
+				for (var i = 0; i < bill.entries.length; i++) {
+					if (bill.entries[i].guid == entry.guid) {
+						bill.entries[i] = entry;
+					}
+				}
+
+				bill = Bill.recalculate(bill);
+				
+				$('#entryAlert').hide();
+				$uibModalInstance.close(bill);	
+
+				// do we actually need to clear these?
+				$scope.entry.guid = '';
+				$scope.entry.date = '';
+				$scope.entry.description = '';
+				$scope.entry.inv_account.guid = '';
+				$scope.entry.quantity = '';
+				$scope.entry.inv_price = '';
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$('#entryAlert').show();
+					$scope.entryError = data.errors[0].message;
 				} else {
 					console.log(data);
 					console.log(status);	
