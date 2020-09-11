@@ -540,16 +540,16 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 				notes: $scope.bill.notes
 			};
 
-			Bill.add(params).then(function(vendor) {
+			Bill.add(params).then(function(bill) {
 
-				$('#vendorAlert').hide();
-				$uibModalInstance.close(vendor);	
+				$('#billAlert').hide();
+				$uibModalInstance.close(bill);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#vendorAlert').show();
-					$scope.vendorError = data.errors[0].message;
+					$('#billAlert').show();
+					$scope.billError = data.errors[0].message;
 				} else {
 					console.log(data);
 					console.log(status);	
