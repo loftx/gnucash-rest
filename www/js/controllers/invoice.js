@@ -228,6 +228,50 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 
 	}
 
+	$scope.emptyPostInvoice = function() {
+
+		$scope.invoice.date_posted = Dates.format_todays_date();
+		$scope.invoice.date_due = Dates.format_todays_date();
+		$scope.invoice.posted_accumulatesplits = true;
+
+		var popup = $uibModal.open({
+		 	templateUrl: 'partials/invoices/fragments/postform.html',
+			controller: 'modalPostInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+					return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			$scope.invoice = invoice;
+		});
+
+	}
+
+	$scope.emptyPayInvoice = function() {
+		
+		$scope.invoice.date_paid = Dates.todays_date();
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/invoices/fragments/payform.html',
+			controller: 'modalPayInvoiceCtrl',
+			size: 'sm',
+			resolve: {
+				invoice: function () {
+					return $scope.invoice;
+				}
+			}
+		});
+
+		popup.result.then(function(invoice) {
+			$scope.invoice = invoice;
+		});
+
+	}
+
 	$scope.emptyEntry = function() {
 
 		guid = '';

@@ -43,7 +43,9 @@
     </fieldset>
   </form>
 
-  <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="populateInvoice(invoice.id)">Edit invoice</a>
+  <a role="button" class="btn" ng-click="populateInvoice(invoice.id)">Edit invoice</a>
+  <a role="button" class="btn" ng-click="emptyPostInvoice(invoice.id)" ng-show="!invoice.posted">Post invoice</a>
+  <a role="button" class="btn" ng-click="emptyPayInvoice(invoice.id)" ng-show="invoice.posted && !invoice.paid">Pay invoice</a>
 
   <h2>Invoice entries</h2>
 
