@@ -1,0 +1,176 @@
+<html dir="auto">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <style type="text/css">
+      h3 { font-family: Ubuntu, Sans-Serif; font-size: 15pt; font-weight: bold;  }
+      a { font-family: Ubuntu, Sans-Serif; font-size: 10pt; font-style: italic;  }
+      body, p, table, tr, td { vertical-align: top; font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      tr.alternate-row { background: #ffffff }
+      tr { page-break-inside: avoid !important;}
+      html, body { height: 100vh; margin: 0; }
+      td, th { border-color: grey }
+      th.column-heading-left { text-align: left; font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      th.column-heading-center { text-align: center; font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      th.column-heading-right { text-align: right; font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      td.neg { color: red;  }
+      td.number-cell, td.total-number-cell { text-align: right; white-space: nowrap; }
+      td.date-cell { white-space: nowrap; }
+      td.anchor-cell { white-space: nowrap; font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      td.number-cell { font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      td.number-header { text-align: right; font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      td.text-cell { font-family: Ubuntu, Sans-Serif; font-size: 10pt;  }
+      td.total-number-cell { font-family: Ubuntu, Sans-Serif; font-size: 12pt; font-weight: bold;  }
+      td.total-label-cell { font-family: Ubuntu, Sans-Serif; font-size: 12pt; font-weight: bold;  }
+      td.centered-label-cell { text-align: center; font-family: Ubuntu, Sans-Serif; font-size: 12pt; font-weight: bold;  }
+      /* advanced users only */
+      .div-align-right { float: right; }
+      .div-align-right .maybe-align-right { text-align: right }
+      .entries-table * { border-width: 1px; border-style:solid; border-collapse: collapse}
+      .entries-table > table { width: 100% }
+      .company-table > table * { padding: 0px; }
+      .client-table > table * { padding: 0px; }
+      .invoice-details-table > table * { padding: 0px; }
+      @media print { .main-table > table { width: 100%; }}
+    </style>
+  </head>
+  <body bgcolor="#ffffff">
+    <div class="main-table">
+      <table cellspacing="0" border="0" cellpadding="4">
+        <tbody>
+          <tr>
+            <td rowspan="1" colspan="2">
+              <div class="invoice-title">Invoice #{{invoice.id}}</div>
+            </td>
+          </tr>
+          <tr>
+            <td> </td>
+            <td>
+              <div class="div-align-right">
+                <div class="invoice-details-table">
+                  <table cellspacing="0" border="0" cellpadding="4">
+                    <tbody>
+                      <tr>
+                        <td>Date:</td>
+                        <td>
+                          <div class="div-align-right">{{invoice.formatted_date_opened}}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Due Date:</td>
+                        <td>
+                          <div class="div-align-right">{{invoice.formatted_date_due}}</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="client-table">
+                <table cellspacing="0" border="0" cellpadding="4">
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="maybe-align-right client-name">{{invoice.owner.name}}</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="maybe-align-right client-address">
+                          {{invoice.owner.address.name}}<br>
+                          {{invoice.owner.address.line_1}}<br>
+                          {{invoice.owner.address.line_2}}<br>
+                          {{invoice.owner.address.line_3}}<br>
+                          {{invoice.owner.address.line_4}}<br>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </td>
+            <td>
+              <div class="div-align-right">
+                <div class="company-table">
+                  <table cellspacing="0" border="0" cellpadding="4">
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="maybe-align-right company-name">{{storage.companyName}}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="maybe-align-right company-address">
+                            {{storage.companyAddressLine1}}<br>
+                            {{storage.companyAddressLine2}}<br>
+                            {{storage.companyAddressLine3}}<br>
+                            {{storage.companyAddressLine4}}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td> </td>
+            <td>
+              <div class="div-align-right">
+                <div class="invoice-print-date"><!-- unused --></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="1" colspan="2">
+              <div class="entries-table">
+                <table cellspacing="0" border="0" cellpadding="4">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Quantity</th>
+                      <th>Unit Price</th>
+                      <th>Discount</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="entry in invoice.entries">
+                      <td>{{entry.formatted_date}}</td>
+                      <td>{{entry.description}}</td>
+                      <td class="number-cell" rowspan="1" colspan="1">{{entry.quantity}}</td>
+                      <td class="number-cell" rowspan="1" colspan="1">{{entry.formatted_inv_price}}</td>
+                      <td class="number-cell" rowspan="1" colspan="1">{{entry.formatted_discount}}</td>
+                      <!-- discount type? -->
+                      <td class="number-cell" rowspan="1" colspan="1">{{entry.formatted_total_inc_discount}}</td>
+                    </tr>
+                    <tr bgcolor="#ffffff">
+                      <td class="total-label-cell" rowspan="1" colspan="1">Total Price</td>
+                      <td class="total-number-cell" rowspan="1" colspan="6">{{invoice.formatted_total}}</td>
+                    </tr>
+                    <tr bgcolor="#ffffff">
+                      <td class="total-label-cell" rowspan="1" colspan="1">Amount Due</td>
+                      <td class="total-number-cell" rowspan="1" colspan="6">{{invoice.formatted_total}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="1" colspan="2">
+              <div class="invoice-notes" ng-bind-html="invoiceMessageHtml">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

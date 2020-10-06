@@ -235,7 +235,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 		$scope.invoice.posted_accumulatesplits = true;
 
 		var popup = $uibModal.open({
-		 	templateUrl: 'partials/invoices/fragments/postform.html',
+			templateUrl: 'partials/invoices/fragments/postform.html',
 			controller: 'modalPostInvoiceCtrl',
 			size: 'sm',
 			resolve: {
@@ -326,6 +326,25 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 
 	}
 
+}
+
+function InvoicePrintCtrl($scope, $routeParams, $localStorage, $sce, Invoice) {
+
+	Invoice.get($routeParams.invoiceId).then(function(invoice) {
+	$scope.invoice = invoice;
+
+		// sort this out in settings page
+		$scope.storage = $localStorage.$default({
+			invoiceMessage: 'Thank you for your patronage',
+			companyName : '',
+			companyAddressLine1 : '',
+			companyAddressLine2 : '',
+			companyAddressLine3 : '',
+			companyAddressLine4 : '',
+		});
+
+		$scope.invoiceMessageHtml = $sce.trustAsHtml($scope.invoice.notes.replace(/(?:\r\n|\r|\n)/g, '<br>') + '<br><br>' + $scope.storage.invoiceMessage.replace(/(?:\r\n|\r|\n)/g, '<br>'));
+	});
 }
 
 // this is bad due to the case...

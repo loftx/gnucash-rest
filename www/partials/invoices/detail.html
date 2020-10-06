@@ -43,6 +43,7 @@
     </fieldset>
   </form>
 
+  <a role="button" class="btn" <a href="#/invoices/{{invoice.id}}/print">Print invoice</a>
   <a role="button" class="btn" ng-click="populateInvoice(invoice.id)">Edit invoice</a>
   <a role="button" class="btn" ng-click="emptyPostInvoice(invoice.id)" ng-show="!invoice.posted">Post invoice</a>
   <a role="button" class="btn" ng-click="emptyPayInvoice(invoice.id)" ng-show="invoice.posted && !invoice.paid">Pay invoice</a>

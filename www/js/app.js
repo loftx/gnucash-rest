@@ -1,6 +1,7 @@
 var app = angular.module('gnucash', [
 	'ngRoute',
 	'ngAnimate',
+	'ngStorage',
 	'ui.bootstrap',
 	'core',
 	'core.session',
@@ -46,6 +47,10 @@ app.config(['$routeProvider', function($routeProvider) {
 		when('/invoices/:invoiceId', {
 			templateUrl: 'partials/invoices/detail.html',
 			controller: InvoiceDetailCtrl
+		}).
+		when('/invoices/:invoiceId/print', {
+			templateUrl: 'partials/invoices/print.html',
+			controller: InvoicePrintCtrl
 		}).
 		when('/bills', {
 			templateUrl: 'partials/bills/index.html',
