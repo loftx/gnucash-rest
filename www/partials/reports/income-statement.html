@@ -3,8 +3,8 @@
 
   <div>
 
-    <div class="btn-group" data-toggle="buttons-radio" style="margin-bottom: 20px;">
-      <button type="button" class="btn" ng-repeat="month in months" ng-click="setMonth(month.id)">{{month.name}}</button>
+    <div class="btn-group" role="group" data-toggle="buttons-radio" style="margin-bottom: 20px;">
+      <button type="button" class="btn btn-default" ng-repeat="month in months" ng-click="setMonth(month.id)">{{month.name}}</button>
     </div>
 
   	<div ng-show="!incomeAccounts" class="loader">Loading...</div>

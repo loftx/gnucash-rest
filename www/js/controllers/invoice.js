@@ -5,7 +5,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 	$scope.orderProp = 'id';
 	$scope.reverseProp = 'false';
 	$scope.date_type = 'opened';
-	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
+	$scope.date_from = Date.today().add(-3).months();
 	$scope.date_to = '';
 	$scope.is_paid = '';
 	$scope.is_posted = '';
@@ -14,32 +14,14 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 	var lastParams = {};
 
 	$scope.$on('$viewContentLoaded', function() {
-		$('#invoiceDateFrom').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
 
-		$('#invoiceDateTo').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
+		$scope.picker = {
+			invoiceDateFrom: { opened: false },
+			invoiceDateTo: { opened: false },
+			open: function(field) { $scope.picker[field].opened = true; },
+			options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+		};
 
-		$('#invoiceDateOpened').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
 	});
 
 	$scope.sortBy = function(orderProp) {
@@ -50,8 +32,8 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 	$scope.change = function() {
 
 		var params = {
-			'date_from': $scope.date_from,
-			'date_to': $scope.date_to,
+			'date_from': Dates.dateInput($scope.date_from),
+			'date_to': Dates.dateInput($scope.date_to),
 			'date_type': $scope.date_type,
 			'is_posted': $scope.is_posted,
 			'is_paid': $scope.is_paid,
@@ -81,7 +63,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/postform.html',
 			controller: 'modalPostInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				invoice: function () {
 					return $scope.invoice;
@@ -107,7 +89,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/unpostform.html',
 			controller: 'modalUnpostInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				invoice: function () {
 					return $scope.invoice;
@@ -134,7 +116,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/payform.html',
 			controller: 'modalPayInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				invoice: function () {
 				  return $scope.invoice;
@@ -159,7 +141,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/form.html',
 			controller: 'modalEditInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; },
 				customer_id: function () { return ''; }
@@ -177,7 +159,7 @@ function InvoiceListCtrl($scope, $uibModal, Invoice, Customer, Account, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/form.html',
 			controller: 'modalEditInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; },
 				customer_id: function () { return ''; }
@@ -215,7 +197,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/form.html',
 			controller: 'modalEditInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; },
 				customer_id: function () { return ''; }
@@ -237,7 +219,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/postform.html',
 			controller: 'modalPostInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				invoice: function () {
 					return $scope.invoice;
@@ -258,7 +240,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/payform.html',
 			controller: 'modalPayInvoiceCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				invoice: function () {
 					return $scope.invoice;
@@ -279,7 +261,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/entryform.html',
 			controller: 'modalEditEntryCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				guid: function () { return guid; },
 				invoice: function () { return $scope.invoice; }
@@ -313,7 +295,7 @@ function InvoiceDetailCtrl($scope, $routeParams, $uibModal, Customer, Account, I
 		var popup = $uibModal.open({
 			templateUrl: 'partials/invoices/fragments/entryform.html',
 			controller: 'modalEditEntryCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				guid: function () { return guid; },
 				invoice: function () { return $scope.invoice; }

@@ -1,42 +1,65 @@
 <div class="container">
   <h1>Bills</h1>
 
-  <form>
-    <fieldset>
-      <label>Search</label>
-      <input type="text" placeholder="Bill ID or vendor" ng-model="query">
+  <form class="form-horizontal">
 
-      <label>Date type</label>
-      <select ng-model="date_type" ng-change="change()">
-        <option value="opened">Date opened</option>
-        <option value="due">Date due</option>
-        <option value="posted">Date posted</option>
-      </select>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Search</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" placeholder="Bill ID or vendor" ng-model="query">
+      </div>
+    </div>
 
-      <label>Date from</label>
-      <input id="billDateFrom" type="text" placeholder="" ng-model="date_from" ng-change="change()">
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Date type</label>
+      <div class="col-sm-10">
+        <select class="form-control" ng-model="date_type" ng-change="change()">
+          <option value="opened">Date opened</option>
+          <option value="due">Date due</option>
+          <option value="posted">Date posted</option>
+        </select>
+      </div>
+    </div>
 
-      <label>Date to</label>
-      <input id="billDateTo" type="text" placeholder="" ng-model="date_to" ng-change="change()">
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Date from</label>
+      <div class="col-sm-10">
+        <input id="billDateFrom" class="form-control" type="text" placeholder="" ng-model="date_from" ng-change="change()" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateFrom.opened" ng-click="picker.open('billDateFrom')">
+      </div>
+    </div>
 
-      <label>Paid</label>
-      <select ng-model="is_paid" ng-change="change()">
-        <option value=""></option>
-        <option value="1">Yes</option>
-        <option value="0">No</option>
-      </select>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Date to</label>
+      <div class="col-sm-10">
+        <input id="billDateTo" class="form-control" type="text" placeholder="" ng-model="date_to" ng-change="change()" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateTo.opened" ng-click="picker.open('billDateTo')">
+      </div>
+    </div>
 
-      <label>Active</label>
-      <select ng-model="is_active" ng-change="change()">
-        <option value=""></option>
-        <option value="1">Yes</option>
-        <option value="0">No</option>
-      </select>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Paid</label>
+      <div class="col-sm-10">
+        <select class="form-control" ng-model="is_paid" ng-change="change()">
+          <option value=""></option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+    </div>
 
-    </fieldset>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Active</label>
+      <div class="col-sm-10">
+        <select class="form-control" ng-model="is_active" ng-change="change()">
+          <option value=""></option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+    </div>
+
   </form>
 
-  <a style="margin-bottom: 25px;" role="button" class="btn" ng-click="emptyBill()">Add bill</a>
+  <a style="margin-bottom: 25px;" role="button" class="btn btn-primary" ng-click="emptyBill()">Add bill</a>
 
   <div>
     <div ng-show="!bills" class="loader">Loading...</div>
@@ -81,6 +104,6 @@
     </table>
   </div>
 
-  <a style="margin-bottom: 25px;" role="button" class="btn" ng-click="emptyBill()">Add bill</a>
+  <a style="margin-bottom: 25px;" role="button" class="btn btn-primary" ng-click="emptyBill()">Add bill</a>
 
 </div>

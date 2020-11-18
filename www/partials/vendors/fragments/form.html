@@ -1,82 +1,79 @@
-<div id="vendorForm" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel">{{vendorTitle}}</h3>
-  </div>
-  <div class="modal-body">
+<div class="modal-header">
+  <button type="button" class="close" ng-click="close()" aria-hidden="true">×</button>
+  <h3 id="myModalLabel">{{vendorTitle}}</h3>
+</div>
+<div class="modal-body">
 
-  <div id="vendorAlert" class="alert  alert-error" style="display: none;">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-    <strong>Error</strong> {{vendorError}}
-  </div>
+<div id="vendorAlert" class="alert alert-danger" role="alert" style="display: none;">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  <strong>Error</strong> {{vendorError}}
+</div>
 
-    <form class="form-horizontal" style="margin: 0px;">
-      <fieldset>
+  <form class="form-horizontal" style="margin: 0px;">
 
-        <div class="control-group">
-          <label class="control-label" for="vendorId">Vendor number</label>
-          <div class="controls">
-            <input id="vendorId" ng-model="vendor.id" name="vendorId" class="input-xlarge" type="text">
-          </div>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="vendorId">Vendor number</label>
+      <div class="col-sm-10">
+        <input id="vendorId" ng-model="vendor.id" name="vendorId" class="form-control input-xlarge" type="text">
+      </div>
+    </div>
 
-        <div class="control-group">
-          <label class="control-label" for="vendorName">Company name</label>
-          <div class="controls">
-            <input id="vendorName" ng-model="vendor.name" name="vendorName" class="input-xlarge" type="text">
-          </div>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="vendorName">Company name</label>
+      <div class="col-sm-10">
+        <input id="vendorName" ng-model="vendor.name" name="vendorName" class="form-control input-xlarge" type="text">
+      </div>
+    </div>
 
-        <div class="control-group">
-          <label class="control-label" for="vendorCurrency">Currency</label>
-          <div class="controls">
-            <select id="vendorCurrency" data-ng-model="vendor.currency" data-ng-options="currency.key as currency.value for currency in currencys" class="input-xlarge"></select>
-          </div>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="vendorCurrency">Currency</label>
+      <div class="col-sm-10">
+        <select id="vendorCurrency" data-ng-model="vendor.currency" data-ng-options="currency.key as currency.value for currency in currencys" class="form-control input-xlarge"></select>
+      </div>
+    </div>
 
-        <div class="control-group">
-          <label class="control-label" for="vendorContact">Name</label>
-          <div class="controls">
-            <input id="vendorContact" ng-model="vendor.address.name" name="vendorContact" class="input-xlarge" type="text">
-          </div>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="vendorContact">Name</label>
+      <div class="col-sm-10">
+        <input id="vendorContact" ng-model="vendor.address.name" name="vendorContact" class="form-control input-xlarge" type="text">
+      </div>
+    </div>
 
-        <div class="control-group">
-          <label class="control-label">Address</label>
-          <div class="controls">
-            <input id="vendorAddressLine1" ng-model="vendor.address.line_1" name="vendorAddressLine1" class="input-xlarge" type="text">
-            <input id="vendorAddressLine2" ng-model="vendor.address.line_2" name="vendorAddressLine2" class="input-xlarge" type="text">
-            <input id="vendorAddressLine3" ng-model="vendor.address.line_3" name="vendorAddressLine3" class="input-xlarge" type="text">
-            <input id="vendorAddressLine4" ng-model="vendor.address.line_4" name="vendorAddressLine4" class="input-xlarge" type="text">
-          </div>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Address</label>
+      <div class="col-sm-10">
+        <input id="vendorAddressLine1" ng-model="vendor.address.line_1" name="vendorAddressLine1" class="form-control input-xlarge" type="text">
+        <input id="vendorAddressLine2" ng-model="vendor.address.line_2" name="vendorAddressLine2" class="form-control input-xlarge" type="text">
+        <input id="vendorAddressLine3" ng-model="vendor.address.line_3" name="vendorAddressLine3" class="form-control input-xlarge" type="text">
+        <input id="vendorAddressLine4" ng-model="vendor.address.line_4" name="vendorAddressLine4" class="form-control input-xlarge" type="text">
+      </div>
+    </div>
 
-        <div class="control-group">
-          <label class="control-label" for="vendorPhone">Phone</label>
-          <div class="controls">
-            <input id="vendorPhone" ng-model="vendor.address.phone" name="vendorPhone" class="input-xlarge" type="text">
-          </div>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="vendorPhone">Phone</label>
+      <div class="col-sm-10">
+        <input id="vendorPhone" ng-model="vendor.address.phone" name="vendorPhone" class="form-control input-xlarge" type="text">
+      </div>
+    </div>
 
-        <div class="control-group">
-          <label class="control-label" for="vendorFax">Fax</label>
-          <div class="controls">
-            <input id="vendorFax" ng-model="vendor.address.fax" name="vendorFax" class="input-xlarge" type="text">
-          </div>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="vendorFax">Fax</label>
+      <div class="col-sm-10">
+        <input id="vendorFax" ng-model="vendor.address.fax" name="vendorFax" class="form-control input-xlarge" type="text">
+      </div>
+    </div>
 
-        <div class="control-group">
-          <label class="control-label" for="vendorEmail">Email</label>
-          <div class="controls">
-            <input id="vendorEmail" ng-model="vendor.address.email" name="vendorEmail" class="input-xlarge" type="text">
-          </div>
-        </div>
-      </fieldset>
-    </form>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="vendorEmail">Email</label>
+      <div class="col-sm-10">
+        <input id="vendorEmail" ng-model="vendor.address.email" name="vendorEmail" class="form-control input-xlarge" type="text">
+      </div>
+    </div>
     
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" ng-click="saveVendor()">Save changes</button>
-  </div>
+  </form>
+  
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" ng-click="close()" aria-hidden="true">Close</button>
+  <button class="btn btn-primary" ng-click="saveVendor()">Save changes</button>
 </div>

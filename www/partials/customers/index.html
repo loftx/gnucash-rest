@@ -1,14 +1,16 @@
 <div class="container">
   <h1>Customers</h1>
 
-  <form>
-    <fieldset>
-      <label>Search</label>
-      <input type="text" placeholder="Company name, ID or contact" ng-model="query">
-    </fieldset>
+  <form class="form-horizontal">
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Search</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" placeholder="Company name, ID or contact" ng-model="query">
+      </div>
+    </div>
   </form>
 
-  <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyCustomer()">Add customer</a>
+  <a role="button" style="margin-bottom: 25px;" class="btn btn-primary" ng-click="emptyCustomer()">Add customer</a>
 
   <div>
     <div ng-show="!customers" class="loader">Loading...</div>
@@ -27,7 +29,7 @@
       </tr>
     </table>
 
-    <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyCustomer()">Add customer</a>
+    <a role="button" style="margin-bottom: 25px;" class="btn btn-primary" ng-click="emptyCustomer()">Add customer</a>
      
   </div>
 

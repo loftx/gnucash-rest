@@ -5,47 +5,47 @@
   <form class="form-horizontal" style="margin: 0px;">
     <fieldset>
 
-      <div class="control-group">
-        <label class="control-label" for="billID">Bill ID</label>
-        <div class="controls">
-          <input id="billID" ng-model="bill.id" name="billID" class="input-xlarge" type="text" disabled="disabled">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="billID">Bill ID</label>
+        <div class="col-sm-10">
+          <input id="billID" ng-model="bill.id" name="billID" class="form-control input-xlarge" type="text" disabled="disabled">
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="billActive">Active</label>
-        <div class="controls">
-          <input id="billActive" ng-model="bill.active" name="billActive" class="input-xlarge" type="checkbox" disabled="disabled">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="billActive">Active</label>
+        <div class="col-sm-10">
+          <input id="billActive" ng-model="bill.active" name="billActive" type="checkbox" disabled="disabled">
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="bill.DateOpened">Date opened</label>
-        <div class="controls">
-          <input id="bill.DateOpened" ng-model="bill.date_opened" name="bill.DateOpened" class="input-xlarge" type="text" disabled="disabled">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="bill.DateOpened">Date opened</label>
+        <div class="col-sm-10">
+          <input id="bill.DateOpened" ng-model="bill.date_opened" name="bill.DateOpened" class="form-control input-xlarge" type="text" disabled="disabled">
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="billCompany">Company</label>
-        <div class="controls">
-          <select data-ng-model="bill.owner.id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="input-xlarge" disabled="disabled"></select>
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="billCompany">Company</label>
+        <div class="col-sm-10">
+          <select data-ng-model="bill.owner.id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="form-control input-xlarge" disabled="disabled"></select>
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="billNotes">Notes</label>
-        <div class="controls">
-          <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="input-xlarge" disabled="disabled"></textarea>
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="billNotes">Notes</label>
+        <div class="col-sm-10">
+          <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="form-control input-xlarge" disabled="disabled"></textarea>
         </div>
       </div>
 
     </fieldset>
   </form>
 
-  <a role="button" class="btn" ng-click="populateBill(bill.id)">Edit bill</a>
-  <a role="button" class="btn" ng-click="emptyPostBill(bill.id)" ng-show="!bill.posted">Post bill</a>
-  <a role="button" class="btn" ng-click="emptyPayBill(bill.id)" ng-show="bill.posted && !bill.paid">Pay bill</a>
+  <a role="button" class="btn btn-default" ng-click="populateBill(bill.id)">Edit bill</a>
+  <a role="button" class="btn btn-default" ng-click="emptyPostBill(bill.id)" ng-show="!bill.posted">Post bill</a>
+  <a role="button" class="btn btn-default" ng-click="emptyPayBill(bill.id)" ng-show="bill.posted && !bill.paid">Pay bill</a>
 
   <h2>Bill entries</h2>
 
@@ -92,6 +92,6 @@
     </tr>
   </table>
 
-  <a role="button" style="margin-bottom: 25px;" class="btn" ng-show="!bill.posted" ng-click="emptyEntry()">Add entry</a>
+  <a role="button" style="margin-bottom: 25px;" class="btn btn-default" ng-show="!bill.posted" ng-click="emptyEntry()">Add entry</a>
 
 </div>

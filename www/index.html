@@ -33,7 +33,8 @@
     <script src="js/controllers/report.js"></script>
     <script src="js/controllers/vendor.js"></script>
 
-    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
     <link href="css/loader.css" rel="stylesheet">
     <link href="css/gnucash.css" rel="stylesheet">
 
@@ -42,53 +43,35 @@
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
     </style>
-    <link href="css/bootstrap-responsive.css" rel="stylesheet">
-    <link href="css/jquery-ui-1.10.4.custom.min.css" rel="stylesheet">
-
-    <!-- Fav and touch icons -->
-    <!-- <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/ico/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/ico/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="/ico/apple-touch-icon-57-precomposed.png">
-    <link rel="shortcut icon" href="/ico/favicon.png"> -->
   </head>
 
   <body>
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="#">Gnucash Web</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#accounts">Accounts</a></li>
-              <li><a href="#customers">Customers</a></li>
-              <li><a href="#invoices">Invoices</a></li>
-              <li><a href="#vendors">Vendors</a></li>
-              <li><a href="#bills">Bills</a></li>
-              <li><a href="#reports">Reports</a></li>
-            </ul>
-            <ul class="nav navbar-right">
-              <li><a href="#session/delete">Disconnect</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Gnucash Web</a>
         </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#accounts">Accounts</a></li>
+            <li><a href="#customers">Customers</a></li>
+            <li><a href="#invoices">Invoices</a></li>
+            <li><a href="#vendors">Vendors</a></li>
+            <li><a href="#bills">Bills</a></li>
+            <li><a href="#reports">Reports</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#session/delete">Disconnect</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
       </div>
-    </div>
+    </nav>
 
     <div ng-view></div>
 
     <script src="js/date.js"></script>
-    <script src="js/jquery.js"></script>
-    <script src="js/bootstrap-button.js"></script>
-    <script src="js/bootstrap-modal.js"></script>
-    <script src="js/jquery-ui-custom.js"></script>
 
   </body>
 </html>

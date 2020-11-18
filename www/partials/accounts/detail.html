@@ -2,7 +2,7 @@
   <h1>{{account.name}}</h1>
   <div>
 
-    <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyTransaction()">Add transaction</a>
+    <a role="button" style="margin-bottom: 25px;" class="btn btn-primary" ng-click="emptyTransaction()">Add transaction</a>
     
     <div ng-show="!splits" class="loader">Loading...</div>
     <table ng-show="splits" class="table">
@@ -44,10 +44,8 @@
       <tr ng-if="0" ng-repeat-end></tr>
     </table>
 
-    <a role="button" style="margin-bottom: 25px;" class="btn" ng-click="emptyTransaction()">Add transaction</a>
+    <a role="button" style="margin-bottom: 25px;" class="btn btn-primary" ng-click="emptyTransaction()">Add transaction</a>
     
   </div>
 
 </div>
-
-<div ng-include src="'partials/accounts/fragments/transactionform.html'"></div>

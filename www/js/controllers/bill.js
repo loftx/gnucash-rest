@@ -5,7 +5,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 	$scope.orderProp = 'id';
 	$scope.reverseProp = 'false';
 	$scope.date_type = 'opened';
-	$scope.date_from = Date.today().add(-3).months().toString('yyyy-MM-dd');
+	$scope.date_from = Date.today().add(-3).months();
 	$scope.date_to = '';
 	$scope.is_paid = '';
 	$scope.is_posted = '';
@@ -14,23 +14,14 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 	var lastParams = {};
 
 	$scope.$on('$viewContentLoaded', function() {
-		$('#billDateFrom').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
 
-		$('#billDateTo').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
+		$scope.picker = {
+			billDateFrom: { opened: false },
+			billDateTo: { opened: false },
+			open: function(field) { $scope.picker[field].opened = true; },
+			options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+		};
+
 	});
 
 	$scope.sortBy = function(orderProp) {
@@ -41,8 +32,8 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 	$scope.change = function() {
 
 		var params = {
-			'date_from': $scope.date_from,
-			'date_to': $scope.date_to,
+			'date_from': Dates.dateInput($scope.date_from),
+			'date_to': Dates.dateInput($scope.date_to),
 			'date_type': $scope.date_type,
 			'is_posted': $scope.is_posted,
 			'is_paid': $scope.is_paid,
@@ -73,7 +64,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/postform.html',
 			controller: 'modalPostBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				bill: function () {
 					return $scope.bill;
@@ -99,7 +90,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/unpostform.html',
 			controller: 'modalUnpostBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				bill: function () {
 					return $scope.bill;
@@ -126,7 +117,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/payform.html',
 			controller: 'modalPayBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				bill: function () {
 				  return $scope.bill;
@@ -151,7 +142,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/form.html',
 			controller: 'modalEditBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; },
 				vendor_id: function () { return ''; }
@@ -169,7 +160,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/form.html',
 			controller: 'modalEditBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; },
 				vendor_id: function () { return ''; }
@@ -207,7 +198,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/form.html',
 			controller: 'modalEditBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; },
 				vendor_id: function () { return ''; }
@@ -229,7 +220,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		var popup = $uibModal.open({
 		 	templateUrl: 'partials/bills/fragments/postform.html',
 			controller: 'modalPostBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				bill: function () {
 					return $scope.bill;
@@ -250,7 +241,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/payform.html',
 			controller: 'modalPayBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				bill: function () {
 					return $scope.bill;
@@ -271,7 +262,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/entryform.html',
 			controller: 'modalEditBillEntryCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				guid: function () { return guid; },
 				bill: function () { return $scope.bill; }
@@ -305,7 +296,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/entryform.html',
 			controller: 'modalEditBillEntryCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				guid: function () { return guid; },
 				bill: function () { return $scope.bill; }

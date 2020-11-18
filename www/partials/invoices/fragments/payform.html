@@ -1,10 +1,10 @@
 <div class="modal-header">
-  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+  <button type="button" class="close" ng-click="close()" aria-hidden="true">×</button>
   <h3 id="myModalLabel">Pay invoice</h3>
 </div>
 <div class="modal-body">
 
-<div id="invoicePayAlert" class="alert  alert-error" style="display: none;">
+<div id="invoicePayAlert" class="alert alert-danger" role="alert" style="display: none;">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
   <strong>Error</strong> {{invoiceError}}
 </div>
@@ -12,24 +12,24 @@
   <form class="form-horizontal" style="margin: 0px;">
     <fieldset>
 
-      <div class="control-group">
-        <label class="control-label" for="invoiceDatePaid">Date</label>
-        <div class="controls">
-          <input id="invoiceDatePaid" ng-model="invoice.date_paid" name="invoiceDatePaid" class="input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.invoiceDatePaid.opened" ng-click="picker.open('invoiceDatePaid')">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="invoiceDatePaid">Date</label>
+        <div class="col-sm-10">
+          <input id="invoiceDatePaid" ng-model="invoice.date_paid" name="invoiceDatePaid" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.invoiceDatePaid.opened" ng-click="picker.open('invoiceDatePaid')">
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="entryAccount">Post to account</label>
-        <div class="controls">
-          <select data-ng-model="invoice.post_account" data-ng-options="account.guid as account.name for account in accounts" class="input-xlarge"></select>
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="entryAccount">Post to account</label>
+        <div class="col-sm-10">
+          <select data-ng-model="invoice.post_account" data-ng-options="account.guid as account.name for account in accounts" class="form-control input-xlarge"></select>
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="entryAccount">Transfer account</label>
-        <div class="controls">
-          <select data-ng-model="invoice.transfer_account" data-ng-options="account.guid as account.name for account in transferAccounts" class="input-xlarge"></select>
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="entryAccount">Transfer account</label>
+        <div class="col-sm-10">
+          <select data-ng-model="invoice.transfer_account" data-ng-options="account.guid as account.name for account in transferAccounts" class="form-control input-xlarge"></select>
         </div>
       </div>
 
@@ -40,6 +40,6 @@
   
 </div>
 <div class="modal-footer">
-  <button class="btn" ng-click="close()" aria-hidden="true">Close</button>
+  <button class="btn btn-default" ng-click="close()" aria-hidden="true">Close</button>
   <button class="btn btn-primary" ng-click="payInvoice()">Save changes</button>
 </div>

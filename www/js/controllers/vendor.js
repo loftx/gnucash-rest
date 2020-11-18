@@ -1,4 +1,4 @@
-function VendorListCtrl($scope, Vendor) {
+function VendorListCtrl($scope, $uibModal, Vendor) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -32,7 +32,7 @@ function VendorListCtrl($scope, Vendor) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/vendors/fragments/form.html',
 			controller: 'modalEditVendorCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; }
 			}
@@ -49,7 +49,7 @@ function VendorListCtrl($scope, Vendor) {
 		var popup = $uibModal.open({
 			templateUrl: 'partials/vendors/fragments/form.html',
 			controller: 'modalEditVendorCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; }
 			}
@@ -92,144 +92,9 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 	$scope.orderProp = 'id';
 	$scope.reverseProp = 'false';
 
-	$scope.bill = {};
-	$scope.bill.id = '';
-	$scope.bill.vendor_id = '';
-	$scope.bill.date_opened = '';
-	$scope.bill.notes = '';
-
-	$scope.$on('$viewContentLoaded', function() {
-		$('#billDateOpened').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
-
-		$('#billDatePosted').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
-
-		$('#billDateDue').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
-
-		$('#billDatePaid').datepicker({
-			'dateFormat': 'yy-mm-dd',
-			'onSelect': function(dateText) {
-				if (window.angular && angular.element) {
-					angular.element(this).controller("ngModel").$setViewValue(dateText);
-				}
-			}
-		});
-	});
-
 	$scope.sortBy = function(orderProp) {
 		$scope.reverseProp = ($scope.orderProp === orderProp) ? !$scope.reverseProp : false;
 		$scope.orderProp = orderProp;
-	}
-
-	$scope.addBill = function() {
-
-		for (var i = 0; i < $scope.vendors.length; i++) {
-			if ($scope.vendors[i].id == $scope.bill.vendor_id) {
-				$scope.bill.vendor_currency = $scope.vendors[i].currency;
-			}
-		}
-
-		var params = {
-			id: '',
-			vendor_id: $scope.bill.vendor_id,
-			currency: $scope.bill.vendor_currency,
-			date_opened: $scope.bill.date_opened,
-			notes: $scope.bill.notes
-		};
-
-		Bill.add(params).then(function(bill) {
-			$scope.bills.push(bill);
-			$('#billForm').modal('hide');
-			$('#billAlert').hide();
-
-			$scope.bill.id = '';
-			$scope.bill.vendor_id = '';
-			$scope.bill.date_opened = '';
-			$scope.bill.notes = '';
-		}, function(reason) {
-			if(typeof data.errors != 'undefined') {
-				$('#billAlert').show();
-				$scope.billError = data.errors[0].message;
-			} else {
-				console.log(data);
-				console.log(status);	
-			}
-		});
-
-	}
-
-	$scope.saveBill = function() {
-		if ($scope.billNew == 1) {
-			$scope.addBill();
-		} else {
-			// This may fail as it's possible to update the ID
-			//$scope.updateBill($scope.bill.id);
-		}
-	}
-
-	$scope.postBill = function(id) {
-
-		Bill.get($scope.bill.id).then(function(bill) {
-			
-			var params = {
-				vendor_id: bill.owner.id,
-				currency: bill.currency,
-				date_opened: bill.date_opened,
-				notes: bill.notes,
-				posted: 1,
-				posted_account_guid: $scope.bill.posted_account,
-				posted_date: $scope.bill.date_posted,
-				due_date: $scope.bill.date_due,
-				posted_memo: $scope.bill.posted_memo,
-				posted_accumulatesplits: $scope.bill.posted_accumulatesplits, // this is True but should be 1
-				posted_autopay: 0
-			};
-
-			Bill.update($scope.bill.id, params).then(function(bill) {
-			
-				$('#billPostForm').modal('hide');
-				$('#billPostAlert').hide();
-
-				$scope.bill = bill;
-
-				for (var i in $scope.bills) {
-					if ($scope.bills[i].id == $scope.bill.id) {
-						$scope.bills[i] = $scope.bill;
-					}
-				}
-
-			}, function(data) {
-				if(typeof data.errors != 'undefined') {
-					$('#billPostAlert').show();
-					$scope.billError = data.errors[0].message;
-				} else {
-					console.log(data);
-					console.log(status);	
-				}
-			});
-
-		});
-
 	}
 
 	$scope.emptyPostBill = function(id) {
@@ -242,7 +107,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
         var popup = $uibModal.open({
             templateUrl: 'partials/bills/fragments/postform.html',
             controller: 'modalPostBillCtrl',
-            size: 'sm',
+            size: 'lg',
             resolve: {
 		        bill: function () {
 		          return $scope.bill;
@@ -267,7 +132,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/unpostform.html',
 			controller: 'modalUnpostBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				bill: function () {
 					return $scope.bill;
@@ -294,7 +159,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/payform.html',
 			controller: 'modalPayBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				bill: function () {
 				  return $scope.bill;
@@ -319,7 +184,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/form.html',
 			controller: 'modalEditBillCtrl',
-			size: 'sm',
+			size: 'lg',
 			resolve: {
 				id: function () { return id; },
 				vendor_id: function () { return $scope.vendor.id; }

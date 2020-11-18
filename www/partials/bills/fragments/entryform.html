@@ -4,7 +4,7 @@
 </div>
 <div class="modal-body">
 
-  <div id="entryAlert" class="alert  alert-error" style="display: none;">
+  <div id="entryAlert" class="alert alert-danger" role="alert" style="display: none;">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     <strong>Error</strong> {{entryError}}
   </div>
@@ -12,38 +12,38 @@
   <form class="form-horizontal" style="margin: 0px;">
     <fieldset>
 
-      <div class="control-group">
-        <label class="control-label" for="entryDate">Date</label>
-        <div class="controls">
-          <input id="entryDate" ng-model="entry.date" name="entryDate" class="input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.entryDate.opened" ng-click="picker.open('entryDate')">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="entryDate">Date</label>
+        <div class="col-sm-10">
+          <input id="entryDate" ng-model="entry.date" name="entryDate" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.entryDate.opened" ng-click="picker.open('entryDate')">
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="entryDescription">Description</label>
-        <div class="controls">
-          <input id="entryDescription" ng-model="entry.description" name="entryDescription" class="input-xlarge" type="text">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="entryDescription">Description</label>
+        <div class="col-sm-10">
+          <input id="entryDescription" ng-model="entry.description" name="entryDescription" class="form-control input-xlarge" type="text">
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="entryAccount">Account</label>
-        <div class="controls">
-          <select data-ng-model="entry.bill_account.guid" data-ng-options="account.guid as account.name for account in accounts" class="input-xlarge"></select>
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="entryAccount">Account</label>
+        <div class="col-sm-10">
+          <select data-ng-model="entry.bill_account.guid" data-ng-options="account.guid as account.name for account in accounts" class="form-control input-xlarge"></select>
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="entryQuantity">Quantity</label>
-        <div class="controls">
-          <input id="entryQuantity" ng-model="entry.quantity" name="entryQuantity" class="input-xlarge" type="text">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="entryQuantity">Quantity</label>
+        <div class="col-sm-10">
+          <input id="entryQuantity" ng-model="entry.quantity" name="entryQuantity" class="form-control input-xlarge" type="text">
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="entryPrice">Price</label>
-        <div class="controls">
-          <input id="entryPrice" ng-model="entry.bill_price" name="entryPrice" class="input-xlarge" type="text">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="entryPrice">Price</label>
+        <div class="col-sm-10">
+          <input id="entryPrice" ng-model="entry.bill_price" name="entryPrice" class="form-control input-xlarge" type="text">
         </div>
       </div>
 
@@ -52,6 +52,6 @@
   
 </div>
 <div class="modal-footer">
-  <button class="btn" ng-click="close()" aria-hidden="true">Close</button>
+  <button class="btn btn-default" ng-click="close()" aria-hidden="true">Close</button>
   <button class="btn btn-primary" ng-click="saveEntry()">Save changes</button>
 </div>

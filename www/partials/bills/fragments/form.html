@@ -4,54 +4,52 @@
 </div>
 <div class="modal-body">
 
-  <div id="billAlert" class="alert  alert-error" style="display: none;">
+  <div id="billAlert" class="alert alert-danger" role="alert" style="display: none;">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     <strong>Error</strong> {{billError}}
   </div>
 
   <form class="form-horizontal" style="margin: 0px;">
-    <fieldset>
 
-      <div class="control-group">
-        <label class="control-label" for="billId">Bill ID</label>
-        <div class="controls">
-          <input id="billId" ng-model="bill.id" name="billId" class="input-xlarge" type="text" ng-disabled="billNew != 1">
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="billId">Bill ID</label>
+      <div class="col-sm-10">
+        <input id="billId" ng-model="bill.id" name="billId" class="form-control input-xlarge" type="text" ng-disabled="billNew != 1">
       </div>
+    </div>
 
-      <div class="control-group" ng-show="!billNew">
-        <label class="control-label" for="billActive">Active</label>
-        <div class="controls">
-          <input id="billActive" ng-model="bill.active" name="billActive" class="input-xlarge" type="checkbox">
-        </div>
+    <div class="form-group" ng-show="!billNew">
+      <label class="col-sm-2 control-label" for="billActive">Active</label>
+      <div class="col-sm-10">
+        <input id="billActive" ng-model="bill.active" name="billActive" type="checkbox">
       </div>
+    </div>
 
-      <div class="control-group">
-        <label class="control-label" for="billDateOpened">Date opened</label>
-        <div class="controls">
-          <input id="billDateOpened" ng-model="bill.date_opened" name="billDateOpened" class="input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateOpened.opened" ng-click="picker.open('billDateOpened')" ng-disabled="bill.posted"> 
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="billDateOpened">Date opened</label>
+      <div class="col-sm-10">
+        <input id="billDateOpened" ng-model="bill.date_opened" name="billDateOpened" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateOpened.opened" ng-click="picker.open('billDateOpened')" ng-disabled="bill.posted"> 
       </div>
+    </div>
 
-      <div class="control-group">
-        <label class="control-label" for="billVendor">Vendor</label>
-        <div class="controls">
-          <select id="billVendor" data-ng-model="bill.vendor_id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="input-xlarge" ng-disabled="bill.posted"></select>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="billVendor">Vendor</label>
+      <div class="col-sm-10">
+        <select id="billVendor" data-ng-model="bill.vendor_id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="form-control input-xlarge" ng-disabled="bill.posted"></select>
       </div>
+    </div>
 
-      <div class="control-group">
-        <label class="control-label" for="billNotes">Notes</label>
-        <div class="controls">
-          <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="input-xlarge"></textarea>
-        </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="billNotes">Notes</label>
+      <div class="col-sm-10">
+        <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="form-control input-xlarge"></textarea>
       </div>
+    </div>
 
-    </fieldset>
   </form>
   
 </div>
 <div class="modal-footer">
-  <button class="btn" ng-click="close()" aria-hidden="true">Close</button>
+  <button class="btn btn-default" ng-click="close()" aria-hidden="true">Close</button>
   <button class="btn btn-primary" ng-click="saveBill()">Save changes</button>
 </div>
