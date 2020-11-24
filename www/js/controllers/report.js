@@ -1,4 +1,4 @@
-function ReportIncomeStatementCtrl($scope, Account, Money) {
+function ReportIncomeStatementCtrl($scope, Account, Money, Dates) {
 
 	var monthNames = [ "January", "February", "March", "April", "May", "June",
 	"July", "August", "September", "October", "November", "December" ];
@@ -6,28 +6,46 @@ function ReportIncomeStatementCtrl($scope, Account, Money) {
 	$scope.months = [];
 	$scope.currentMonth = 9;
 
+	$scope.$on('$viewContentLoaded', function() {
+
+		$scope.picker = {
+			reportDateFrom: { opened: false },
+			reportDateTo: { opened: false },
+			open: function(field) { $scope.picker[field].opened = true; },
+			options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
+		};
+
+	});
+
 	for (var i=0; i>-10; i--) {
 		var date_from = Date.today().set({ day: 1}).add({ months: i });
 		var date_to = Date.today().set({ day: 1}).add({ months: i + 1 });
 		
 		$scope.months.unshift({
 				'id': -i,
-				'date_from': date_from.getFullYear() + '-' + (date_from.getMonth() + 1).toString().padStart(2, 0) + '-01',
-				'date_to': date_to.getFullYear() + '-' + (date_to.getMonth() + 1).toString().padStart(2, 0) + '-01',
+				'date_from': date_from,
+				'date_to': date_to,
 				'name': monthNames[date_from.getMonth()]
 		});
+
 	}
 
 	$scope.setMonth = function(month_id) {
 		$scope.currentMonth = 9-month_id;
-		generateIncomeAccounts($scope, Account, Money);
+		$scope.date_from = $scope.months[$scope.currentMonth].date_from;
+		$scope.date_to = $scope.months[$scope.currentMonth].date_to;
+
+		generateIncomeAccounts($scope, Account, Money, Dates);
 	}
 
-	generateIncomeAccounts($scope, Account, Money);
+	$scope.date_from = $scope.months[$scope.currentMonth].date_from;
+	$scope.date_to = $scope.months[$scope.currentMonth].date_to;
+
+	generateIncomeAccounts($scope, Account, Money, Dates);
 
 }
 
-function generateIncomeAccounts($scope, Account, Money) {
+function generateIncomeAccounts($scope, Account, Money, Dates) {
 
 	$scope.incomeTotal = 0;
 	$scope.displayIncomeTotal = '£0.00';
@@ -54,11 +72,11 @@ function generateIncomeAccounts($scope, Account, Money) {
 
 		Account.get(incomeAccounts[0].guid).then(function(account) {
 
-			$scope.incomeAccounts = Account.getSubAccounts(account, 0);		
+			$scope.incomeAccounts = Account.getSubAccounts(account, 0);
 
 			var params = {
-				'date_posted_from': $scope.months[$scope.currentMonth].date_from,
-				'date_posted_to': $scope.months[$scope.currentMonth].date_to
+				'date_posted_from': Dates.dateInput($scope.date_from),
+				'date_posted_to': Dates.dateInput($scope.date_to)
 			};
 
 			for (var i in $scope.incomeAccounts) {
@@ -92,8 +110,8 @@ function generateIncomeAccounts($scope, Account, Money) {
 			$scope.expensesAccounts = Account.getSubAccounts(accounts, 0);
 
 			var params = {
-				'date_posted_from': $scope.months[$scope.currentMonth].date_from,
-				'date_posted_to': $scope.months[$scope.currentMonth].date_to
+				'date_posted_from': Dates.dateInput($scope.date_from),
+				'date_posted_to': Dates.dateInput($scope.date_to)
 			};
 
 			for (var i in $scope.expensesAccounts) {
