@@ -16,7 +16,7 @@
         <label class="col-sm-2 control-label" for="billDatePosted">Date posted</label>
         <div class="col-sm-10">
           <p class="input-group">
-            <input id="billDatePosted" ng-model="bill.date_posted" name="billDatePosted" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDatePosted.opened">
+            <input id="billDatePosted" ng-model="bill.date_posted" name="billDatePosted" class="form-control" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDatePosted.opened">
             <span class="input-group-btn">
               <button type="button" class="btn btn-default" ng-click="picker.open('billDatePosted')"><i class="glyphicon glyphicon-calendar"></i></button>
             </span>
@@ -28,7 +28,7 @@
         <label class="col-sm-2 control-label" for="billDateDue">Date due</label>
         <div class="col-sm-10">
           <p class="input-group">
-            <input id="billDateDue" ng-model="bill.date_due" name="billDateDue" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateDue.opened">
+            <input id="billDateDue" ng-model="bill.date_due" name="billDateDue" class="form-control" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateDue.opened">
             <span class="input-group-btn">
               <button type="button" class="btn btn-default" ng-click="picker.open('billDateDue')"><i class="glyphicon glyphicon-calendar"></i></button>
             </span>
@@ -39,14 +39,14 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="billAccount">Posted account</label>
         <div class="col-sm-10">
-          <select data-ng-model="bill.posted_account" data-ng-options="account.guid as account.name for account in accounts" class="form-control input-xlarge"></select>
+          <select data-ng-model="bill.posted_account" data-ng-options="account.guid as account.name for account in accounts" class="form-control"></select>
         </div>
       </div>
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="billPostedMemo">Memo</label>
         <div class="col-sm-10">
-          <textarea id="billPostedMemo" ng-model="bill.posted_memo" name="billPostedMemo" class="form-control input-xlarge"></textarea>
+          <textarea id="billPostedMemo" ng-model="bill.posted_memo" name="billPostedMemo" class="form-control"></textarea>
         </div>
       </div>
 

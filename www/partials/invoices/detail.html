@@ -7,7 +7,7 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="invoiceID">Invoice ID</label>
       <div class="col-sm-10">
-        <input id="invoiceID" ng-model="invoice.id" name="invoiceID" class="form-control input-xlarge" type="text" disabled="disabled">
+        <input id="invoiceID" ng-model="invoice.id" name="invoiceID" class="form-control" type="text" disabled="disabled">
       </div>
     </div>
 
@@ -21,21 +21,21 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="invoice.DateOpened">Date opened</label>
       <div class="col-sm-10">
-        <input id="invoice.DateOpened" ng-model="invoice.date_opened" name="invoice.DateOpened" class="form-control input-xlarge" type="text" disabled="disabled">
+        <input id="invoice.DateOpened" ng-model="invoice.date_opened" name="invoice.DateOpened" class="form-control" type="text" disabled="disabled">
       </div>
     </div>
 
     <div class="form-group">
       <label class="col-sm-2 control-label" for="invoiceCompany">Company</label>
       <div class="col-sm-10">
-        <select data-ng-model="invoice.owner.id" data-ng-options="customer.id as customer.name for customer in customers" class="form-control input-xlarge" disabled="disabled"></select>
+        <select data-ng-model="invoice.owner.id" data-ng-options="customer.id as customer.name for customer in customers" class="form-control" disabled="disabled"></select>
       </div>
     </div>
 
     <div class="form-group">
       <label class="col-sm-2 control-label" for="invoiceNotes">Notes</label>
       <div class="col-sm-10">
-        <textarea id="invoiceNotes" ng-model="invoice.notes" name="invoiceNotes" class="form-control input-xlarge" disabled="disabled"></textarea>
+        <textarea id="invoiceNotes" ng-model="invoice.notes" name="invoiceNotes" class="form-control" disabled="disabled"></textarea>
       </div>
     </div>
 

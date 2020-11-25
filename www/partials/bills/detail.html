@@ -8,7 +8,7 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="billID">Bill ID</label>
         <div class="col-sm-10">
-          <input id="billID" ng-model="bill.id" name="billID" class="form-control input-xlarge" type="text" disabled="disabled">
+          <input id="billID" ng-model="bill.id" name="billID" class="form-control" type="text" disabled="disabled">
         </div>
       </div>
 
@@ -22,21 +22,21 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="bill.DateOpened">Date opened</label>
         <div class="col-sm-10">
-          <input id="bill.DateOpened" ng-model="bill.date_opened" name="bill.DateOpened" class="form-control input-xlarge" type="text" disabled="disabled">
+          <input id="bill.DateOpened" ng-model="bill.date_opened" name="bill.DateOpened" class="form-control" type="text" disabled="disabled">
         </div>
       </div>
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="billCompany">Company</label>
         <div class="col-sm-10">
-          <select data-ng-model="bill.owner.id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="form-control input-xlarge" disabled="disabled"></select>
+          <select data-ng-model="bill.owner.id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="form-control" disabled="disabled"></select>
         </div>
       </div>
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="billNotes">Notes</label>
         <div class="col-sm-10">
-          <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="form-control input-xlarge" disabled="disabled"></textarea>
+          <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="form-control" disabled="disabled"></textarea>
         </div>
       </div>
 

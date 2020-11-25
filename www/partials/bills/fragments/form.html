@@ -14,7 +14,7 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="billId">Bill ID</label>
       <div class="col-sm-10">
-        <input id="billId" ng-model="bill.id" name="billId" class="form-control input-xlarge" type="text" ng-disabled="billNew != 1">
+        <input id="billId" ng-model="bill.id" name="billId" class="form-control" type="text" ng-disabled="billNew != 1">
       </div>
     </div>
 
@@ -29,7 +29,7 @@
       <label class="col-sm-2 control-label" for="billDateOpened">Date opened</label>
       <div class="col-sm-10">
         <p class="input-group">
-          <input id="billDateOpened" ng-model="bill.date_opened" name="billDateOpened" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateOpened.opened" ng-disabled="bill.posted">
+          <input id="billDateOpened" ng-model="bill.date_opened" name="billDateOpened" class="form-control" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateOpened.opened" ng-disabled="bill.posted">
           <span class="input-group-btn">
             <button type="button" class="btn btn-default" ng-click="picker.open('billDateOpened')"><i class="glyphicon glyphicon-calendar"></i></button>
           </span>
@@ -40,14 +40,14 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="billVendor">Vendor</label>
       <div class="col-sm-10">
-        <select id="billVendor" data-ng-model="bill.vendor_id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="form-control input-xlarge" ng-disabled="bill.posted"></select>
+        <select id="billVendor" data-ng-model="bill.vendor_id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="form-control" ng-disabled="bill.posted"></select>
       </div>
     </div>
 
     <div class="form-group">
       <label class="col-sm-2 control-label" for="billNotes">Notes</label>
       <div class="col-sm-10">
-        <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="form-control input-xlarge"></textarea>
+        <textarea id="billNotes" ng-model="bill.notes" name="billNotes" class="form-control"></textarea>
       </div>
     </div>
 

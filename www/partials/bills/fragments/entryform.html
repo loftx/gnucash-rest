@@ -16,7 +16,7 @@
         <label class="col-sm-2 control-label" for="entryDate">Date</label>
         <div class="col-sm-10">
           <p class="input-group">
-            <input id="entryDate" ng-model="entry.date" name="entryDate" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.entryDate.opened">
+            <input id="entryDate" ng-model="entry.date" name="entryDate" class="form-control" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.entryDate.opened">
             <span class="input-group-btn">
               <button type="button" class="btn btn-default" ng-click="picker.open('entryDate')"><i class="glyphicon glyphicon-calendar"></i></button>
             </span>
@@ -27,28 +27,28 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="entryDescription">Description</label>
         <div class="col-sm-10">
-          <input id="entryDescription" ng-model="entry.description" name="entryDescription" class="form-control input-xlarge" type="text">
+          <input id="entryDescription" ng-model="entry.description" name="entryDescription" class="form-control" type="text">
         </div>
       </div>
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="entryAccount">Account</label>
         <div class="col-sm-10">
-          <select data-ng-model="entry.bill_account.guid" data-ng-options="account.guid as account.name for account in accounts" class="form-control input-xlarge"></select>
+          <select data-ng-model="entry.bill_account.guid" data-ng-options="account.guid as account.name for account in accounts" class="form-control"></select>
         </div>
       </div>
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="entryQuantity">Quantity</label>
         <div class="col-sm-10">
-          <input id="entryQuantity" ng-model="entry.quantity" name="entryQuantity" class="form-control input-xlarge" type="text">
+          <input id="entryQuantity" ng-model="entry.quantity" name="entryQuantity" class="form-control" type="text">
         </div>
       </div>
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="entryPrice">Price</label>
         <div class="col-sm-10">
-          <input id="entryPrice" ng-model="entry.bill_price" name="entryPrice" class="form-control input-xlarge" type="text">
+          <input id="entryPrice" ng-model="entry.bill_price" name="entryPrice" class="form-control" type="text">
         </div>
       </div>
 
