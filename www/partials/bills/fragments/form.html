@@ -28,7 +28,12 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="billDateOpened">Date opened</label>
       <div class="col-sm-10">
-        <input id="billDateOpened" ng-model="bill.date_opened" name="billDateOpened" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateOpened.opened" ng-click="picker.open('billDateOpened')" ng-disabled="bill.posted"> 
+        <p class="input-group">
+          <input id="billDateOpened" ng-model="bill.date_opened" name="billDateOpened" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.billDateOpened.opened" ng-disabled="bill.posted">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" ng-click="picker.open('billDateOpened')"><i class="glyphicon glyphicon-calendar"></i></button>
+          </span>
+        </p>
       </div>
     </div>
 

@@ -4,10 +4,10 @@
 </div>
 <div class="modal-body">
 
-<div id="invoicePayAlert" class="alert alert-danger" role="alert" style="display: none;">
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-  <strong>Error</strong> {{invoiceError}}
-</div>
+  <div id="invoicePayAlert" class="alert alert-danger" role="alert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>Error</strong> {{invoiceError}}
+  </div>
 
   <form class="form-horizontal" style="margin: 0px;">
     <fieldset>
@@ -15,7 +15,12 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="invoiceDatePaid">Date</label>
         <div class="col-sm-10">
-          <input id="invoiceDatePaid" ng-model="invoice.date_paid" name="invoiceDatePaid" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.invoiceDatePaid.opened" ng-click="picker.open('invoiceDatePaid')">
+          <p class="input-group">
+            <input id="invoiceDatePaid" ng-model="invoice.date_paid" name="invoiceDatePaid" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.invoiceDatePaid.opened">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" ng-click="picker.open('invoiceDatePaid')"><i class="glyphicon glyphicon-calendar"></i></button>
+            </span>
+          </p>
         </div>
       </div>
 
@@ -32,8 +37,6 @@
           <select data-ng-model="invoice.transfer_account" data-ng-options="account.guid as account.name for account in transferAccounts" class="form-control input-xlarge"></select>
         </div>
       </div>
-
-      <p>More bits here</p>
 
     </fieldset>
   </form>

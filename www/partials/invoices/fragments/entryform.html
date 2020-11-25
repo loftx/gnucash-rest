@@ -14,7 +14,12 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="entryDate">Date</label>
       <div class="col-sm-10">
-        <input id="entryDate" ng-model="entry.date" name="entryDate" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.entryDate.opened" ng-click="picker.open('entryDate')">
+        <p class="input-group">
+          <input id="entryDate" ng-model="entry.date" name="entryDate" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.entryDate.opened">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" ng-click="picker.open('entryDate')"><i class="glyphicon glyphicon-calendar"></i></button>
+          </span>
+        </p>
       </div>
     </div>
 

@@ -14,7 +14,12 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="transactionDatePosted">Date posted</label>
         <div class="col-sm-10">
-          <input id="transactionDatePosted" ng-model="transaction.date_posted" name="transactionDatePosted" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.transactionDatePosted.opened" ng-click="picker.open('transactionDatePosted')">
+          <p class="input-group">
+            <input id="transactionDatePosted" ng-model="transaction.date_posted" name="transactionDatePosted" class="form-control input-xlarge" type="text" uib-datepicker-popup="yyyy-MM-dd" datepicker-options="picker.options" is-open="picker.transactionDatePosted.opened">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" ng-click="picker.open('transactionDatePosted')"><i class="glyphicon glyphicon-calendar"></i></button>
+            </span>
+          </p>
         </div>
       </div>
 
