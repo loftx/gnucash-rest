@@ -146,6 +146,8 @@ app.controller('modalEditAccountCtrl', ['guid', '$scope', '$uibModalInstance', '
 		$scope.dropdown_accounts = accounts;
 	});
 
+	$scope.accountError = '';
+
 	if (guid == 0) {
 		$scope.accountTitle = 'Add account';
 
@@ -181,12 +183,11 @@ app.controller('modalEditAccountCtrl', ['guid', '$scope', '$uibModalInstance', '
 			};
 
 			Account.add(params).then(function(account) {
-				$('#accountAlert').hide();
+				$scope.accountError = '';
 	 			$uibModalInstance.close(account);	
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#accountAlert').show();
 					$scope.accountError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -215,6 +216,8 @@ app.controller('modalEditTransactionCtrl', ['guid', 'account', '$scope', '$uibMo
 		open: function(field) { $scope.picker[field].opened = true; },
 		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
+
+	$scope.transactionError = '';
 
 	if (guid == '') {
 
@@ -316,13 +319,12 @@ app.controller('modalEditTransactionCtrl', ['guid', 'account', '$scope', '$uibMo
 
 			Transaction.add(params).then(function(transaction) {
 
-				$('#transactionForm').hide();
+				$scope.transactionError = '';
 	 			$uibModalInstance.close(transaction);
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#transactionAlert').show();
 					$scope.transactionError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -355,12 +357,11 @@ app.controller('modalEditTransactionCtrl', ['guid', 'account', '$scope', '$uibMo
 
 			Transaction.update(guid, params).then(function(transaction) {
 				
-				$('#transactionForm').hide();
+				$scope.transactionError = '';
 	 			$uibModalInstance.close(transaction);  
 
 			}, function(data) {
 				if(typeof data.errors != 'undefined') {
-					$('#transactionAlert').show();
 					$scope.transactionError = data.errors[0].message;
 				} else {
 					console.log(data);

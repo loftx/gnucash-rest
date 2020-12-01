@@ -319,6 +319,8 @@ app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acc
 	$scope.bill.date_due = Dates.todays_date();
 	$scope.bill.posted_accumulatesplits = true;
 
+	$scope.billError = '';
+
 	$scope.picker = {
 		billDatePosted: { opened: false },
 		billDateDue: { opened: false },
@@ -357,12 +359,11 @@ app.controller('modalPostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acc
 
 			Bill.update(bill.id, params).then(function(bill) {
 
-				$('#billPostAlert').hide();
+				$scope.billError = '';
 				$uibModalInstance.close(bill);				
 
 			}, function(data) {
 				if(typeof data.errors != 'undefined') {
-					$('#billPostAlert').show();
 					$scope.billError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -382,6 +383,8 @@ app.controller('modalUnpostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'B
 	$scope.bill = {};
 	$scope.bill.reset_tax_tables = true;
 
+	$scope.billError = '';
+
 	$scope.close = function () {
 		$uibModalInstance.dismiss('cancel');
 	};
@@ -396,12 +399,11 @@ app.controller('modalUnpostBillCtrl', ['bill', '$scope', '$uibModalInstance', 'B
 
 			Bill.unpost(bill.id, params).then(function(bill) {
 			
-				$('#billPostAlert').hide();
+				$scope.billError = '';
 				$uibModalInstance.close(bill);	
 
 			}, function(data) {
 				if(typeof data.errors != 'undefined') {
-					$('#billUnpostAlert').show();
 					$scope.billError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -436,12 +438,14 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 		$scope.transferAccounts = transferAccounts;
 	});
 
+	$scope.billError = '';
+
 	$scope.close = function () {
 		$uibModalInstance.dismiss('cancel');
 	};
 
 	$scope.payBill = function() {
-			
+	
 		var params = {
 			posted_account_guid: bill.post_account,
 			transfer_account_guid: bill.transfer_account,
@@ -453,12 +457,11 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 
 		Bill.pay(bill.id, params).then(function(bill) {
 			
-			$('#billPostAlert').hide();
+			$scope.billError = '';
 			$uibModalInstance.close(bill);	
 
 		}, function(data) {
 			if(typeof data.errors != 'undefined') {
-				$('#billPayAlert').show();
 				$scope.billError = data.errors[0].message;
 			} else {
 				console.log(data);
@@ -473,6 +476,8 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 // this is bad due to the case...
 app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInstance', 'Bill', 'Vendor', 'Dates', function(id, vendor_id, $scope, $uibModalInstance, Bill, Vendor, Dates) {
 
+	$scope.billError = '';
+
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
 	});
@@ -483,6 +488,8 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 		open: function(field) { $scope.picker[field].opened = true; },
 		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
+
+	$scope.billError = '';
 
 	if (id == 0) {
 		$scope.billTitle = 'Add bill';
@@ -533,13 +540,12 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 
 			Bill.add(params).then(function(bill) {
 
-				$('#billAlert').hide();
+				$scope.billError = '';
 				$uibModalInstance.close(bill);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#billAlert').show();
 					$scope.billError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -560,13 +566,12 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 
 			Bill.update(id, params).then(function(bill) {
 
-				$('#billAlert').hide();
+				$scope.billError = '';
 				$uibModalInstance.close(bill);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#billAlert').show();
 					$scope.billError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -596,6 +601,8 @@ app.controller('modalEditBillEntryCtrl', ['guid', 'bill',  '$scope', '$uibModalI
 		open: function(field) { $scope.picker[field].opened = true; },
 		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
+
+	$scope.entryError = '';
 
 	if (guid == '') {
 
@@ -650,13 +657,12 @@ app.controller('modalEditBillEntryCtrl', ['guid', 'bill',  '$scope', '$uibModalI
 
 				bill = Bill.recalculate(bill);
 
-				$('#entryAlert').hide();
+				$scope.entryError = '';
 				$uibModalInstance.close(bill);
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#entryAlert').show();
 					$scope.entryError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -685,7 +691,7 @@ app.controller('modalEditBillEntryCtrl', ['guid', 'bill',  '$scope', '$uibModalI
 
 				bill = Bill.recalculate(bill);
 				
-				$('#entryAlert').hide();
+				$scope.entryError = '';
 				$uibModalInstance.close(bill);	
 
 				// do we actually need to clear these?
@@ -699,7 +705,6 @@ app.controller('modalEditBillEntryCtrl', ['guid', 'bill',  '$scope', '$uibModalI
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#entryAlert').show();
 					$scope.entryError = data.errors[0].message;
 				} else {
 					console.log(data);

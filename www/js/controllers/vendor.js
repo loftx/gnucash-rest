@@ -204,6 +204,8 @@ app.controller('modalEditVendorCtrl', ['id', '$scope', '$uibModalInstance', 'Ven
 
 	$scope.currencys = Money.currencys();
 
+	$scope.vendorError = '';
+
 	if (id == 0) {
 		$scope.vendorTitle = 'Add vendor';
 		$scope.vendorNew = 1;
@@ -253,13 +255,12 @@ app.controller('modalEditVendorCtrl', ['id', '$scope', '$uibModalInstance', 'Ven
 
 			Vendor.add(params).then(function(vendor) {
 
-				$('#vendorAlert').hide();
+				$scope.vendorError = '';
 	 			$uibModalInstance.close(vendor);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#vendorAlert').show();
 					$scope.vendorError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -284,13 +285,12 @@ app.controller('modalEditVendorCtrl', ['id', '$scope', '$uibModalInstance', 'Ven
 
 			Vendor.update(id, params).then(function(vendor) {
 
-				$('#vendorAlert').hide();
+				$scope.vendorError = '';
 	 			$uibModalInstance.close(vendor);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#vendorAlert').show();
 					$scope.vendorError = data.errors[0].message;
 				} else {
 					console.log(data);

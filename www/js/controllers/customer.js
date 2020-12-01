@@ -204,6 +204,8 @@ app.controller('modalEditCustomerCtrl', ['id', '$scope', '$uibModalInstance', 'C
 
 	$scope.currencys = Money.currencys();
 
+	$scope.customerError = '';
+
 	if (id == 0) {
 		$scope.customerTitle = 'Add customer';
 		$scope.customerNew = 1;
@@ -253,13 +255,12 @@ app.controller('modalEditCustomerCtrl', ['id', '$scope', '$uibModalInstance', 'C
 
 			Customer.add(params).then(function(customer) {
 
-				$('#customerAlert').hide();
+				$scope.customerError = '';
 	 			$uibModalInstance.close(customer);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#customerAlert').show();
 					$scope.customerError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -284,13 +285,12 @@ app.controller('modalEditCustomerCtrl', ['id', '$scope', '$uibModalInstance', 'C
 
 			Customer.update(id, params).then(function(customer) {
 
-				$('#customerAlert').hide();
+				$scope.customerError = '';
 	 			$uibModalInstance.close(customer);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#customerAlert').show();
 					$scope.customerError = data.errors[0].message;
 				} else {
 					console.log(data);

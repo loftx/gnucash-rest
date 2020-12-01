@@ -4,7 +4,7 @@
 </div>
 <div class="modal-body">
 
-  <div id="invoicePayAlert" class="alert alert-danger" role="alert" style="display: none;">
+  <div id="invoicePayAlert" class="alert alert-danger" role="alert" ng-show="invoiceError != ''">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     <strong>Error</strong> {{invoiceError}}
   </div>

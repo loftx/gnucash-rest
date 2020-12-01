@@ -354,6 +354,8 @@ app.controller('modalPostInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance'
 		$uibModalInstance.dismiss('cancel');
 	};
 
+	$scope.invoiceError = '';
+
 	// all these functions are identical to those in customer.js - CustomerDetailCtrl
 	$scope.postInvoice = function(id) {
 
@@ -375,12 +377,11 @@ app.controller('modalPostInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance'
 
 			Invoice.update(invoice.id, params).then(function(invoice) {
 			
-				$('#invoicePostAlert').hide();
+				$scope.invoiceError = '';
 				$uibModalInstance.close(invoice);	
 
 			}, function(data) {
 				if(typeof data.errors != 'undefined') {
-					$('#invoicePostAlert').show();
 					$scope.invoiceError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -400,6 +401,8 @@ app.controller('modalUnpostInvoiceCtrl', ['invoice', '$scope', '$uibModalInstanc
 	$scope.invoice = {};
 	$scope.invoice.reset_tax_tables = true;
 
+	$scope.invoiceError = '';
+
 	$scope.close = function () {
 		$uibModalInstance.dismiss('cancel');
 	};
@@ -414,12 +417,11 @@ app.controller('modalUnpostInvoiceCtrl', ['invoice', '$scope', '$uibModalInstanc
 
 			Invoice.unpost(invoice.id, params).then(function(invoice) {
 			
-				$('#invoicePostAlert').hide();
+				$scope.invoiceError = '';
 				$uibModalInstance.close(invoice);	
 
 			}, function(data) {
 				if(typeof data.errors != 'undefined') {
-					$('#invoiceUnpostAlert').show();
 					$scope.invoiceError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -454,6 +456,8 @@ app.controller('modalPayInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance',
 		$scope.transferAccounts = transferAccounts;
 	});
 
+	$scope.invoiceError = '';
+
 	$scope.close = function () {
 		$uibModalInstance.dismiss('cancel');
 	};
@@ -471,12 +475,11 @@ app.controller('modalPayInvoiceCtrl', ['invoice', '$scope', '$uibModalInstance',
 
 		Invoice.pay(invoice.id, params).then(function(invoice) {
 			
-			$('#invoicePostAlert').hide();
+			$scope.invoiceError = '';
 			$uibModalInstance.close(invoice);	
 
 		}, function(data) {
 			if(typeof data.errors != 'undefined') {
-				$('#invoicePayAlert').show();
 				$scope.invoiceError = data.errors[0].message;
 			} else {
 				console.log(data);
@@ -501,6 +504,8 @@ app.controller('modalEditInvoiceCtrl', ['id', 'customer_id', '$scope', '$uibModa
 		open: function(field) { $scope.picker[field].opened = true; },
 		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
+
+	$scope.invoiceError = '';
 
 	if (id == 0) {
 		$scope.invoiceTitle = 'Add invoice';
@@ -551,13 +556,12 @@ app.controller('modalEditInvoiceCtrl', ['id', 'customer_id', '$scope', '$uibModa
 
 			Invoice.add(params).then(function(invoice) {
 
-				$('#invoiceAlert').hide();
+				$scope.invoiceError = '';
 				$uibModalInstance.close(invoice);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#invoiceAlert').show();
 					$scope.invoiceError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -578,13 +582,12 @@ app.controller('modalEditInvoiceCtrl', ['id', 'customer_id', '$scope', '$uibModa
 
 			Invoice.update(id, params).then(function(invoice) {
 
-				$('#invoiceAlert').hide();
+				$scope.invoiceError = '';
 				$uibModalInstance.close(invoice);	
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#invoiceAlert').show();
 					$scope.invoiceError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -614,6 +617,8 @@ app.controller('modalEditEntryCtrl', ['guid', 'invoice',  '$scope', '$uibModalIn
 		open: function(field) { $scope.picker[field].opened = true; },
 		options: { showWeeks: false } // temporary fix for 'scope.rows[curWeek][thursdayIndex] is undefined' error
 	};
+
+	$scope.entryError = '';
 
 	if (guid == '') {
 
@@ -670,13 +675,12 @@ app.controller('modalEditEntryCtrl', ['guid', 'invoice',  '$scope', '$uibModalIn
 
 				invoice = Invoice.recalculate(invoice);
 
-				$('#entryAlert').hide();
+				$scope.entryError = '';
 				$uibModalInstance.close(invoice);
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#entryAlert').show();
 					$scope.entryError = data.errors[0].message;
 				} else {
 					console.log(data);
@@ -707,7 +711,7 @@ app.controller('modalEditEntryCtrl', ['guid', 'invoice',  '$scope', '$uibModalIn
 
 				invoice = Invoice.recalculate(invoice);
 				
-				$('#entryAlert').hide();
+				$scope.entryError = '';
 				$uibModalInstance.close(invoice);	
 
 				$scope.entry.guid = '';
@@ -722,7 +726,6 @@ app.controller('modalEditEntryCtrl', ['guid', 'invoice',  '$scope', '$uibModalIn
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
 				if(typeof data.errors != 'undefined') {
-					$('#entryAlert').show();
 					$scope.entryError = data.errors[0].message;
 				} else {
 					console.log(data);
