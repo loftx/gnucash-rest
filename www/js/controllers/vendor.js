@@ -99,6 +99,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 
 	$scope.emptyPostBill = function(id) {
 
+		$scope.bill = {};
 		$scope.bill.id = id;
 		$scope.bill.date_posted = Dates.format_todays_date();
 		$scope.bill.date_due = Dates.format_todays_date();
@@ -127,6 +128,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 
 	$scope.emptyUnpostBill = function(id) {
 
+		$scope.bill = {};
 		$scope.bill.id = id;
 
 		var popup = $uibModal.open({
@@ -152,7 +154,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 
 	$scope.emptyPayBill = function(id) {
 
-		$scope.bill = [];
+		$scope.bill = {};
 		$scope.bill.id = id;
 		$scope.bill.date_paid = Dates.todays_date();
 

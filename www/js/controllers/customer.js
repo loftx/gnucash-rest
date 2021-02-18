@@ -100,6 +100,7 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 	// duplicate of invoice.js
 	$scope.emptyPostInvoice = function(id) {
 
+		$scope.invoice = {};
 		$scope.invoice.id = id;
 		$scope.invoice.date_posted = Dates.format_todays_date();
 		$scope.invoice.date_due = Dates.format_todays_date();
@@ -128,6 +129,7 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 
 	$scope.emptyUnpostInvoice = function(id) {
 
+		$scope.invoice = {};
 		$scope.invoice.id = id;
 
 		var popup = $uibModal.open({
@@ -153,6 +155,7 @@ function CustomerDetailCtrl($scope, $uibModal, $routeParams, Customer, Account, 
 
 	$scope.emptyPayInvoice = function(id) {
 
+		$scope.invoice = {};
 		$scope.invoice.id = id;
 		$scope.invoice.date_paid = Dates.format_todays_date();
 
