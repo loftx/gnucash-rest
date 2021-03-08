@@ -33,7 +33,7 @@ angular.module('core').factory('Api', function($timeout, $location, $uibModal) {
 							var popup = $uibModal.open({
 								templateUrl: 'partials/session/fragments/form.html',
 								controller: 'modalStartSessionCtrl',
-								size: 'sm',
+								size: 'lg',
 								resolve: {
 									error: function () {
 									  return data.errors[0].message;
