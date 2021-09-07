@@ -536,19 +536,19 @@ app.controller('modalEditBillCtrl', ['action', 'id', 'vendor_id', '$scope', '$ui
 
 		});
 	} else if (action == 'duplicate') {
-		$scope.billTitle = 'Duplicate bill';
-
 		Bill.get(id).then(function(bill) {
-			$scope.original_bill = bill;
-		});
+			$scope.billTitle = 'Duplicate bill';
 
-		$scope.bill = {};
-		$scope.bill.id = '';
-		$scope.bill.vendor_id = vendor_id;
-		$scope.bill.currency = '';
-		$scope.bill.active = '';
-		$scope.bill.date_opened = Dates.todays_date();
-		$scope.bill.notes = '';
+			$scope.original_bill = bill;
+
+			$scope.bill = {};
+			$scope.bill.id = '';
+			$scope.bill.vendor_id = bill.owner.id;
+			$scope.bill.currency = bill.currency;
+			$scope.bill.active = bill.active;
+			$scope.bill.date_opened = Dates.todays_date();
+			$scope.bill.notes = bill.notes;
+		});		
 	}
 
 	$scope.close = function () {
