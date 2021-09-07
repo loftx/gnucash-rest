@@ -137,14 +137,13 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 	$scope.emptyBill = function() {
 
-		id = 0;
-
 		var popup = $uibModal.open({
 			templateUrl: 'partials/bills/fragments/form.html',
 			controller: 'modalEditBillCtrl',
 			size: 'lg',
 			resolve: {
-				id: function () { return id; },
+				action: function () { return 'new'; },
+				id: function () { return 0; },
 				vendor_id: function () { return ''; }
 			}
 		});
@@ -162,6 +161,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 			controller: 'modalEditBillCtrl',
 			size: 'lg',
 			resolve: {
+				action: function () { return 'edit'; },
 				id: function () { return id; },
 				vendor_id: function () { return ''; }
 			}
@@ -181,7 +181,7 @@ function BillListCtrl($scope, $uibModal, Vendor, Bill, Dates) {
 
 }
 
-function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, Entry, Dates) {
+function BillDetailCtrl($scope, $location, $routeParams, $uibModal, Bill, Vendor, Account, Entry, Dates) {
 
 	Vendor.query().then(function(vendors) {
 		$scope.vendors = vendors;
@@ -200,6 +200,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 			controller: 'modalEditBillCtrl',
 			size: 'lg',
 			resolve: {
+				action: function () { return 'edit'; },
 				id: function () { return id; },
 				vendor_id: function () { return ''; }
 			}
@@ -211,6 +212,26 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 
 	}
 
+	$scope.emptyDuplicateBill = function(id, vendor_id) {
+
+		var popup = $uibModal.open({
+			templateUrl: 'partials/bills/fragments/form.html',
+			controller: 'modalEditBillCtrl',
+			size: 'lg',
+			resolve: {
+				action: function () { return 'duplicate'; },
+				id: function () { return id; },
+				vendor_id: function () { return vendor_id; }
+			}
+		});
+
+		popup.result.then(function(bill) {
+			// redirect to new bill
+			$location.path('/bills/' + bill.id);
+		});
+
+	}
+
 	$scope.emptyPostBill = function() {
 
 		$scope.bill.date_posted = Dates.format_todays_date();
@@ -218,7 +239,7 @@ function BillDetailCtrl($scope, $routeParams, $uibModal, Bill, Vendor, Account, 
 		$scope.bill.posted_accumulatesplits = true;
 
 		var popup = $uibModal.open({
-		 	templateUrl: 'partials/bills/fragments/postform.html',
+			templateUrl: 'partials/bills/fragments/postform.html',
 			controller: 'modalPostBillCtrl',
 			size: 'lg',
 			resolve: {
@@ -474,7 +495,7 @@ app.controller('modalPayBillCtrl', ['bill', '$scope', '$uibModalInstance', 'Acco
 }]);
 
 // this is bad due to the case...
-app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInstance', 'Bill', 'Vendor', 'Dates', function(id, vendor_id, $scope, $uibModalInstance, Bill, Vendor, Dates) {
+app.controller('modalEditBillCtrl', ['action', 'id', 'vendor_id', '$scope', '$uibModalInstance', 'Bill', 'Vendor', 'Entry', 'Dates', function(action, id, vendor_id, $scope, $uibModalInstance, Bill, Vendor, Entry, Dates) {
 
 	$scope.billError = '';
 
@@ -491,9 +512,11 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 
 	$scope.billError = '';
 
-	if (id == 0) {
+	$scope.action = action;
+
+	if (action == 'new') {
+
 		$scope.billTitle = 'Add bill';
-		$scope.billNew = 1;
 
 		$scope.bill = {};
 		$scope.bill.id = '';
@@ -502,10 +525,9 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 		$scope.bill.active = '';
 		$scope.bill.date_opened = Dates.todays_date();
 		$scope.bill.notes = '';
-	} else {
+	} else if (action == 'edit') {
 		Bill.get(id).then(function(bill) {
 			$scope.billTitle = 'Edit bill';
-			$scope.billNew = 0;
 
 			$scope.bill = bill;
 			// date opened and vendor_id don't map directly to the bill object
@@ -513,6 +535,20 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 			$scope.bill.date_opened = Dates.dateOutput(bill.date_opened);
 
 		});
+	} else if (action == 'duplicate') {
+		$scope.billTitle = 'Duplicate bill';
+
+		Bill.get(id).then(function(bill) {
+			$scope.original_bill = bill;
+		});
+
+		$scope.bill = {};
+		$scope.bill.id = '';
+		$scope.bill.vendor_id = vendor_id;
+		$scope.bill.currency = '';
+		$scope.bill.active = '';
+		$scope.bill.date_opened = Dates.todays_date();
+		$scope.bill.notes = '';
 	}
 
 	$scope.close = function () {
@@ -521,7 +557,7 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 
 	$scope.saveBill = function() {
 
-		if ($scope.billNew == 1) {
+		if (action == 'new') {
 			
 			for (var i = 0; i < $scope.vendors.length; i++) {
 				if ($scope.vendors[i].id == $scope.bill.vendor_id) {
@@ -553,7 +589,7 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 				}
 			});
 
-		} else {			
+		} else if (action == 'edit') {			
 
 			var params = {
 				id: id,
@@ -568,6 +604,66 @@ app.controller('modalEditBillCtrl', ['id', 'vendor_id', '$scope', '$uibModalInst
 
 				$scope.billError = '';
 				$uibModalInstance.close(bill);	
+
+			}, function(data) {
+				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+				if(typeof data.errors != 'undefined') {
+					$scope.billError = data.errors[0].message;
+				} else {
+					console.log(data);
+					console.log(status);	
+				}
+			});
+
+		} else if (action == 'duplicate') {
+			
+			for (var i = 0; i < $scope.vendors.length; i++) {
+				if ($scope.vendors[i].id == $scope.bill.vendor_id) {
+					$scope.bill.vendor_currency = $scope.vendors[i].currency;
+				}
+			}
+
+			var params = {
+				id: $scope.bill.id,
+				active: $scope.bill.active,
+				vendor_id: $scope.bill.vendor_id,
+				currency: $scope.bill.vendor_currency,
+				date_opened: Dates.dateInput($scope.bill.date_opened),
+				notes: $scope.bill.notes
+			};
+
+			Bill.add(params).then(function(bill) {
+
+				for (i = 0; i < $scope.original_bill.entries.length; i++) {
+					
+					entry = $scope.original_bill.entries[i];
+
+					var params = {
+						date: entry.date,
+						description: entry.description,
+						account_guid: entry.bill_account.guid,
+						quantity: entry.quantity,
+						price: entry.bill_price
+					};
+
+					Entry.add('bill', bill.id, params).then(function(entry) {
+						
+						// no action as shouldn't fail
+
+					}, function(data) {
+						// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?
+						if(typeof data.errors != 'undefined') {
+							$scope.entryError = data.errors[0].message;
+						} else {
+							console.log(data);
+							console.log(status);	
+						}
+					});
+
+					$scope.billError = '';
+					$uibModalInstance.close(bill);
+
+				}
 
 			}, function(data) {
 				// This doesn't seem to be passing through any other data e.g request status - also do we need to get this into core.handleErrors ?

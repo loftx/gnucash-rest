@@ -42,10 +42,11 @@
 
     </fieldset>
   </form>
-
+  
   <a role="button" class="btn btn-default" ng-click="populateBill(bill.id)">Edit bill</a>
   <a role="button" class="btn btn-default" ng-click="emptyPostBill(bill.id)" ng-show="!bill.posted">Post bill</a>
   <a role="button" class="btn btn-default" ng-click="emptyPayBill(bill.id)" ng-show="bill.posted && !bill.paid">Pay bill</a>
+  <a role="button" class="btn btn-default" ng-click="emptyDuplicateBill(bill.id, bill.owner.id)">Duplicate bill</a>
 
   <h2>Bill entries</h2>
 
