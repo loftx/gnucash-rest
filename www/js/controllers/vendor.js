@@ -188,6 +188,7 @@ function VendorDetailCtrl($scope, $uibModal, $routeParams, Vendor, Account, Bill
 			controller: 'modalEditBillCtrl',
 			size: 'lg',
 			resolve: {
+				action: function () { return 'new'; },
 				id: function () { return id; },
 				vendor_id: function () { return $scope.vendor.id; }
 			}
