@@ -45,7 +45,6 @@ function AccountDetailCtrl($scope, $routeParams, $route, $uibModal, Account, Tra
 		$scope.accounts = accounts;
 	});
 
-
 	$scope.emptyTransaction = function() {
 
 		guid = '';
@@ -142,7 +141,10 @@ app.controller('modalEditAccountCtrl', ['guid', '$scope', '$uibModalInstance', '
 	$scope.currencys = Money.currencys();
 	$scope.account_types = Account.types();
 
-	Account.getAccountsForDropdown({ 'includeRoot': true }).then(function(accounts) {
+	Account.getAccountsForDropdown({
+		'includeRoot': true,
+		'includePlaceholderAccounts': true
+	}).then(function(accounts) {
 		$scope.dropdown_accounts = accounts;
 	});
 

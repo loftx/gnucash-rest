@@ -175,25 +175,28 @@ factory('Account', function($q, $http, $timeout, Api, Money) {
           params['includeRoot'] = false;
         }
 
+        if (!('includePlaceholderAccounts' in params)) {
+          params['includePlaceholderAccounts'] = false;
+        }
+
         $http.get(Api.getUrl() + '/accounts', {headers: Api.getHeaders()})
           .success(function(data) {
 
             var accounts = obj.getSubAccounts(data, 0);
-            var nonPlaceholderAccounts = [];
+            var filteredAccounts = [];
 
             if (data.type_id == ACCT_TYPE_ROOT && params['includeRoot'] == true) {
               delete data['subaccounts'];
-              nonPlaceholderAccounts.push(data);
+              filteredAccounts.push(data);
             }
 
-            // limit remove placeholder accounts 
             for (var i in accounts) {
-              if (!accounts[i].placeholder) {
-                nonPlaceholderAccounts.push(accounts[i]);
+              if (!accounts[i].placeholder || params['includePlaceholderAccounts']) {
+                filteredAccounts.push(accounts[i]);
               }
             }
 
-            deferred.resolve(nonPlaceholderAccounts);
+            deferred.resolve(filteredAccounts);
           })
           .error(function(data, status) {
             Api.handleErrors(data, status, 'accounts');
