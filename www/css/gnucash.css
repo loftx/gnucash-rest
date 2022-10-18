@@ -10,3 +10,12 @@
 .navbar .navbar-right {
 	float: right;
 }
+
+.select2-container {
+	padding: 0px;
+}
+
+.select2-container .select2-choice {
+	height: 33px;
+	padding-top: 3px;
+}
