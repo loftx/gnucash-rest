@@ -28,7 +28,7 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="customerCurrency">Currency</label>
       <div class="col-sm-10">
-        <select id="customerCurrency" data-ng-model="customer.currency" data-ng-options="currency.key as currency.value for currency in currencys" class="form-control"></select>
+        <select2 id="customerCurrency" ng-model="customer.currency" s2-options="currency.key as currency.value for currency in currencys" class="form-control"></select2>
       </div>
     </div>
 

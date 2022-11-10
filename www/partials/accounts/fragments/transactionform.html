@@ -40,7 +40,7 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="transactionSplitAccount1">Account</label>
         <div class="col-sm-10">
-          <select data-ng-model="transaction.splitAccount1" data-ng-options="account.guid as account.name for account in accounts" class="form-control"></select>
+          <select2 ng-model="transaction.splitAccount1" s2-options="account.guid as account.name for account in accounts" class="form-control"></select2>
         </div>
       </div>
 

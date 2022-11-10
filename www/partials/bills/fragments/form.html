@@ -40,7 +40,6 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="billVendor">Vendor</label>
       <div class="col-sm-10">
-        <!-- <select id="billVendor" data-ng-model="bill.vendor_id" data-ng-options="vendor.id as vendor.name for vendor in vendors" class="form-control" ng-disabled="bill.posted"></select> -->
         <select2 id="billVendor" ng-model="bill.vendor_id" s2-options="vendor.id as vendor.name for vendor in vendors" class="form-control" ng-disabled="bill.posted"></select2>
       </div>
     </div>

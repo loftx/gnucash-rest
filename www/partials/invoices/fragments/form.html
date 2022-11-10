@@ -40,7 +40,7 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="invoiceCompany">Company</label>
       <div class="col-sm-10">
-        <select class="form-control" data-ng-model="invoice.customer_id" data-ng-options="customer.id as customer.name for customer in customers" type="text" ng-disabled="invoice.posted"></select>
+        <select2 class="form-control" ng-model="invoice.customer_id" s2-options="customer.id as customer.name for customer in customers" type="text" ng-disabled="invoice.posted"></select2>
       </div>
     </div>
 

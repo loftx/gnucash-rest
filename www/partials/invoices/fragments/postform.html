@@ -39,7 +39,7 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="invoiceAccount">Posted account</label>
         <div class="col-sm-10">
-          <select data-ng-model="invoice.posted_account" data-ng-options="account.guid as account.name for account in accounts" class="form-control"></select>
+          <select2 ng-model="invoice.posted_account" s2-options="account.guid as account.name for account in accounts" class="form-control"></select2>
         </div>
       </div>
 
