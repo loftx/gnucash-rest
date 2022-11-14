@@ -77,6 +77,10 @@ from gnucash import \
     QOF_COMPARE_GTE, \
     QOF_COMPARE_NEQ
 
+# QOF_COMPARE_CONTAINS is not in gnucash so we import directly
+from gnucash.gnucash_core_c import \
+    QOF_COMPARE_CONTAINS
+
 from gnucash import \
     INVOICE_TYPE
 
@@ -1256,6 +1260,54 @@ def api_vendor_bills(id):
 
     return Response(json.dumps(bills), mimetype='application/json')
 
+@app.route('/search/transactions', methods=['GET'])
+def api_search_transactions():
+
+    try:
+        session = get_session()
+    except Error as error:
+        return Response(json.dumps({'errors': [{'type': error.type,
+                                                'message': error.message,
+                                                'data': error.data}]}),
+                    status=400, mimetype='application/json')
+
+    params = {}
+
+    if request.args.get('desc', None):
+        params['desc'] = request.args.get('desc', None)
+
+    session = get_session()
+
+    splits = search_transactions(session.book, params)
+
+    return Response(json.dumps(splits), status=200,
+                    mimetype='application/json')
+
+def search_transactions(book, properties):
+
+    query = gnucash.Query()
+    query.search_for('Split')
+    query.set_book(book)
+
+    SPLIT_TRANS = 'trans'
+    TRANS_DESCRIPTION = "desc"
+
+    if 'desc' in properties:
+        pred_data = gnucash.gnucash_core.QueryStringPredicate(
+            QOF_COMPARE_CONTAINS, properties['desc'], QOF_STRING_MATCH_NORMAL, False)
+        param_list = [SPLIT_TRANS, TRANS_DESCRIPTION]
+        query.add_term(param_list, pred_data, QOF_QUERY_AND)
+
+    splits = []
+
+    for split in query.run():
+        splits.append(gnucash_simple.splitToDict(
+            gnucash.gnucash_business.Split(instance=split),
+            ['account', 'transaction', 'other_split']))
+
+    query.destroy()
+
+    return splits
 
 def get_customers(book):
 
