@@ -99,8 +99,9 @@ session = None
 app = Flask(__name__)
 
 
-@app.before_first_request
+@app.before_request
 def _run_on_start():
+    app.before_request_funcs[None].remove(_run_on_start)
     startup()
     # register method to close gnucash connection gracefully
     atexit.register(shutdown)
