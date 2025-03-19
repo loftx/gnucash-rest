@@ -2649,5 +2649,50 @@ class EntriesSessionTestCase(ApiSessionTestCase):
             '/entries/' + self.createEntry()['guid'],
             data=dict()).status == '200 OK'
 
+class SearchTestCase(ApiSessionTestCase):
+
+    def createTransaction(self):
+
+        # Gnucash does allow a transaction to be across the same accounts so
+        # this test is correct!
+
+        # this is test_accounts
+        splitaccount1 = json.loads(self.clean(self.app.post('/accounts', data=dict(
+            name='Test',
+            currency='GBP',
+            account_type_id='2'
+        )).data))
+
+        splitaccount2 = json.loads(self.clean(self.app.post('/accounts', data=dict(
+            name='Test 2',
+            currency='GBP',
+            account_type_id='2'
+        )).data))
+
+        data = dict(
+            currency='GBP',
+            date_posted='2018-01-01',
+            splitaccount1=splitaccount1['guid'],
+            splitaccount2=splitaccount2['guid'],
+            splitvalue1='0',
+            splitvalue2='0',
+            description='Test'
+        )
+
+        return json.loads(self.clean(self.app.post('/transactions', data=data).data))
+
+    def createTransactionGuid(self):
+        transaction = self.createTransaction()
+        return transaction['guid']
+
+    def test_search(self):
+
+        transaction = self.createTransaction()
+
+        response = self.app.get('/search/transactions?desc=Test')
+        splits = json.loads(self.clean(response.data))
+
+        assert splits[0]['transaction']['description'] == 'Test'
+
 if __name__ == '__main__':
     unittest.main()
