@@ -94,12 +94,12 @@ session = None
 # start application
 app = Flask(__name__)
 
-
-@app.before_first_request
-def _run_on_start():
-    startup()
-    # register method to close gnucash connection gracefully
-    atexit.register(shutdown)
+# FIXME: no longer works on Ubuntu 20.04
+#@app.before_first_request
+#def _run_on_start():
+#    startup()
+#    # register method to close gnucash connection gracefully
+#    atexit.register(shutdown)
 
 
 @app.after_request
