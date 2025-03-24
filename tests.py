@@ -1,13 +1,16 @@
 import unittest
 import json
-import gnucash
-import gnucash_rest
 import MySQLdb
 import warnings
 import sys
 import os
 import glob
+import gnucash
 
+# use current package rather than installed
+sys.path.insert(0,"gnucash_rest")
+
+import gnucash_rest
 
 class ApiTestCase(unittest.TestCase):
 
@@ -76,15 +79,15 @@ class ApiTestCase(unittest.TestCase):
             return data
 
     def get_error_type(self, method, url, data):
-        if method is 'get':
+        if method == 'get':
             response = self.app.get(url)
-        elif method is 'post':
+        elif method == 'post':
             response = self.app.post(url, data=data)
-        elif method is 'delete':
+        elif method == 'delete':
             response = self.app.delete(url, data=data)
-        elif method is 'pay':
+        elif method == 'pay':
             response = self.app.open(url, data=data, method='pay')
-        elif method is 'unpost':
+        elif method == 'unpost':
             response = self.app.open(url, data=data, method='unpost')
         else:
             raise ValueError('unknown method in assert_error_type')
